@@ -1,0 +1,3375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RecruiterAI — Smart Hiring Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f0f4ff;
+    --surface: #ffffff;
+    --surface2: #f5f7ff;
+    --border: #dde3f5;
+    --accent: #4361ee;
+    --accent2: #7209b7;
+    --accent-glow: rgba(67,97,238,0.10);
+    --gold: #f77f00;
+    --text: #0f1117;
+    --text-muted: #4b5563;
+    --success: #0a9c5a;
+    --danger: #e5383b;
+    --pink: #f72585;
+    --teal: #06b6d4;
+    --lime: #65a30d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; top: -20%; left: -10%; width: 60%; height: 60%; background: radial-gradient(ellipse, rgba(67,97,238,0.08) 0%, transparent 65%); pointer-events: none; animation: drift 12s ease-in-out infinite alternate; }
+  body::after  { content: ''; position: fixed; bottom: -20%; right: -5%;  width: 50%; height: 50%; background: radial-gradient(ellipse, rgba(247,37,133,0.07) 0%, transparent 65%); pointer-events: none; animation: drift 15s ease-in-out infinite alternate-reverse; }
+  @keyframes drift { from { transform: translate(0,0); } to { transform: translate(3%,4%); } }
+
+  .app { display: grid; grid-template-columns: 270px 1fr; grid-template-rows: 60px 1fr; height: 100vh; }
+
+  header { grid-column: 1/-1; display: flex; align-items: center; padding: 0 24px; background: linear-gradient(135deg, #4361ee, #7209b7); gap: 12px; z-index: 10; box-shadow: 0 2px 16px rgba(67,97,238,0.25); }
+  .logo { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #fff; letter-spacing: -0.5px; }
+  .logo span { color: #ffd166; }
+  .badge { background: rgba(255,255,255,0.22); color: white; font-size: 0.65rem; font-weight: 600; padding: 2px 10px; border-radius: 20px; letter-spacing: 0.5px; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.3); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .api-status { font-size: 0.75rem; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.4); transition: background 0.3s; }
+  .dot.active { background: #a3ffb0; box-shadow: 0 0 8px #a3ffb0; }
+
+  aside { background: white; border-right: 2px solid var(--border); overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 3px; z-index: 5; box-shadow: 2px 0 12px rgba(67,97,238,0.06); }
+  .sidebar-section { font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); padding: 10px 8px 4px; margin-top: 6px; }
+  .mode-btn { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all 0.18s; border: 1px solid transparent; background: transparent; color: var(--text-muted); font-family: 'Outfit', sans-serif; font-size: 0.82rem; font-weight: 500; text-align: left; width: 100%; }
+  .mode-btn:hover { background: var(--accent-glow); color: var(--accent); border-color: rgba(67,97,238,0.15); }
+  .mode-btn.active { background: linear-gradient(135deg, rgba(67,97,238,0.12), rgba(114,9,183,0.08)); border-color: rgba(67,97,238,0.3); color: var(--accent); font-weight: 600; }
+  .mode-btn .icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .mode-btn.battle:hover { background: rgba(247,127,0,0.08); color: var(--gold); border-color: rgba(247,127,0,0.2); }
+  .mode-btn.battle.active { background: rgba(247,127,0,0.10); border-color: rgba(247,127,0,0.35); color: var(--gold); }
+
+  .api-box { margin-top: auto; padding: 12px; background: linear-gradient(135deg, rgba(67,97,238,0.06), rgba(114,9,183,0.04)); border-radius: 12px; border: 1px solid rgba(67,97,238,0.2); }
+  .api-box label { font-size: 0.7rem; color: var(--accent); display: block; margin-bottom: 6px; font-weight: 600; }
+  .api-box input { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 10px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.72rem; outline: none; }
+  .api-box input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,97,238,0.12); }
+  .api-box p { font-size: 0.63rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+  .api-box a { color: var(--accent); font-weight: 600; }
+  .free-badge { display: inline-block; background: rgba(10,156,90,0.12); border: 1px solid rgba(10,156,90,0.3); color: var(--success); font-size: 0.6rem; padding: 1px 6px; border-radius: 10px; font-weight: 700; }
+
+  main { display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+  #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; gap: 16px; }
+  #welcome h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; line-height: 1.15; background: linear-gradient(135deg, var(--accent), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  #welcome p { color: var(--text-muted); font-size: 0.9rem; max-width: 500px; line-height: 1.6; }
+  .welcome-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; max-width: 660px; width: 100%; }
+  .wcard { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; text-align: left; box-shadow: 0 2px 8px rgba(67,97,238,0.06); }
+  .wcard:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(67,97,238,0.15); }
+  .wcard.gold:hover { border-color: var(--gold); box-shadow: 0 8px 24px rgba(247,127,0,0.18); }
+  .wcard .wicon { font-size: 1.4rem; margin-bottom: 6px; }
+  .wcard .wtitle { font-size: 0.82rem; font-weight: 700; margin-bottom: 2px; color: var(--text); }
+  .wcard .wdesc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.3; }
+  .wcard .wbadge { display: inline-block; font-size: 0.58rem; padding: 1px 7px; border-radius: 8px; margin-top: 5px; font-weight: 700; }
+  .wbadge.free { background: rgba(10,156,90,0.10); color: var(--success); border: 1px solid rgba(10,156,90,0.25); }
+  .wbadge.key  { background: rgba(67,97,238,0.10); color: var(--accent); border: 1px solid rgba(67,97,238,0.25); }
+
+  #context-panel { padding: 12px 16px; background: white; border-bottom: 2px solid var(--border); display: none; gap: 12px; flex-wrap: wrap; align-items: flex-start; box-shadow: 0 2px 8px rgba(67,97,238,0.05); }
+  #context-panel.visible { display: flex; }
+  .ctx-label { font-size: 0.7rem; color: var(--accent); margin-bottom: 4px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .ctx-group { display: flex; flex-direction: column; flex: 1; min-width: 160px; }
+  .ctx-group textarea { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.8rem; resize: vertical; min-height: 60px; outline: none; line-height: 1.4; }
+  .ctx-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
+
+  .upload-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+  .upload-tab { font-size: 0.68rem; padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.18s; }
+  .upload-tab.active { background: rgba(67,97,238,0.10); border-color: rgba(67,97,238,0.35); color: var(--accent); font-weight: 600; }
+  .drop-zone { border: 2px dashed rgba(67,97,238,0.3); border-radius: 10px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(67,97,238,0.03); min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: rgba(67,97,238,0.07); }
+  .dz-icon { font-size: 1.4rem; }
+  .dz-text { font-size: 0.78rem; color: var(--accent); font-weight: 500; }
+  .dz-sub  { font-size: 0.68rem; color: var(--text-muted); }
+  .file-chip { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; margin-top: 6px; color: var(--text); }
+  .file-chip.processing { border-color: var(--teal); color: var(--teal); background: rgba(6,182,212,0.06); }
+  .file-chip.done { border-color: var(--success); color: var(--success); background: rgba(10,156,90,0.07); }
+  .file-chip .rm { cursor: pointer; color: var(--text-muted); margin-left: 2px; font-size: 0.85rem; }
+  .file-chip .rm:hover { color: var(--danger); }
+  .batch-file-list { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .batch-file-item { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; }
+  .bf-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .bf-status { font-size: 0.68rem; white-space: nowrap; color: var(--text-muted); }
+  .bf-status.loading { color: var(--teal); }
+  .bf-status.ok { color: var(--success); }
+  .bf-rm { cursor: pointer; color: var(--text-muted); font-size: 0.85rem; padding: 0 2px; }
+  .bf-rm:hover { color: var(--danger); }
+
+  #chat-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: none; flex-direction: column; gap: 14px; background: var(--bg); }
+  #chat-container::-webkit-scrollbar { width: 5px; }
+  #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .msg { display: flex; gap: 12px; animation: fadeUp 0.3s ease; max-width: 840px; }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .msg.ai   .avatar { background: linear-gradient(135deg, var(--accent), var(--pink)); color: white; box-shadow: 0 2px 8px rgba(67,97,238,0.3); }
+  .msg.user .avatar { background: linear-gradient(135deg, var(--teal), var(--lime)); color: white; box-shadow: 0 2px 8px rgba(6,182,212,0.3); }
+  .bubble { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 16px; font-size: 0.85rem; line-height: 1.6; color: var(--text); max-width: 720px; box-shadow: 0 2px 8px rgba(67,97,238,0.06); }
+  .msg.user .bubble { background: linear-gradient(135deg, rgba(67,97,238,0.08), rgba(114,9,183,0.05)); border-color: rgba(67,97,238,0.2); }
+  .bubble strong { color: var(--accent); font-weight: 600; }
+  .score-bar { height: 7px; background: var(--border); border-radius: 4px; margin: 6px 0 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+  .section-hdr { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 10px 0 4px; }
+  .resp-block { border-radius: 8px; padding: 8px 12px; margin: 5px 0; font-size: 0.83rem; border-left: 4px solid; }
+  .resp-block.warn { border-color: var(--gold);   background: rgba(247,127,0,0.07); }
+  .resp-block.good { border-color: var(--success); background: rgba(10,156,90,0.07); }
+  .resp-block.bad  { border-color: var(--danger);  background: rgba(229,56,59,0.07); }
+  .typing { display: flex; align-items: center; gap: 5px; padding: 4px 0; }
+  .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity:0.2; transform:scale(0.8); } 40% { opacity:1; transform:scale(1); } }
+
+  #input-area { padding: 14px 24px; background: white; border-top: 2px solid var(--border); box-shadow: 0 -2px 12px rgba(67,97,238,0.06); }
+  .mode-indicator { font-size: 0.72rem; color: var(--accent); margin-bottom: 6px; font-weight: 700; }
+  .input-row { display: flex; gap: 10px; align-items: flex-end; }
+  #user-input { flex: 1; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.87rem; resize: none; outline: none; min-height: 48px; max-height: 140px; line-height: 1.5; transition: border-color 0.2s; }
+  #user-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
+  #user-input::placeholder { color: var(--text-muted); }
+  .send-btn { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 10px; width: 44px; height: 44px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: all 0.2s; flex-shrink: 0; color: white; box-shadow: 0 2px 10px rgba(67,97,238,0.3); }
+  .send-btn:hover { transform: scale(1.07); box-shadow: 0 4px 18px rgba(67,97,238,0.45); }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+  .quick-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 13px; font-size: 0.72rem; cursor: pointer; color: var(--text-muted); transition: all 0.18s; font-weight: 500; }
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(67,97,238,0.06); box-shadow: 0 2px 6px rgba(67,97,238,0.12); }
+
+  #battle-panel { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #battle-panel.visible { display: flex; }
+  .battle-header { padding: 20px 28px 0; }
+  .battle-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 4px; }
+  .battle-header p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; max-width: 700px; }
+  .free-note { display: inline-flex; align-items: center; gap: 6px; background: rgba(10,156,90,0.08); border: 1px solid rgba(10,156,90,0.22); border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; color: var(--success); margin-top: 10px; font-weight: 600; }
+
+  .battle-config { padding: 16px 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-bottom: 2px solid var(--border); overflow-y: auto; max-height: 55vh; }
+  .bc-field { display: flex; flex-direction: column; gap: 5px; }
+  .bc-field.full { grid-column: 1/-1; }
+  .bc-field.half { grid-column: span 2; }
+  .bc-label { font-size: 0.68rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; }
+  .bc-input { background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.83rem; outline: none; transition: border-color 0.2s; }
+  .bc-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(247,127,0,0.10); }
+  .bc-input::placeholder { color: var(--text-muted); }
+  select.bc-input { cursor: pointer; }
+  textarea.bc-input { resize: vertical; min-height: 50px; line-height: 1.4; }
+
+  .battle-actions { padding: 14px 28px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 2px solid var(--border); background: white; }
+  .btn-gold { background: linear-gradient(135deg, #f77f00, #f4a261); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 10px rgba(247,127,0,0.3); }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(247,127,0,0.4); }
+  .btn-outline { background: white; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 18px; font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-copy { background: white; border: 1.5px solid rgba(247,127,0,0.35); border-radius: 10px; padding: 10px 18px; font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: var(--gold); cursor: pointer; transition: all 0.2s; }
+  .btn-copy:hover { background: rgba(247,127,0,0.07); }
+
+  .prompt-output { flex: 1; overflow-y: auto; padding: 20px 28px; background: var(--bg); }
+  .prompt-box { background: white; border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(67,97,238,0.07); }
+  .prompt-box-header { background: var(--surface2); border-bottom: 1.5px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .prompt-box-header span { font-size: 0.75rem; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+  .prompt-box-header button { background: rgba(247,127,0,0.10); border: 1px solid rgba(247,127,0,0.3); border-radius: 6px; padding: 4px 12px; color: var(--gold); font-size: 0.72rem; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; font-weight: 600; }
+  .prompt-box-header button:hover { background: rgba(247,127,0,0.18); }
+  .prompt-text { padding: 16px; font-family: 'DM Mono', monospace; font-size: 0.75rem; line-height: 1.6; color: var(--text); white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow-y: auto; }
+  .prompt-text::-webkit-scrollbar { width: 4px; }
+  .prompt-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .steps-guide { margin-top: 16px; background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 8px rgba(67,97,238,0.06); }
+  .steps-guide h4 { font-size: 0.8rem; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .step-item { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #f77f00, #f4a261); color: white; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-text { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+  .step-text a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .step-text a:hover { text-decoration: underline; }
+  .step-text strong { color: var(--text); }
+
+  .hidden { display: none !important; }
+  aside::-webkit-scrollbar { width: 3px; }
+  aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .otab { background: transparent; border: 1.5px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; padding: 8px 16px; font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; transition: all 0.2s; font-weight: 500; }
+  .otab.active { background: white; color: var(--accent); border-color: rgba(67,97,238,0.3); font-weight: 700; }
+  .otab:hover:not(.active) { color: var(--accent); background: rgba(67,97,238,0.04); }
+
+  .ol-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 2px 8px rgba(67,97,238,0.05); }
+  .ol-card-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1.5px solid var(--border); }
+  .ol-step { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: white; flex-shrink: 0; }
+  .ol-field { margin-bottom: 12px; }
+  .ol-label { font-size: 0.72rem; color: var(--accent); font-weight: 600; display: block; margin-bottom: 5px; }
+  .ol-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.83rem; outline: none; transition: border-color 0.2s; resize: vertical; }
+  .ol-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
+  .ol-input::placeholder { color: var(--text-muted); }
+  .ol-cta-btn { background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; text-align: left; transition: all 0.2s; width: 100%; color: var(--text); }
+  .ol-cta-btn:hover { background: var(--surface2); border-color: var(--accent); }
+  .ol-cv-active   { border-color: rgba(67,97,238,0.5);  background: rgba(67,97,238,0.07); }
+  .ol-call-active { border-color: rgba(114,9,183,0.5); background: rgba(114,9,183,0.07); }
+  .ol-count-btn { flex: 1; background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px; color: var(--text-muted); font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
+  .ol-count-btn:hover { color: var(--accent); border-color: rgba(67,97,238,0.3); }
+  .ol-count-active { border-color: rgba(67,97,238,0.5); background: rgba(67,97,238,0.07); color: var(--accent); }
+  .ol-debug-bar { background: rgba(67,97,238,0.05); border: 1px solid rgba(67,97,238,0.15); border-radius: 8px; padding: 6px 12px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn-ol-generate { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; border-radius: 10px; padding: 12px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 12px rgba(67,97,238,0.3); }
+  .btn-ol-generate:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 5px 18px rgba(67,97,238,0.4); }
+  .btn-ol-generate:disabled { opacity: 0.35; cursor: not-allowed; }
+  .ol-error { background: rgba(229,56,59,0.07); border: 1px solid rgba(229,56,59,0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--danger); margin-top: 10px; }
+  .ol-subj-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; gap: 10px; }
+  .ol-subj-row span { font-size: 0.83rem; flex: 1; color: var(--text); }
+  .ol-copy-btn { background: white; border: 1.5px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: 3px 10px; font-size: 0.7rem; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.2s; white-space: nowrap; }
+  .ol-copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ol-msg-card { background: white; border: 1.5px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(67,97,238,0.05); }
+  .ol-msg-hdr { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; transition: background 0.18s; }
+  .ol-msg-hdr:hover { background: var(--surface2); }
+  .ol-msg-body { display: none; border-top: 1.5px solid var(--border); }
+  .ol-msg-body.open { display: block; }
+  .ol-inner { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .ol-inner:last-child { border-bottom: none; }
+  .ol-micro { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); margin-bottom: 5px; }
+  .ol-pre { font-family: 'Outfit', sans-serif; font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; color: var(--text); }
+  .ol-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ol-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+  .ol-badge-outreach { background: rgba(67,97,238,0.10); color: var(--accent); border: 1px solid rgba(67,97,238,0.25); }
+  .ol-badge-fu1 { background: rgba(10,156,90,0.10); color: var(--success); border: 1px solid rgba(10,156,90,0.25); }
+  .ol-badge-fu2 { background: rgba(247,127,0,0.10); color: var(--gold); border: 1px solid rgba(247,127,0,0.25); }
+  .ol-badge-fu3 { background: rgba(229,56,59,0.10); color: var(--danger); border: 1px solid rgba(229,56,59,0.25); }
+
+  .psa-btn { border: none; border-radius: 8px; padding: 8px 14px; font-family: 'Outfit', sans-serif; font-size: 0.79rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+  .psa-btn:hover { transform: translateY(-1px); }
+  .psa-sm { padding: 6px 11px; font-size: 0.74rem; }
+  .psa-green  { background: linear-gradient(135deg, #0a9c5a, #22c55e); color: white; box-shadow: 0 2px 8px rgba(10,156,90,0.25); }
+  .psa-blue   { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 2px 8px rgba(67,97,238,0.25); }
+  .psa-purple { background: rgba(168,85,247,0.12); border: 1.5px solid rgba(168,85,247,0.35); color: #7c3aed; }
+  .psa-red    { background: rgba(229,56,59,0.09); border: 1.5px solid rgba(229,56,59,0.3); color: var(--danger); }
+  .psa-gold   { background: rgba(247,127,0,0.10); border: 1.5px solid rgba(247,127,0,0.35); color: var(--gold); }
+
+  .mode-btn.dashboard-btn { background: linear-gradient(135deg, rgba(67,97,238,0.08), rgba(247,37,133,0.06)); border-color: rgba(67,97,238,0.2); color: var(--accent); font-weight: 600; }
+  .mode-btn.dashboard-btn:hover, .mode-btn.dashboard-btn.active { background: linear-gradient(135deg, rgba(67,97,238,0.16), rgba(247,37,133,0.12)); border-color: rgba(67,97,238,0.4); }
+
+  /* Dashboard panel */
+  #dashboard-panel { flex:1; display:none; flex-direction:column; overflow:hidden; background:var(--bg); }
+  #dashboard-panel.visible { display:flex; }
+  .dash-header { padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .dash-header h2 { font-family:'DM Serif Display',serif; font-size:1.4rem; background:linear-gradient(135deg,var(--accent),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0; }
+  .dash-upload-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .dash-upload-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:white; border:none; border-radius:10px; padding:8px 18px; font-family:'Outfit',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; box-shadow:0 2px 8px rgba(67,97,238,0.25); }
+  .dash-upload-btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(67,97,238,0.35); }
+  .dash-file-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .dash-chip { display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid rgba(67,97,238,0.25); border-radius:20px; padding:4px 12px; font-size:0.73rem; color:var(--accent); font-weight:500; }
+  .dash-chip .rm { cursor:pointer; color:var(--text-muted); font-size:0.9rem; }
+  .dash-chip .rm:hover { color:var(--danger); }
+  .dash-analysis-bar { padding:14px 28px; display:flex; flex-wrap:wrap; gap:8px; border-bottom:2px solid var(--border); background:white; }
+  .dash-btn { background:white; border:1.5px solid var(--border); border-radius:10px; padding:8px 15px; font-family:'Outfit',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; color:var(--text-muted); transition:all 0.2s; }
+  .dash-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(67,97,238,0.05); }
+  .dash-btn.active { background:linear-gradient(135deg,rgba(67,97,238,0.12),rgba(114,9,183,0.08)); border-color:rgba(67,97,238,0.35); color:var(--accent); }
+  .dash-btn.pink { color:var(--pink); border-color:rgba(247,37,133,0.25); }
+  .dash-btn.pink:hover { background:rgba(247,37,133,0.06); border-color:var(--pink); }
+  .dash-btn.gold { color:var(--gold); border-color:rgba(247,127,0,0.25); }
+  .dash-btn.gold:hover { background:rgba(247,127,0,0.06); border-color:var(--gold); }
+  .dash-btn.teal { color:var(--teal); border-color:rgba(6,182,212,0.25); }
+  .dash-btn.teal:hover { background:rgba(6,182,212,0.06); border-color:var(--teal); }
+  .dash-content { flex:1; overflow-y:auto; padding:20px 28px; }
+  .dash-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:14px; color:var(--text-muted); text-align:center; }
+  .dash-empty .big-icon { font-size:3.5rem; }
+  .dash-empty h3 { font-size:1.1rem; color:var(--text); font-weight:600; }
+  .dash-empty p { font-size:0.85rem; max-width:420px; line-height:1.6; }
+  .dash-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:20px; }
+  .dash-card { background:white; border:1.5px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 2px 8px rgba(67,97,238,0.05); }
+  .dash-card-title { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .dash-stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .dash-stat { background:var(--surface2); border-radius:10px; padding:12px; text-align:center; }
+  .dash-stat .val { font-size:1.6rem; font-weight:700; color:var(--accent); line-height:1; }
+  .dash-stat .lbl { font-size:0.68rem; color:var(--text-muted); margin-top:3px; }
+  .dash-result-box { background:var(--surface2); border:1.5px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; font-size:0.85rem; line-height:1.7; color:var(--text); white-space:pre-wrap; }
+  .dash-loading { display:flex; align-items:center; gap:10px; color:var(--accent); font-size:0.85rem; padding:20px 0; }
+  .chart-placeholder { width:100%; height:180px; background:linear-gradient(135deg,rgba(67,97,238,0.06),rgba(247,37,133,0.04)); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:0.8rem; border:1.5px dashed var(--border); }
+
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    .welcome-cards { grid-template-columns: 1fr 1fr; }
+    .battle-config { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">Recruiter<span>AI</span></div>
+    <div class="badge">100% Free</div>
+    <div class="header-right">
+      <div class="api-status">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">Add free Groq key to unlock AI features</span>
+      </div>
+    </div>
+  </header>
+
+  <aside>
+    <div class="sidebar-section">Analytics</div>
+    <button class="mode-btn dashboard-btn" onclick="showDashboard()" id="btn-dashboard"><span class="icon">📊</span><span>Recruiting Dashboard</span></button>
+    <div class="sidebar-section">AI Chat Modes</div>
+    <button class="mode-btn" onclick="setMode('screen')" id="btn-screen"><span class="icon">📋</span><span>Resume / Batch Screening</span></button>
+    <button class="mode-btn" onclick="showOutreachPanel()" id="btn-outreach"><span class="icon">✉️</span><span>Candidate Outreach</span></button>
+    <button class="mode-btn" onclick="setMode('search')" id="btn-search"><span class="icon">🔍</span><span>Search String Builder</span></button>
+    <button class="mode-btn" onclick="setMode('interview')" id="btn-interview"><span class="icon">🎯</span><span>Interview Questions</span></button>
+    <button class="mode-btn" onclick="setMode('jd')" id="btn-jd"><span class="icon">📝</span><span>Write Job Description</span></button>
+    <button class="mode-btn" onclick="setMode('general')" id="btn-general"><span class="icon">💬</span><span>General Assistant</span></button>
+
+    <button class="mode-btn battle" onclick="showBattle()" id="btn-battle"><span class="icon">⚔️</span><span>Battle Cards Builder</span></button>
+
+    <div class="api-box">
+      <label>🔑 API Provider</label>
+      <select id="provider-select" onchange="onProviderChange()" style="width:100%;background:white;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;color:#111827;font-family:'Outfit',sans-serif;font-size:0.8rem;outline:none;margin-bottom:7px;cursor:pointer;">
+        <option value="groq">⚡ Groq — Llama 3.3 (Free)</option>
+        <option value="gemini">🌟 Google Gemini 2.0 (Free)</option>
+        <option value="openai">🤖 OpenAI — GPT-4o</option>
+        <option value="anthropic">🧠 Anthropic — Claude</option>
+        <option value="mistral">🌫️ Mistral (Free tier)</option>
+      </select>
+      <input type="password" id="api-key" placeholder="gsk_..." oninput="checkKey()"/>
+      <p id="provider-hint">Free · <a href="https://console.groq.com" target="_blank" id="provider-link">Get key →</a></p>
+    </div>
+  </aside>
+
+  <main>
+    <!-- Context Panel for AI Chat -->
+    <div id="context-panel">
+      <!-- JD Group -->
+      <div class="ctx-group" id="ctx-jd-group">
+        <div class="ctx-label">📄 Job Description</div>
+        <textarea id="ctx-jd" placeholder="Paste the full job description..."></textarea>
+      </div>
+
+      <!-- Resume Group with upload tabs -->
+      <div class="ctx-group" id="ctx-resume-group">
+        <div class="ctx-label">
+          👤 Candidate Resume
+          <div class="upload-tabs">
+            <button class="upload-tab active" onclick="switchResumeTab('paste')" id="tab-paste">Paste</button>
+            <button class="upload-tab" onclick="switchResumeTab('upload')" id="tab-upload">📎 Upload</button>
+          </div>
+        </div>
+        <!-- Paste tab -->
+        <div id="resume-paste-panel">
+          <textarea id="ctx-resume" placeholder="Paste the candidate's resume text..."></textarea>
+        </div>
+        <!-- Upload tab -->
+        <div id="resume-upload-panel" style="display:none;">
+          <div class="drop-zone" id="resume-drop" onclick="document.getElementById('resume-file-input').click()" ondragover="dzOver(event,'resume-drop')" ondragleave="dzLeave('resume-drop')" ondrop="dzDrop(event,'single')">
+            <div class="dz-icon">📄</div>
+            <div class="dz-text">Click or drag resume here</div>
+            <div class="dz-sub">Supports PDF, DOCX, TXT</div>
+          </div>
+          <input type="file" id="resume-file-input" accept=".pdf,.docx,.txt,.doc" style="display:none" onchange="handleResumeFile(this.files[0])"/>
+          <div id="resume-file-status"></div>
+        </div>
+      </div>
+
+      <!-- Batch uploads group (shown only in screen mode with multiple files) -->
+      <div class="ctx-group" id="ctx-batch-group" style="display:none;">
+        <div class="ctx-label">
+          👥 Additional Resumes <span style="font-size:0.62rem;color:var(--accent);">→ Batch mode auto-activates</span>
+          <span style="font-size:0.65rem;color:var(--text-muted);" id="batch-count-label"></span>
+        </div>
+        <div class="drop-zone" id="batch-drop" onclick="document.getElementById('batch-file-input').click()" ondragover="dzOver(event,'batch-drop')" ondragleave="dzLeave('batch-drop')" ondrop="dzDrop(event,'batch')">
+          <div class="dz-icon">📂</div>
+          <div class="dz-text">Click or drag multiple resumes</div>
+          <div class="dz-sub">PDF, DOCX, TXT — up to 10 files</div>
+        </div>
+        <input type="file" id="batch-file-input" accept=".pdf,.docx,.txt,.doc" multiple style="display:none" onchange="handleBatchFiles(this.files)"/>
+        <div class="batch-file-list" id="batch-file-list"></div>
+      </div>
+    </div>
+
+    <!-- Welcome -->
+    <div id="welcome">
+      <div style="font-size:2.5rem">🎯</div>
+      <h1>Your AI Recruiting<br/>Assistant</h1>
+      <p>Battle Cards work free (no API key). AI chat modes need a free Anthropic key.</p>
+      <div class="welcome-cards">
+        <div class="wcard gold" onclick="showBattle()">
+          <div class="wicon">⚔️</div>
+          <div class="wtitle">Battle Cards</div>
+          <div class="wdesc">Competitive intel vs any company</div>
+          <div class="wbadge free">✓ 100% Free</div>
+        </div>
+        <div class="wcard" onclick="promptMode('screen')">
+          <div class="wicon">📋</div>
+          <div class="wtitle">Screen Resumes</div>
+          <div class="wdesc">Single or batch — fit verdict + outreach</div>
+          <div class="wbadge key">Needs API key</div>
+        </div>
+        <div class="wcard" onclick="promptMode('search')">
+          <div class="wicon">🔍</div>
+          <div class="wtitle">Search Strings</div>
+          <div class="wdesc">Boolean, X-Ray, GitHub, Scholar & more</div>
+          <div class="wbadge key">Needs API key</div>
+        </div>
+        <div class="wcard" onclick="showOutreachPanel()">
+          <div class="wicon">✉️</div>
+          <div class="wtitle">Outreach</div>
+          <div class="wdesc">Personal email or LinkedIn InMail</div>
+          <div class="wbadge free">LinkedIn = Free</div>
+        </div>
+        <div class="wcard" onclick="promptMode('interview')">
+          <div class="wicon">🎯</div>
+          <div class="wtitle">Interview Qs</div>
+          <div class="wdesc">Technical + behavioral</div>
+          <div class="wbadge key">Needs API key</div>
+        </div>
+        <div class="wcard" onclick="promptMode('jd')">
+          <div class="wicon">📝</div>
+          <div class="wtitle">Write JD</div>
+          <div class="wdesc">Inclusive, optimized JDs</div>
+          <div class="wbadge key">Needs API key</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chat area -->
+    <div id="chat-container" style="display:none;"></div>
+    <div id="input-area" style="display:none;">
+      <div class="mode-indicator" id="mode-label">📋 Resume / Batch Screening</div>
+      <div class="input-row">
+        <textarea id="user-input" rows="1" placeholder="Type your request..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>➤</button>
+      </div>
+      <div class="quick-chips" id="quick-chips"></div>
+    </div>
+
+    
+    <!-- ===== RECRUITING DASHBOARD PANEL ===== -->
+    <div id="dashboard-panel">
+
+      <!-- Header -->
+      <div class="dash-header">
+        <div>
+          <h2>📊 Recruiting Analytics Dashboard</h2>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:2px;">Upload any file — get executive-grade talent intelligence dashboards with strategic insights</p>
+        </div>
+        <div class="dash-upload-bar">
+          <button class="dash-upload-btn" onclick="document.getElementById('dash-file-input').click()">
+            ⬆️ Upload Files
+          </button>
+          <input type="file" id="dash-file-input" style="display:none" accept=".csv,.xlsx,.xls,.json,.txt,.pdf,.docx,.doc,.pptx,.ppt" multiple onchange="handleDashFiles(this)"/>
+          <div class="dash-file-chips" id="dash-file-chips"></div>
+        </div>
+      </div>
+
+      <!-- Analysis buttons -->
+      <div class="dash-analysis-bar" id="dash-analysis-bar" style="display:none">
+        <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;align-self:center;">Generate →</span>
+        <button class="dash-btn" onclick="runDashAnalysis('talent_intelligence')" style="background:linear-gradient(135deg,rgba(67,97,238,0.12),rgba(247,37,133,0.08));border-color:rgba(67,97,238,0.35);color:var(--accent);font-weight:700;">🧠 Talent Intelligence</button>
+        <button class="dash-btn active" onclick="runDashAnalysis('overview')">🔍 Smart Overview</button>
+        <button class="dash-btn pink" onclick="runDashAnalysis('charts')">📈 Charts & Trends</button>
+        <button class="dash-btn gold" onclick="runDashAnalysis('correlation')">🔗 Correlations</button>
+        <button class="dash-btn teal" onclick="runDashAnalysis('stats')">🧮 Statistical Summary</button>
+        <button class="dash-btn" onclick="runDashAnalysis('funnel')">🎯 Hiring Funnel</button>
+        <button class="dash-btn pink" onclick="runDashAnalysis('diversity')">🌍 Diversity & Inclusion</button>
+        <button class="dash-btn gold" onclick="runDashAnalysis('time')">⏱️ Time-to-Hire Analysis</button>
+        <button class="dash-btn teal" onclick="runDashAnalysis('source')">📡 Source Effectiveness</button>
+        <button class="dash-btn" onclick="runDashAnalysis('forecast')">🔮 Predictive Insights</button>
+        <button class="dash-btn pink" onclick="runDashAnalysis('custom')" id="dash-custom-btn">✏️ Custom Analysis</button>
+      </div>
+
+      <!-- Custom prompt input -->
+      <div id="dash-custom-input" style="display:none;padding:10px 28px;background:white;border-bottom:2px solid var(--border);">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="text" id="dash-custom-prompt" placeholder="Ask anything about your data… e.g. 'Which source has highest offer acceptance?' or 'Plot salary vs experience'" 
+            style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'Outfit',sans-serif;font-size:0.84rem;color:var(--text);outline:none;"
+            onkeydown="if(event.key==='Enter')runDashCustom()"/>
+          <button class="dash-upload-btn" onclick="runDashCustom()">Run →</button>
+        </div>
+      </div>
+
+      <!-- Content area -->
+      <div class="dash-content" id="dash-content">
+        <div class="dash-empty" id="dash-drop-zone"
+          ondragover="event.preventDefault();this.style.background='rgba(67,97,238,0.06)'"
+          ondragleave="this.style.background=''"
+          ondrop="event.preventDefault();this.style.background='';handleDashFiles({files:event.dataTransfer.files})">
+          <div class="big-icon">📂</div>
+          <h3>Upload your data files</h3>
+          <p>Drop one or multiple files — AI extracts content, identifies patterns, and generates an executive-grade intelligence dashboard instantly.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:10px;">
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">📊 Hiring & Pipeline Data</span>
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">💰 Compensation Reports</span>
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">🌍 Diversity & Workforce Data</span>
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">📈 Market Intelligence Reports</span>
+            <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">🎯 Talent & Skills Analysis</span>
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">CSV · XLSX · PDF · DOCX · PPTX · JSON · TXT — single or multiple files</p>
+        </div>
+      </div>
+
+    </div>
+
+<!-- ===== BATTLE CARD PANEL ===== -->
+    <div id="battle-panel">
+      <div class="battle-header">
+        <h2>🎯 Competitor Intelligence</h2>
+        <p>Fill in the configuration below to generate a complete competitive intelligence prompt. Copy it and paste into <strong>Claude.ai</strong>, <strong>ChatGPT</strong>, or <strong>Gemini</strong> — completely free.</p>
+        <div class="free-note">✅ No API key needed &nbsp;·&nbsp; Works with Claude.ai free &nbsp;·&nbsp; ChatGPT free &nbsp;·&nbsp; Gemini free</div>
+      </div>
+
+      <div class="battle-config">
+        <div class="bc-field">
+          <div class="bc-label">🏢 Your Organisation (Core)</div>
+          <input class="bc-input" id="bc-core" placeholder="e.g. Confluent" type="text"/>
+        </div>
+        <div class="bc-field half">
+          <div class="bc-label">⚔️ Competitors (comma-separated)</div>
+          <input class="bc-input" id="bc-competitors" placeholder="e.g. AWS, Google, Microsoft, Databricks, Uber" type="text"/>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">👨‍💻 Target Role Family</div>
+          <select class="bc-input" id="bc-role">
+            <option>Software Engineering</option>
+            <option>Data Engineering</option>
+            <option>Product Management</option>
+            <option>Machine Learning / AI</option>
+            <option>DevOps / Platform</option>
+            <option>Sales / GTM</option>
+            <option>Design / UX</option>
+            <option>Finance</option>
+            <option>Custom...</option>
+          </select>
+        </div>
+        <div class="bc-field" id="bc-role-custom-group" style="display:none;">
+          <div class="bc-label">Custom Role Family</div>
+          <input class="bc-input" id="bc-role-custom" placeholder="Enter custom role family" type="text"/>
+        </div>
+        <div class="bc-field" style="position:relative;">
+          <div class="bc-label">📍 Talent Market</div>
+          <input type="text" class="bc-input" id="bc-region" placeholder="Type city, country or region…" autocomplete="off" oninput="regionSearch(this.value)" onkeydown="regionKey(event)" onfocus="regionSearch(this.value)" onblur="setTimeout(()=>document.getElementById('region-dropdown').style.display='none',200)" style="width:100%;"/>
+          <div id="region-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--accent);border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;z-index:999;box-shadow:0 8px 24px rgba(67,97,238,0.15);"></div>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">🎯 Seniority Level</div>
+          <select class="bc-input" id="bc-seniority">
+            <option>Senior OR Staff OR Principal</option>
+            <option>Senior</option>
+            <option>Staff</option>
+            <option>Principal / Distinguished</option>
+            <option>Lead</option>
+            <option>Mid-level (L3/L4)</option>
+            <option>Junior / Entry</option>
+            <option>Manager / Director</option>
+          </select>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">📅 Freshness Window</div>
+          <select class="bc-input" id="bc-freshness">
+            <option>Last 12 months (qualitative); Last 8 quarters (financial)</option>
+            <option>Last 6 months</option>
+            <option>Last 12 months</option>
+            <option>Last 18 months</option>
+            <option>Last 24 months</option>
+          </select>
+        </div>
+        <div class="bc-field full">
+          <div class="bc-label">🏅 Your Organisation's Unique Selling Points (optional but recommended)</div>
+          <textarea class="bc-input" id="bc-usps" placeholder="e.g. Real-time data streaming, strong equity upside, fully remote, mission-driven culture, strong Indian engineering leadership, Series D with clear IPO path..."></textarea>
+        </div>
+        <div class="bc-field full">
+          <div class="bc-label">⚠️ Areas to Navigate / Objections You Face (optional)</div>
+          <textarea class="bc-input" id="bc-weaknesses" placeholder="e.g. Less brand recognition than FAANG, smaller team, niche product domain, salary not FAANG-level..."></textarea>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">📋 Deliverables to Generate to Include</div>
+          <select class="bc-input" id="bc-output">
+            <option>All sections (A+B+C+D)</option>
+            <option>Summary Matrix only (A)</option>
+            <option>Detailed Battle Cards only (B)</option>
+            <option>Side-by-Side Scorecard (C)</option>
+            <option>Slack Synopsis only (D)</option>
+            <option>B + C (Cards + Scorecard)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="battle-actions" style="flex-wrap:wrap;gap:10px;">
+        <button class="btn-gold" onclick="generatePrompt()">⚡ Build Intelligence Brief</button>
+
+        <!-- AI Launch dropdown — shown after brief is generated -->
+        <div id="ai-launch-dropdown-wrap" style="display:none;position:relative;">
+          <button class="btn-gold" onclick="toggleAIDropdown()" id="ai-dropdown-trigger"
+            style="background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;gap:7px;">
+            🚀 Run on AI &nbsp;<span id="ai-dd-arrow" style="font-size:0.75rem;">▼</span>
+          </button>
+          <div id="ai-dropdown-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(67,97,238,0.18);z-index:999;min-width:200px;overflow:hidden;">
+            <div style="padding:6px 12px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);border-bottom:1px solid var(--border);">Choose AI platform</div>
+            <button onclick="launchWithAI('claude')"   class="ai-dd-item" style="background:linear-gradient(90deg,rgba(124,58,237,0.08),transparent);">🧠 <span>Claude</span><small>claude.ai</small></button>
+            <button onclick="launchWithAI('chatgpt')"  class="ai-dd-item" style="background:linear-gradient(90deg,rgba(16,163,127,0.08),transparent);">🤖 <span>ChatGPT</span><small>chatgpt.com</small></button>
+            <button onclick="launchWithAI('gemini')"   class="ai-dd-item" style="background:linear-gradient(90deg,rgba(26,115,232,0.08),transparent);">✨ <span>Gemini</span><small>gemini.google.com</small></button>
+            <button onclick="launchWithAI('copilot')"  class="ai-dd-item">🪟 <span>Copilot</span><small>copilot.microsoft.com</small></button>
+            <button onclick="launchWithAI('perplexity')" class="ai-dd-item">🔍 <span>Perplexity</span><small>perplexity.ai</small></button>
+            <button onclick="launchWithAI('mistral')"  class="ai-dd-item">🌫️ <span>Mistral</span><small>chat.mistral.ai</small></button>
+          </div>
+        </div>
+
+        <button class="btn-copy" id="copy-btn" onclick="copyPrompt()" style="display:none;">📋 Copy Prompt</button>
+        <button class="btn-outline" onclick="resetBattle()">↺ Reset</button>
+        <div id="ai-launch-note" style="display:none;background:rgba(67,97,238,0.07);border:1px solid rgba(67,97,238,0.2);border-radius:8px;padding:6px 12px;font-size:0.76rem;color:#374151;width:100%;">
+          ✅ <strong>Prompt copied!</strong> Platform opening — paste with <kbd>Ctrl+V</kbd> / <kbd>⌘V</kbd> and send.
+        </div>
+      </div>
+
+      <div class="prompt-output" id="prompt-output" style="display:none;">
+        <div class="prompt-box">
+          <div class="prompt-box-header">
+            <span>📄 Generated Prompt — ready to paste into any free AI</span>
+            <button onclick="copyPrompt()">📋 Copy All</button>
+          </div>
+          <div class="prompt-text" id="prompt-text-content"></div>
+        </div>
+
+        <div class="steps-guide">
+
+          <!-- ── Run directly with AI ── -->
+          <h4 style="margin-bottom:12px;">🚀 Run directly — send to any AI platform</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:18px;">
+
+            <button class="ai-launch-btn" onclick="launchWithAI('claude')" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+              <span style="font-size:1.1rem;">🧠</span>
+              <span style="font-weight:700;font-size:0.82rem;">Claude</span>
+              <span style="font-size:0.65rem;opacity:0.85;">claude.ai</span>
+            </button>
+
+            <button class="ai-launch-btn" onclick="launchWithAI('chatgpt')" style="background:linear-gradient(135deg,#10a37f,#0d8a6e);">
+              <span style="font-size:1.1rem;">🤖</span>
+              <span style="font-weight:700;font-size:0.82rem;">ChatGPT</span>
+              <span style="font-size:0.65rem;opacity:0.85;">chatgpt.com</span>
+            </button>
+
+            <button class="ai-launch-btn" onclick="launchWithAI('gemini')" style="background:linear-gradient(135deg,#1a73e8,#0d47a1);">
+              <span style="font-size:1.1rem;">✨</span>
+              <span style="font-weight:700;font-size:0.82rem;">Gemini</span>
+              <span style="font-size:0.65rem;opacity:0.85;">gemini.google.com</span>
+            </button>
+
+            <button class="ai-launch-btn" onclick="launchWithAI('copilot')" style="background:linear-gradient(135deg,#0078d4,#005a9e);">
+              <span style="font-size:1.1rem;">🪟</span>
+              <span style="font-weight:700;font-size:0.82rem;">Copilot</span>
+              <span style="font-size:0.65rem;opacity:0.85;">copilot.microsoft.com</span>
+            </button>
+
+            <button class="ai-launch-btn" onclick="launchWithAI('perplexity')" style="background:linear-gradient(135deg,#20b2aa,#008080);">
+              <span style="font-size:1.1rem;">🔍</span>
+              <span style="font-weight:700;font-size:0.82rem;">Perplexity</span>
+              <span style="font-size:0.65rem;opacity:0.85;">perplexity.ai</span>
+            </button>
+
+            <button class="ai-launch-btn" onclick="launchWithAI('mistral')" style="background:linear-gradient(135deg,#ff6f61,#c0392b);">
+              <span style="font-size:1.1rem;">🌫️</span>
+              <span style="font-weight:700;font-size:0.82rem;">Mistral</span>
+              <span style="font-size:0.65rem;opacity:0.85;">chat.mistral.ai</span>
+            </button>
+
+          </div>
+
+          <div id="ai-launch-note" style="display:none;background:rgba(67,97,238,0.07);border:1px solid rgba(67,97,238,0.2);border-radius:10px;padding:10px 14px;font-size:0.8rem;color:#374151;margin-bottom:14px;">
+            ✅ <strong>Prompt copied!</strong> The AI platform is opening — just paste (<kbd>Ctrl+V</kbd> or <kbd>⌘V</kbd>) and hit send.
+          </div>
+
+          <div style="background:rgba(247,127,0,0.06);border:1px solid rgba(247,127,0,0.2);border-radius:10px;padding:10px 14px;font-size:0.78rem;color:#374151;margin-bottom:18px;">
+            💡 <strong>Pro tip:</strong> For deep research, use <strong>Claude → Research mode</strong> or <strong>Gemini Deep Research</strong> — they browse the web for real-time data automatically.
+          </div>
+
+          <!-- ── Download brief ── -->
+          <div style="border-top:1.5px solid var(--border);padding-top:16px;margin-top:4px;">
+            <h4 style="margin-bottom:10px;">⬇️ Download your brief</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <button class="bc-download-btn" onclick="downloadBriefPDF()">📄 Download as PDF</button>
+              <button class="bc-download-btn bc-download-txt" onclick="downloadBriefTXT()">📋 Download as TXT</button>
+              <button class="bc-download-btn bc-download-copy" onclick="copyPrompt()">📋 Copy to Clipboard</button>
+            </div>
+          </div>
+
+          <!-- ── Paste AI result & download ── -->
+          <div style="border-top:1.5px solid var(--border);padding-top:16px;margin-top:14px;">
+            <h4 style="margin-bottom:8px;">📥 Got your AI results? Save as PDF report</h4>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">Paste the AI's response below — we'll format and download it as a professional PDF.</p>
+            <textarea id="ai-result-input" placeholder="Paste the full AI response here…"
+              style="width:100%;min-height:120px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'Outfit',sans-serif;font-size:0.82rem;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+              <button class="bc-download-btn" onclick="downloadResultPDF()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));">📄 Download Result as PDF</button>
+              <button class="bc-download-btn bc-download-txt" onclick="downloadResultTXT()">📋 Download Result as TXT</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== OUTREACH PANEL ===== -->
+    <div id="outreach-panel" style="display:none;flex-direction:column;overflow:hidden;flex:1;">
+
+      <!-- Tab switcher -->
+      <div style="padding:14px 24px 0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;">
+        <button class="otab active" id="otab-linkedin" onclick="switchOutreachTab('linkedin')">💼 LinkedIn InMail Generator</button>
+        <button class="otab" id="otab-personal" onclick="switchOutreachTab('personal')">✉️ Personal Outreach (AI Chat)</button>
+        <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);">LinkedIn = Free (Groq API) &nbsp;·&nbsp; Personal = Needs Anthropic key</span>
+      </div>
+
+      <!-- ── LINKEDIN INMAIL TAB ── -->
+      <div id="ot-linkedin" style="flex:1;overflow-y:auto;padding:20px 24px 30px;">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;">
+
+          <!-- JD card -->
+          <div class="ol-card">
+            <div class="ol-card-hdr"><span class="ol-step" style="background:#3b82f6;">1</span><span style="font-weight:600;font-size:0.95rem;">Role Details</span></div>
+            <div class="ol-field">
+              <label class="ol-label">📄 Job Description <span style="color:var(--danger);">*</span></label>
+              <textarea id="ol-jd" class="ol-input" rows="6" placeholder="Paste the full job description here..."></textarea>
+            </div>
+            <div class="ol-field">
+              <label class="ol-label">🔗 Job URL <span style="color:var(--danger);">*</span></label>
+              <input id="ol-url" type="url" class="ol-input" placeholder="https://careers.example.com/jobs/..."/>
+            </div>
+          </div>
+
+          <!-- Options card -->
+          <div class="ol-card">
+            <div class="ol-card-hdr"><span class="ol-step" style="background:#6366f1;">2</span><span style="font-weight:600;font-size:0.95rem;">Options</span></div>
+
+            <div class="ol-field">
+              <label class="ol-label">👥 Call-to-Action Style <span style="color:var(--danger);">*</span>
+                <span id="ol-cta-badge" style="font-size:0.65rem;padding:1px 7px;border-radius:20px;margin-left:6px;background:rgba(96,165,250,0.2);color:#93c5fd;">CV Ask</span>
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button id="ol-btn-cv" class="ol-cta-btn ol-cv-active" onclick="olSetCTA('cv')">
+                  <div style="font-weight:600;font-size:0.8rem;margin-bottom:2px;">📄 Direct CV Ask</div>
+                  <div style="color:#374151;font-size:0.7rem;">Ask candidate to share CV</div>
+                </button>
+                <button id="ol-btn-call" class="ol-cta-btn" onclick="olSetCTA('call')">
+                  <div style="font-weight:600;font-size:0.8rem;margin-bottom:2px;">📞 Interest + Call</div>
+                  <div style="color:#374151;font-size:0.7rem;">Suggest intro call</div>
+                </button>
+                <div id="ol-call-duration-wrap" style="display:none;margin-top:6px;">
+                  <select id="ol-call-duration" onchange="olUpdateCallDuration(this.value)"
+                    style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-family:'Outfit',sans-serif;font-size:0.78rem;color:var(--text);outline:none;cursor:pointer;">
+                    <option value="15">⏱️ 15-minute intro call</option>
+                    <option value="30">⏱️ 30-minute intro call</option>
+                    <option value="custom">✏️ Custom duration…</option>
+                  </select>
+                  <input type="text" id="ol-call-duration-custom" placeholder="e.g. 45 minutes, 1 hour…"
+                    style="display:none;margin-top:5px;width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-family:'Outfit',sans-serif;font-size:0.78rem;color:var(--text);outline:none;box-sizing:border-box;"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="ol-field">
+              <label class="ol-label">📨 Follow-ups needed
+                <span id="ol-fu-label" style="font-size:0.65rem;color:#93c5fd;margin-left:6px;">1 selected</span>
+              </label>
+              <div style="display:flex;gap:8px;margin-bottom:6px;">
+                <button id="ol-fu1" class="ol-count-btn ol-count-active" onclick="olSetFU(1)">1</button>
+                <button id="ol-fu2" class="ol-count-btn" onclick="olSetFU(2)">2</button>
+                <button id="ol-fu3" class="ol-count-btn" onclick="olSetFU(3)">3</button>
+              </div>
+              <div id="ol-fu-desc" style="font-size:0.7rem;color:var(--text-muted);text-align:center;">1 gentle follow-up</div>
+            </div>
+
+            <div class="ol-field">
+              <label class="ol-label">🎨 Style Reference <span style="color:var(--text-muted);font-weight:400;">(Optional)</span></label>
+              <textarea id="ol-sample" class="ol-input" rows="3" placeholder="Paste sample InMails to match your writing style..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recruiter name + location + key -->
+        <div style="margin-bottom:14px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label class="ol-label">👤 Your Name (sign-off)</label>
+            <input id="ol-name" type="text" class="ol-input" placeholder="e.g. Vikash" value="Vikash"/>
+          </div>
+          <div style="flex:1;min-width:160px;">
+            <label class="ol-label">📍 Job Location <span style="color:var(--danger);">*</span></label>
+            <input id="ol-location" type="text" class="ol-input" placeholder="e.g. Bengaluru (Remote)"/>
+          </div>
+          <div style="flex:1;min-width:140px;">
+            <label class="ol-label" style="display:flex;align-items:center;gap:8px;">
+              🔑 API Key <span class="free-badge">Free</span>
+              <a href="https://console.groq.com" target="_blank" style="color:var(--accent);font-size:0.65rem;text-decoration:none;">Get key →</a>
+            </label>
+            <input id="ol-groq-key" type="password" class="ol-input" placeholder="gsk_..." oninput="olCheckKey()"/>
+          </div>
+        </div>
+
+        <!-- Debug bar -->
+        <div class="ol-debug-bar">
+          CTA: <strong id="ol-db-cta" style="color:#93c5fd;">CV Ask</strong>
+          &nbsp;·&nbsp; Follow-ups: <strong id="ol-db-fu" style="color:#93c5fd;">1</strong>
+          <span id="ol-db-company-wrap" style="display:none;">&nbsp;·&nbsp; Company: <strong id="ol-db-company" style="color:var(--success);"></strong></span>
+          &nbsp;·&nbsp; Location: <strong id="ol-db-location" style="color:#f9a8d4;">—</strong>
+        </div>
+
+        <button class="btn-ol-generate" id="ol-generate-btn" onclick="olGenerate()">✨ Generate LinkedIn InMails</button>
+        <div class="ol-error" id="ol-error" style="display:none;"></div>
+
+        <!-- Results -->
+        <div id="ol-results" style="display:none;margin-top:18px;">
+
+          <!-- Subject lines -->
+          <div class="ol-card" style="margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+              <span>✨</span><span style="font-weight:600;font-size:0.9rem;flex:1;">Subject Line Options</span>
+              <span style="font-size:0.65rem;color:var(--text-muted);">Pick your favourite</span>
+            </div>
+            <div id="ol-subj-lines"></div>
+          </div>
+
+          <!-- Message cards -->
+          <div id="ol-msg-cards"></div>
+
+          <button onclick="olReset()" style="width:100%;padding:10px;border:1px solid var(--border);background:transparent;color:var(--text-muted);border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.83rem;margin-top:6px;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--text-muted)'">🔄 Start Over</button>
+        </div>
+      </div>
+
+      <!-- ── PERSONAL OUTREACH TAB (AI Chat) ── -->
+      <div id="ot-personal" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <div id="personal-ctx-panel" style="padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+          <div class="ctx-group">
+            <div class="ctx-label">📄 Job Description</div>
+            <textarea id="personal-jd" placeholder="Paste the job description..."></textarea>
+          </div>
+          <div class="ctx-group">
+            <div class="ctx-label">
+              👤 Candidate Profile
+              <div class="upload-tabs">
+                <button class="upload-tab active" onclick="switchPersonalResTab('paste')" id="ptab-paste">Paste</button>
+                <button class="upload-tab" onclick="switchPersonalResTab('upload')" id="ptab-upload">📎 Upload</button>
+              </div>
+            </div>
+            <div id="personal-paste-panel">
+              <textarea id="personal-resume" placeholder="Paste candidate profile or resume text..."></textarea>
+            </div>
+            <div id="personal-upload-panel" style="display:none;">
+              <div class="drop-zone" onclick="document.getElementById('personal-file-input').click()" ondragover="dzOver(event,'personal-dz')" ondragleave="dzLeave('personal-dz')" ondrop="personalDzDrop(event)" id="personal-dz">
+                <div class="dz-icon">📄</div>
+                <div class="dz-text">Click or drag resume here</div>
+                <div class="dz-sub">PDF, DOCX, TXT</div>
+              </div>
+              <input type="file" id="personal-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="handlePersonalFile(this.files[0])"/>
+              <div id="personal-file-status"></div>
+            </div>
+          </div>
+        </div>
+        <div id="personal-chat" style="flex:1;overflow-y:auto;padding:16px 24px;display:flex;flex-direction:column;gap:12px;"></div>
+        <div style="padding:12px 24px;background:var(--surface);border-top:1px solid var(--border);">
+          <div style="font-size:0.72rem;color:var(--accent);margin-bottom:6px;">✉️ Personal Outreach AI Chat</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="personal-chips">
+            <div class="chip" onclick="usePersonalChip('Write a personalized first outreach email')">First outreach email</div>
+            <div class="chip" onclick="usePersonalChip('Write a warm follow-up (day 3)')">Day 3 follow-up</div>
+            <div class="chip" onclick="usePersonalChip('Re-engage a cold candidate who went silent')">Re-engage cold candidate</div>
+            <div class="chip" onclick="usePersonalChip('Write a passive candidate pitch email')">Passive candidate pitch</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end;">
+            <textarea id="personal-input" rows="1" class="ol-input" style="flex:1;resize:none;min-height:44px;max-height:120px;" placeholder="Ask for an outreach email or follow-up..." onkeydown="personalHandleKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="send-btn" id="personal-send-btn" onclick="sendPersonalMessage()" disabled>➤</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end outreach-panel -->
+
+  </main>
+</div>
+
+<script>
+
+(function(){
+  // Silence PDF.js internal warnings at the source using its verbosity flag
+  // Also patch console.warn/error as a safety net for anything that leaks through
+  const _filter = (args) => {
+    const m = args[0] ? String(args[0]) : '';
+    return m.includes('fake worker') || m.includes('TT:') || m.includes('undefined function') ||
+           m.includes('GlobalWorkerOptions') || m.includes('workerSrc') || m.includes('deprecated') ||
+           m.includes('No "GlobalWorker') || m.includes('Setting up');
+  };
+  const _w = console.warn.bind(console);
+  const _e = console.error.bind(console);
+  console.warn  = (...a) => { if (!_filter(a)) _w(...a); };
+  console.error = (...a) => { if (!_filter(a)) _e(...a); };
+})();
+// =================== MODES ===================
+const MODES = {
+  screen: {
+    label: '📋 Resume / Batch Screening',
+    chips: ['Screen & assess fit', 'Rank all candidates', 'Who should I interview first?', 'Generate outreach for top candidates'],
+    systemPrompt: `You are an expert recruiter assistant. Analyze resumes against a job description and respond in this EXACT format:
+
+━━━ SCREENING RESULT ━━━
+
+**FIT VERDICT:** [ONE of: 🟢 STRONG FIT | 🟡 GOOD FIT | 🟠 PARTIAL FIT | 🔴 NOT A FIT]
+**Match Score:** X/10
+**Fit Reasoning:** 1-2 sentences explaining the verdict.
+
+**✅ Key Strengths:**
+- [strength 1]
+- [strength 2]
+- [strength 3]
+
+**❌ Gaps / Missing:**
+- [gap 1 — Critical OR Nice-to-have]
+- [gap 2 — Critical OR Nice-to-have]
+
+**📊 Seniority Match:** [matches / over-qualified / under-qualified] — brief reason
+
+**❓ Top 3 Screening Questions:**
+1. [targeted question]
+2. [targeted question]
+3. [targeted question]
+
+━━━ OUTREACH RECOMMENDATION ━━━
+[If STRONG FIT or GOOD FIT]: ✅ Recommended to reach out. Use the Outreach panel to craft a personalized message.
+[If PARTIAL FIT]: ⚠️ Borderline — consider reaching out only if pipeline is thin.
+[If NOT A FIT]: ❌ Not recommended for outreach for this role.
+
+---
+For BATCH mode (multiple candidates): Repeat the above for each candidate, then add a RANKED SUMMARY TABLE at the end:
+
+| Rank | Candidate | Verdict | Score | Top Strength | Key Gap | Outreach? |
+|------|-----------|---------|-------|--------------|---------|-----------|
+(sorted best to worst fit)
+
+Then add: **Recommended for Outreach:** [list names of Strong/Good fit candidates]`,
+    contextGroups: ['jd', 'resume'],
+    placeholder: 'Click "Screen & assess fit" or type your question. Upload 1 resume for single screening, or add more files for batch comparison...'
+  },
+  search: {
+    label: '🔍 Search String Builder',
+    chips: ['Boolean (LinkedIn)', 'Google X-Ray', 'GitHub Search', 'Xing Search', 'Behance Search', 'Dribbble Search', 'Stack Overflow Search', 'Twitter / X Search', 'Google Patent Search', 'Google Scholar Search'],
+    systemPrompt: `You are an expert talent sourcing specialist. Generate precise, copy-paste-ready search strings for LinkedIn, X-Ray, GitHub, Xing, Behance, Dribbble, Twitter/X, Stack Overflow, Google Patents, and Google Scholar.
+
+When the user requests a search type, ALWAYS produce the string in this format:
+
+**[Search Type] String:**
+\`\`\`
+[the exact search string]
+\`\`\`
+**How to use:** [1 sentence on where/how to paste it]
+**Pro tip:** [1 actionable sourcing tip]
+**Alternative titles to try:** [3-5 job title variants]
+
+Search string rules by type:
+- **Boolean (LinkedIn):** Use AND, OR, NOT, quotes. Format for LinkedIn search bar.
+- **Google X-Ray:** site:linkedin.com/in/ with role, skills, location. Use filetype:pdf for resumes too.
+- **GitHub Search:** Use GitHub search operators: language:, location:, followers:>, repos:. Format: site:github.com OR direct GitHub search URL format.
+- **Stack Overflow:** site:stackoverflow.com/users OR careers.stackoverflow.com with skill tags. Include reputation signals.
+- **Google Patent Search:** site:patents.google.com with inventor name patterns, OR use Google Patents search operators (inventor:, assignee:, before:, after:).
+- **Google Scholar:** site:scholar.google.com OR direct search with author:, intitle:, institution keywords for finding researchers/academics.
+
+Always make strings copy-paste ready. If the user doesn't specify a type, generate all 6.`,
+    contextGroups: [],
+    placeholder: 'Describe the role/skills to search for (e.g., "ML Engineer, PyTorch, NLP, India")...'
+  },
+  jd: {
+    label: '📝 Job Description Writer',
+    chips: ['Write a JD for this role', 'Make this more inclusive', 'Add remote work details', 'Simplify this JD'],
+    systemPrompt: `You are an expert talent acquisition specialist. Write clear, inclusive, and compelling job descriptions. Avoid gendered or biased language. Use clear required vs preferred sections. Include culture/benefits hooks. Optimize for job boards (Naukri, LinkedIn, Indeed). Keep requirements realistic.`,
+    contextGroups: [],
+    placeholder: 'Describe the role (e.g., "Senior Data Engineer, 5yr exp, Python + AWS, Bangalore")...'
+  },
+  outreach: {
+    label: '✉️ Personal Outreach',
+    chips: ['Write first outreach email', 'Follow-up (day 3)', 'Re-engage cold candidate', 'Passive candidate pitch'],
+    systemPrompt: `You are an expert talent acquisition specialist who writes highly personalized, compelling outreach messages. Personalize based on candidate's specific background. Lead with value to the candidate. For personal emails: 200-250 words, warm and human tone, clear subject line, compelling opening, role alignment, specific CTA. Sound like a real human recruiter, not a template. Always provide subject line + body.`,
+    contextGroups: ['resume'],
+    placeholder: 'Tell me what role you are reaching out about...'
+  },
+  interview: {
+    label: '🎯 Interview Question Generator',
+    chips: ['3 technical + 2 behavioral Qs', 'Situational questions', 'Culture fit questions', 'Questions to probe gaps'],
+    systemPrompt: `You are an experienced interviewer. Generate targeted, insightful interview questions.
+
+For SINGLE candidate: Generate questions tailored to their specific background.
+For BATCH (multiple candidates): Generate a section for EACH candidate with their name as header, then their tailored questions.
+
+Structure for each candidate:
+**Technical Questions (3):**
+1. [question] — *Good answer looks for: [brief]*
+2. [question] — *Good answer looks for: [brief]*
+3. [question] — *Good answer looks for: [brief]*
+
+**Behavioral Questions (2):**
+1. [STAR-format question] — *Red flag if: [brief]*
+2. [STAR-format question] — *Red flag if: [brief]*
+
+**Role-specific probes (2):**
+1. [question based on their specific experience gaps or strengths]
+2. [question based on their specific experience gaps or strengths]
+
+Tailor difficulty to seniority level. Be specific — no generic questions.`,
+    contextGroups: ['jd', 'resume'],
+    placeholder: 'Upload one or multiple resumes above, then click a chip or type your request...',
+    supportsBatch: true
+  },
+  gap: {
+    label: '🔎 Gap Analysis Mode',
+    chips: ['Full gap analysis', 'Critical missing skills', 'Is experience enough?', 'Domain knowledge gaps'],
+    systemPrompt: `You are a technical recruiter performing detailed gap analyses. Provide: 1) Critical gaps (dealbreakers) 2) Preferred gaps (less critical) 3) Transferable skills that could compensate 4) Learning curve estimate 5) Recommendation: Proceed / Proceed with caution / Pass. Be specific and data-driven.`,
+    contextGroups: ['jd', 'resume'],
+    placeholder: 'Paste JD and resume above, then ask for gap analysis...'
+  },
+  redflags: {
+    label: '🚩 Red Flags Check',
+    chips: ['Check for red flags', 'Explain job hop pattern', 'Probe employment gaps', 'Verify career progression'],
+    systemPrompt: `You are an experienced recruiter with sharp pattern recognition. Look for and explain: 🔴 Red flags (job hopping, unexplained gaps, skill keyword stuffing, inconsistent dates) 🟡 Yellow flags (short tenures with possible reasons, career pivots) 🟢 Green flags (strong progression, promotions). For each flag, suggest a probing question to ask the candidate.`,
+    contextGroups: ['resume'],
+    placeholder: 'Paste the candidate resume above, then ask me to check for red flags...'
+  },
+  general: {
+    label: '💬 General Recruiting Assistant',
+    chips: ['Salary benchmarking tips', 'How to source passive candidates', 'Writing a rejection email', 'Improving offer acceptance'],
+    systemPrompt: `You are a senior recruiting consultant with 15+ years of experience in talent acquisition, sourcing, employer branding, and hiring strategy. Answer recruiting questions thoughtfully, give practical advice, share best practices, and help with any recruiting-related task. Be direct and actionable.`,
+    contextGroups: [],
+    placeholder: 'Ask me anything about recruiting, sourcing, hiring strategy, compensation...'
+  }
+};
+
+let currentMode = null;
+let chatHistory = [];
+let isLoading = false;
+let generatedPrompt = '';
+
+// =================== REGION AUTOCOMPLETE ===================
+const WORLD_LOCATIONS = [
+  // 🌐 Remote
+  "Remote - Global","Remote - APAC","Remote - EMEA","Remote - Americas","Remote - USA","Remote - India","Remote - Europe",
+  // 🇮🇳 India
+  "India","Bengaluru, India","Bangalore, India","Mumbai, India","Delhi, India","New Delhi, India","Noida, India","Gurugram, India","Gurgaon, India","Hyderabad, India","Chennai, India","Pune, India","Kolkata, India","Ahmedabad, India","Jaipur, India","Chandigarh, India","Kochi, India","Coimbatore, India","Indore, India","Bhopal, India","Lucknow, India","Nagpur, India","Surat, India","Vadodara, India","Visakhapatnam, India","Thiruvananthapuram, India","Mysuru, India","Hubli, India",
+  // 🇺🇸 USA
+  "USA","San Francisco, USA","San Francisco Bay Area, USA","San Jose, USA","Palo Alto, USA","Mountain View, USA","Menlo Park, USA","Sunnyvale, USA","Santa Clara, USA","Oakland, USA","New York City, USA","NYC, USA","Manhattan, NY, USA","Brooklyn, NY, USA","Seattle, USA","Bellevue, WA, USA","Redmond, WA, USA","Austin, TX, USA","Dallas, TX, USA","Houston, TX, USA","Boston, MA, USA","Cambridge, MA, USA","Chicago, IL, USA","Los Angeles, CA, USA","San Diego, CA, USA","Denver, CO, USA","Atlanta, GA, USA","Miami, FL, USA","Orlando, FL, USA","Washington DC, USA","Raleigh, NC, USA","Charlotte, NC, USA","Nashville, TN, USA","Phoenix, AZ, USA","Minneapolis, MN, USA","Detroit, MI, USA","Portland, OR, USA","Salt Lake City, UT, USA","Las Vegas, NV, USA","Pittsburgh, PA, USA","Philadelphia, PA, USA","Columbus, OH, USA","Indianapolis, IN, USA","Kansas City, MO, USA","St. Louis, MO, USA","Baltimore, MD, USA","Richmond, VA, USA","Tampa, FL, USA","Sacramento, CA, USA","San Antonio, TX, USA","Louisville, KY, USA",
+  // 🇬🇧 UK
+  "UK","London, UK","Manchester, UK","Birmingham, UK","Edinburgh, UK","Glasgow, UK","Leeds, UK","Bristol, UK","Sheffield, UK","Liverpool, UK","Cambridge, UK","Oxford, UK","Reading, UK","Nottingham, UK","Cardiff, UK","Belfast, UK","Newcastle, UK","Brighton, UK","Coventry, UK","Leicester, UK",
+  // 🇩🇪 Germany
+  "Germany","Berlin, Germany","Munich, Germany","Hamburg, Germany","Frankfurt, Germany","Cologne, Germany","Stuttgart, Germany","Düsseldorf, Germany","Dortmund, Germany","Leipzig, Germany","Nuremberg, Germany","Dresden, Germany","Hannover, Germany","Bremen, Germany",
+  // 🇫🇷 France
+  "France","Paris, France","Lyon, France","Marseille, France","Toulouse, France","Bordeaux, France","Nantes, France","Strasbourg, France","Lille, France","Nice, France","Rennes, France","Grenoble, France","Montpellier, France",
+  // 🇳🇱 Netherlands
+  "Netherlands","Amsterdam, Netherlands","Rotterdam, Netherlands","The Hague, Netherlands","Utrecht, Netherlands","Eindhoven, Netherlands","Delft, Netherlands",
+  // 🇨🇦 Canada
+  "Canada","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Calgary, Canada","Ottawa, Canada","Edmonton, Canada","Waterloo, Canada","Quebec City, Canada","Halifax, Canada","Winnipeg, Canada",
+  // 🇦🇺 Australia
+  "Australia","Sydney, Australia","Melbourne, Australia","Brisbane, Australia","Perth, Australia","Adelaide, Australia","Canberra, Australia","Gold Coast, Australia",
+  // 🇸🇬 Singapore
+  "Singapore",
+  // 🇯🇵 Japan
+  "Japan","Tokyo, Japan","Osaka, Japan","Kyoto, Japan","Yokohama, Japan","Nagoya, Japan","Fukuoka, Japan","Sapporo, Japan",
+  // 🇨🇳 China
+  "China","Beijing, China","Shanghai, China","Shenzhen, China","Guangzhou, China","Hangzhou, China","Chengdu, China","Wuhan, China","Xi'an, China","Nanjing, China","Suzhou, China",
+  // 🇰🇷 South Korea
+  "South Korea","Seoul, South Korea","Busan, South Korea","Incheon, South Korea","Daejeon, South Korea",
+  // 🇦🇪 UAE
+  "UAE","Dubai, UAE","Abu Dhabi, UAE","Sharjah, UAE",
+  // 🇸🇦 Saudi Arabia
+  "Saudi Arabia","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Dammam, Saudi Arabia",
+  // 🇮🇱 Israel
+  "Israel","Tel Aviv, Israel","Jerusalem, Israel","Haifa, Israel","Herzliya, Israel","Ra'anana, Israel",
+  // 🇸🇪 Sweden
+  "Sweden","Stockholm, Sweden","Gothenburg, Sweden","Malmö, Sweden","Uppsala, Sweden",
+  // 🇩🇰 Denmark
+  "Denmark","Copenhagen, Denmark","Aarhus, Denmark",
+  // 🇫🇮 Finland
+  "Finland","Helsinki, Finland","Tampere, Finland","Espoo, Finland",
+  // 🇳🇴 Norway
+  "Norway","Oslo, Norway","Bergen, Norway","Trondheim, Norway",
+  // 🇨🇭 Switzerland
+  "Switzerland","Zurich, Switzerland","Geneva, Switzerland","Basel, Switzerland","Bern, Switzerland","Lausanne, Switzerland",
+  // 🇦🇹 Austria
+  "Austria","Vienna, Austria","Graz, Austria","Linz, Austria",
+  // 🇧🇪 Belgium
+  "Belgium","Brussels, Belgium","Antwerp, Belgium","Ghent, Belgium","Leuven, Belgium",
+  // 🇵🇱 Poland
+  "Poland","Warsaw, Poland","Krakow, Poland","Wroclaw, Poland","Poznan, Poland","Gdansk, Poland",
+  // 🇨🇿 Czech Republic
+  "Czech Republic","Prague, Czech Republic","Brno, Czech Republic",
+  // 🇷🇴 Romania
+  "Romania","Bucharest, Romania","Cluj-Napoca, Romania","Timisoara, Romania","Iasi, Romania",
+  // 🇵🇹 Portugal
+  "Portugal","Lisbon, Portugal","Porto, Portugal","Braga, Portugal",
+  // 🇪🇸 Spain
+  "Spain","Madrid, Spain","Barcelona, Spain","Valencia, Spain","Seville, Spain","Bilbao, Spain","Malaga, Spain",
+  // 🇮🇹 Italy
+  "Italy","Milan, Italy","Rome, Italy","Turin, Italy","Bologna, Italy","Florence, Italy","Naples, Italy",
+  // 🇧🇷 Brazil
+  "Brazil","São Paulo, Brazil","Rio de Janeiro, Brazil","Belo Horizonte, Brazil","Curitiba, Brazil","Porto Alegre, Brazil","Brasília, Brazil","Recife, Brazil",
+  // 🇲🇽 Mexico
+  "Mexico","Mexico City, Mexico","Guadalajara, Mexico","Monterrey, Mexico",
+  // 🇦🇷 Argentina
+  "Argentina","Buenos Aires, Argentina","Córdoba, Argentina","Rosario, Argentina",
+  // 🇨🇴 Colombia
+  "Colombia","Bogotá, Colombia","Medellín, Colombia","Cali, Colombia",
+  // 🇨🇱 Chile
+  "Chile","Santiago, Chile",
+  // 🇿🇦 South Africa
+  "South Africa","Johannesburg, South Africa","Cape Town, South Africa","Durban, South Africa","Pretoria, South Africa",
+  // 🇳🇬 Nigeria
+  "Nigeria","Lagos, Nigeria","Abuja, Nigeria","Ibadan, Nigeria",
+  // 🇰🇪 Kenya
+  "Kenya","Nairobi, Kenya",
+  // 🇪🇬 Egypt
+  "Egypt","Cairo, Egypt","Alexandria, Egypt",
+  // 🇹🇷 Turkey
+  "Turkey","Istanbul, Turkey","Ankara, Turkey","Izmir, Turkey",
+  // 🇷🇺 Russia
+  "Russia","Moscow, Russia","Saint Petersburg, Russia","Novosibirsk, Russia","Yekaterinburg, Russia",
+  // 🇺🇦 Ukraine
+  "Ukraine","Kyiv, Ukraine","Lviv, Ukraine","Kharkiv, Ukraine",
+  // 🇮🇩 Indonesia
+  "Indonesia","Jakarta, Indonesia","Bali, Indonesia","Surabaya, Indonesia","Bandung, Indonesia",
+  // 🇲🇾 Malaysia
+  "Malaysia","Kuala Lumpur, Malaysia","Penang, Malaysia","Johor Bahru, Malaysia",
+  // 🇹🇭 Thailand
+  "Thailand","Bangkok, Thailand","Chiang Mai, Thailand",
+  // 🇵🇭 Philippines
+  "Philippines","Manila, Philippines","Cebu, Philippines","Davao, Philippines",
+  // 🇻🇳 Vietnam
+  "Vietnam","Ho Chi Minh City, Vietnam","Hanoi, Vietnam","Da Nang, Vietnam",
+  // 🇳🇿 New Zealand
+  "New Zealand","Auckland, New Zealand","Wellington, New Zealand","Christchurch, New Zealand",
+  // 🇭🇰 Hong Kong
+  "Hong Kong",
+  // 🇹🇼 Taiwan
+  "Taiwan","Taipei, Taiwan","Hsinchu, Taiwan",
+  // 🇧🇩 Bangladesh
+  "Bangladesh","Dhaka, Bangladesh","Chittagong, Bangladesh",
+  // 🇵🇰 Pakistan
+  "Pakistan","Karachi, Pakistan","Lahore, Pakistan","Islamabad, Pakistan",
+  // 🇱🇰 Sri Lanka
+  "Sri Lanka","Colombo, Sri Lanka",
+  // 🇬🇷 Greece
+  "Greece","Athens, Greece","Thessaloniki, Greece",
+  // 🇭🇷 Croatia
+  "Croatia","Zagreb, Croatia",
+  // 🇸🇰 Slovakia
+  "Slovakia","Bratislava, Slovakia",
+  // 🇭🇺 Hungary
+  "Hungary","Budapest, Hungary",
+  // 🇧🇬 Bulgaria
+  "Bulgaria","Sofia, Bulgaria",
+  // 🇮🇪 Ireland
+  "Ireland","Dublin, Ireland","Cork, Ireland","Galway, Ireland",
+  // 🇶🇦 Qatar
+  "Qatar","Doha, Qatar",
+  // 🇰🇼 Kuwait
+  "Kuwait","Kuwait City, Kuwait",
+  // 🇧🇭 Bahrain
+  "Bahrain","Manama, Bahrain",
+  // 🇴🇲 Oman
+  "Oman","Muscat, Oman",
+  // 🇲🇦 Morocco
+  "Morocco","Casablanca, Morocco","Rabat, Morocco",
+  // 🇪🇺 Europe (general)
+  "Europe","Western Europe","Eastern Europe","EMEA","APAC","LATAM","North America","South America","Southeast Asia","Middle East","Africa"
+];
+
+let regionHighlight = -1;
+
+function regionSearch(val) {
+  const dd = document.getElementById('region-dropdown');
+  const q = val.trim().toLowerCase();
+  if (!q) {
+    // Show popular defaults when empty
+    const defaults = ["Remote - Global","Bengaluru, India","Mumbai, India","Noida, India","Gurugram, India","San Francisco Bay Area, USA","New York City, USA","London, UK","Singapore","Dubai, UAE","Sydney, Australia","Toronto, Canada","Berlin, Germany","Amsterdam, Netherlands"];
+    showRegionOptions(defaults, dd);
+    return;
+  }
+  const matches = WORLD_LOCATIONS.filter(l => l.toLowerCase().includes(q)).slice(0, 12);
+  if (matches.length === 0) {
+    dd.style.display = 'none';
+    return;
+  }
+  showRegionOptions(matches, dd);
+}
+
+function showRegionOptions(items, dd) {
+  regionHighlight = -1;
+  dd.innerHTML = items.map((loc, i) =>
+    `<div class="region-opt" data-idx="${i}" onmousedown="pickRegion('${loc.replace(/'/g,"\'")}')" 
+      style="padding:9px 14px;cursor:pointer;font-size:0.83rem;color:var(--text);border-bottom:1px solid var(--border);transition:background 0.15s;"
+      onmouseover="this.style.background='rgba(67,97,238,0.08)'" 
+      onmouseout="this.style.background=''">${loc}</div>`
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function pickRegion(val) {
+  document.getElementById('bc-region').value = val;
+  document.getElementById('region-dropdown').style.display = 'none';
+}
+
+function regionKey(e) {
+  const dd = document.getElementById('region-dropdown');
+  const opts = dd.querySelectorAll('.region-opt');
+  if (!opts.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    regionHighlight = Math.min(regionHighlight + 1, opts.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    regionHighlight = Math.max(regionHighlight - 1, 0);
+  } else if (e.key === 'Enter' && regionHighlight >= 0) {
+    e.preventDefault();
+    pickRegion(opts[regionHighlight].textContent);
+    return;
+  } else if (e.key === 'Escape') {
+    dd.style.display = 'none';
+    return;
+  }
+  opts.forEach((o, i) => {
+    o.style.background = i === regionHighlight ? 'rgba(67,97,238,0.12)' : '';
+    o.style.fontWeight  = i === regionHighlight ? '600' : '';
+  });
+  if (regionHighlight >= 0) opts[regionHighlight].scrollIntoView({ block: 'nearest' });
+}
+
+
+// =================== RECRUITING DASHBOARD ===================
+// dashFiles array stores all uploaded files (see getDashCombinedData)
+
+function showDashboard() {
+  // hide everything else
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'none';
+  document.getElementById('context-panel').classList.remove('visible');
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('battle-panel').classList.remove('visible');
+  const op = document.getElementById('outreach-panel');
+  if (op) op.style.display = 'none';
+  document.getElementById('dashboard-panel').classList.add('visible');
+  // update sidebar active state
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-dashboard').classList.add('active');
+}
+
+// File type icons
+const DASH_FILE_ICONS = {csv:'📊',xlsx:'📊',xls:'📊',pdf:'📄',docx:'📝',doc:'📝',pptx:'🖼️',ppt:'🖼️',json:'🗃️',txt:'📋'};
+
+// Multi-file store
+let dashFiles = []; // [{name, ext, raw, fileType}]
+
+function getDashCombinedData() {
+  if (!dashFiles.length) return null;
+  if (dashFiles.length === 1) return dashFiles[0];
+  // Combine multiple files into one context
+  const combined = dashFiles.map((f, i) =>
+    `=== FILE ${i+1}: ${f.name} ===\n${f.raw}`
+  ).join('\n\n');
+  return { name: dashFiles.map(f => f.name).join(' + '), raw: combined, fileType: 'mixed' };
+}
+
+async function handleDashFiles(input) {
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+
+  for (const file of files) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const icon = DASH_FILE_ICONS[ext] || '📁';
+    const chipId = 'dash-chip-' + Date.now() + Math.random().toString(36).slice(2,6);
+
+    // Add loading chip
+    const chips = document.getElementById('dash-file-chips');
+    const loadChip = document.createElement('span');
+    loadChip.className = 'dash-chip';
+    loadChip.id = chipId;
+    loadChip.innerHTML = `${icon} Reading ${file.name}…`;
+    chips.appendChild(loadChip);
+
+    try {
+      let rawText = '';
+      let fileType = 'data';
+
+      if (ext === 'csv' || ext === 'txt') {
+        rawText = await file.text(); fileType = ext === 'csv' ? 'spreadsheet' : 'text';
+      } else if (ext === 'json') {
+        rawText = await file.text(); fileType = 'json';
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        rawText = await readExcelFile(file); fileType = 'spreadsheet';
+      } else if (ext === 'pdf') {
+        rawText = await extractDashPDF(file); fileType = detectReportType(rawText, file.name);
+      } else if (ext === 'docx' || ext === 'doc') {
+        rawText = await extractDashDOCX(file); fileType = detectReportType(rawText, file.name);
+      } else if (ext === 'pptx' || ext === 'ppt') {
+        rawText = await extractDashPPTX(file); fileType = 'presentation';
+      } else {
+        rawText = await file.text();
+      }
+
+      const fileEntry = { name: file.name, ext, raw: rawText, fileType, chipId };
+      dashFiles.push(fileEntry);
+
+      // Update chip to done state
+      const chip = document.getElementById(chipId);
+      if (chip) {
+        const lines = rawText.split('\n').filter(Boolean).length;
+        chip.innerHTML = `${icon} ${file.name} <span style="color:#6b7280;font-size:0.68rem;">(${lines.toLocaleString()} lines)</span> <span class="rm" onclick="removeDashFile('${chipId}')">×</span>`;
+      }
+    } catch(e) {
+      const chip = document.getElementById(chipId);
+      if (chip) chip.innerHTML = `<span style="color:var(--danger)">❌ ${file.name}: ${e.message}</span> <span class="rm" onclick="this.parentElement.remove()">×</span>`;
+    }
+  }
+
+  if (input.value !== undefined) input.value = '';
+
+  // Show analysis bar if we have any files
+  if (dashFiles.length > 0) {
+    document.getElementById('dash-analysis-bar').style.display = 'flex';
+    showDashWelcomeReady();
+  }
+}
+
+function removeDashFile(chipId) {
+  dashFiles = dashFiles.filter(f => f.chipId !== chipId);
+  const chip = document.getElementById(chipId);
+  if (chip) chip.remove();
+  if (dashFiles.length === 0) {
+    document.getElementById('dash-analysis-bar').style.display = 'none';
+    document.getElementById('dash-custom-input').style.display = 'none';
+    document.getElementById('dash-content').innerHTML = `
+      <div class="dash-empty" id="dash-drop-zone"
+        ondragover="event.preventDefault();this.style.background='rgba(67,97,238,0.06)'"
+        ondragleave="this.style.background=''"
+        ondrop="event.preventDefault();this.style.background='';handleDashFiles({files:event.dataTransfer.files})">
+        <div class="big-icon">📂</div>
+        <h3>Upload your data files</h3>
+        <p>Drop one or multiple files — AI extracts content and generates an executive-grade intelligence dashboard.</p>
+      </div>`;
+  }
+}
+
+
+function detectReportType(text, filename) {
+  const t = (text + filename).toLowerCase();
+  if (t.includes('talent insight') || t.includes('linkedin talent') || t.includes('lti')) return 'linkedin-talent-insights';
+  if (t.includes('talentneuron') || t.includes('talent neuron') || t.includes('gartner')) return 'talentneuron';
+  if (t.includes('supply') && t.includes('demand')) return 'talent-intelligence';
+  if (t.includes('pipeline') || t.includes('funnel') || t.includes('applicant')) return 'pipeline';
+  if (t.includes('salary') || t.includes('compensation') || t.includes('pay band')) return 'compensation';
+  if (t.includes('diversity') || t.includes('inclusion') || t.includes('dei')) return 'dei';
+  if (t.includes('workforce') || t.includes('headcount')) return 'workforce';
+  return 'report';
+}
+
+async function readExcelFile(file) {
+  if (!window.XLSX) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  const ab = await file.arrayBuffer();
+  const wb = window.XLSX.read(ab, { type: 'array' });
+  // Extract all sheets
+  let allText = '';
+  wb.SheetNames.forEach(sheetName => {
+    const ws = wb.Sheets[sheetName];
+    const csv = window.XLSX.utils.sheet_to_csv(ws);
+    if (csv.trim()) allText += `=== Sheet: ${sheetName} ===\n${csv}\n\n`;
+  });
+  return allText || 'Empty workbook';
+}
+
+async function extractDashPDF(file) {
+  if (!window.pdfjsLib) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const ab = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: ab, verbosity: 0 }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += `--- Page ${i} ---\n` + content.items.map(s => s.str).join(' ') + '\n';
+  }
+  if (!text.trim()) throw new Error('PDF appears image-only. Try a text-based PDF.');
+  return text;
+}
+
+async function extractDashDOCX(file) {
+  if (!window.mammoth) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  const ab = await file.arrayBuffer();
+  const result = await window.mammoth.extractRawText({ arrayBuffer: ab });
+  if (!result.value.trim()) throw new Error('Could not extract text from Word document.');
+  return result.value;
+}
+
+async function extractDashPPTX(file) {
+  // Use JSZip to unzip PPTX and extract slide text
+  if (!window.JSZip) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  const ab = await file.arrayBuffer();
+  const zip = await window.JSZip.loadAsync(ab);
+  const slideFiles = Object.keys(zip.files).filter(f => f.match(/ppt\/slides\/slide[0-9]+\.xml$/)).sort();
+  let text = '';
+  for (const slideFile of slideFiles) {
+    const xml = await zip.files[slideFile].async('text');
+    const slideNum = slideFile.match(/slide(\d+)/)?.[1] || '?';
+    // Extract text from XML tags
+    const matches = xml.match(/<a:t[^>]*>([^<]+)<\/a:t>/g) || [];
+    const slideText = matches.map(m => m.replace(/<[^>]+>/g, '')).join(' ').trim();
+    if (slideText) text += `--- Slide ${slideNum} ---\n${slideText}\n`;
+  }
+  return text || 'No text content found in presentation.';
+}
+
+function clearDashFile() {
+  dashFiles = [];
+  document.getElementById('dash-file-chips').innerHTML = '';
+  document.getElementById('dash-analysis-bar').style.display = 'none';
+  document.getElementById('dash-custom-input').style.display = 'none';
+  document.getElementById('dash-content').innerHTML = `
+    <div class="dash-empty" id="dash-drop-zone"
+      ondragover="event.preventDefault();this.style.background='rgba(67,97,238,0.06)'"
+      ondragleave="this.style.background=''"
+      ondrop="event.preventDefault();this.style.background='';handleDashFiles({files:event.dataTransfer.files})">
+      <div class="big-icon">📂</div>
+      <h3>Upload your data files</h3>
+      <p>Drop one or multiple files — AI extracts content and generates an executive-grade intelligence dashboard.</p>
+    </div>`;
+}
+
+function showDashWelcomeReady() {
+  const count = dashFiles.length;
+  const hasReport = dashFiles.some(f => ['pdf','docx','doc','pptx','ppt'].includes(f.ext) ||
+    ['report','presentation','talent-intelligence'].includes(f.fileType));
+  const names = dashFiles.map(f => f.name).join(', ');
+
+  const primaryBtns = hasReport
+    ? `<button class="dash-btn active" onclick="runDashAnalysis('talent_intelligence')">🧠 Talent Intelligence Dashboard</button>
+       <button class="dash-btn pink" onclick="runDashAnalysis('overview')">🔍 Smart Overview</button>
+       <button class="dash-btn gold" onclick="runDashAnalysis('charts')">📈 Visualize Key Data</button>`
+    : `<button class="dash-btn active" onclick="runDashAnalysis('overview')">🔍 Smart Overview</button>
+       <button class="dash-btn pink" onclick="runDashAnalysis('charts')">📈 Charts & Trends</button>
+       <button class="dash-btn gold" onclick="runDashAnalysis('stats')">🧮 Statistical Summary</button>`;
+
+  document.getElementById('dash-content').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:20px;">
+      <div style="font-size:3rem;">✅</div>
+      <h3 style="font-size:1.05rem;color:var(--text);font-weight:700;">${count} file${count>1?'s':''} ready for analysis</h3>
+      <p style="font-size:0.84rem;color:var(--text-muted);max-width:480px;line-height:1.6;">
+        Select an analysis mode below — AI will read all uploaded files together and generate a unified executive-grade dashboard.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">${primaryBtns}</div>
+    </div>`;
+}
+
+const MASTER_SYSTEM = `You are ARIA — Advanced Recruiting Intelligence Analyst — an elite talent analytics engine embedded within a professional recruiting platform.
+
+Your role: Transform raw recruiting data, HR reports, talent market files, or any uploaded document into executive-grade intelligence that drives hiring strategy.
+
+CORE PRINCIPLES:
+- Extract EVERY data point, metric, number, and trend from the uploaded file — even figures embedded in paragraphs
+- If the file is a PDF report (market data, salary survey, talent insights), treat all text as structured intelligence
+- Never hallucinate or invent numbers — use ONLY data present in the uploaded file
+- When data is sparse, acknowledge it clearly and provide what analysis IS possible
+- Prioritise actionable insights over descriptive summaries
+- Use precise business language — executive-ready, no jargon
+
+OUTPUT FORMAT (always follow this exactly):
+===ANALYSIS===
+[Your analytical narrative here]
+===DASHBOARD_HTML===
+[Complete self-contained HTML dashboard here]
+===END===
+
+DASHBOARD DESIGN STANDARDS:
+- Use Chart.js from: https://cdn.jsdelivr.net/npm/chart.js
+- Colour palette: #4361ee (blue), #f72585 (pink), #f77f00 (orange), #06b6d4 (teal), #0a9c5a (green), #7209b7 (purple)
+- White background, clean card layout, professional typography
+- Every chart must include: title + one-line insight caption explaining the "so what"
+- KPI stat cards in the top row with large bold numbers
+- Fully self-contained — all CSS inline, no external dependencies except Chart.js CDN
+- REAL extracted data only — never use placeholder or example numbers`;
+
+function runDashAnalysis(type) {
+  if (type === 'custom') {
+    const ci = document.getElementById('dash-custom-input');
+    ci.style.display = ci.style.display === 'none' ? 'flex' : 'none';
+    document.getElementById('dash-custom-prompt').focus();
+    return;
+  }
+  // Close custom input if open
+  document.getElementById('dash-custom-input').style.display = 'none';
+
+  const prompts = {
+
+    overview: `${MASTER_SYSTEM}
+
+MODE: SMART OVERVIEW
+Generate a full Executive Dashboard with:
+
+1️⃣ KPI SNAPSHOT — Headline metrics, growth rates, median benchmarks, key ratios
+2️⃣ SUPPLY VS DEMAND — Talent pool indicators, hiring intensity, gap analysis  
+3️⃣ EMPLOYER LANDSCAPE — Competitive concentration, talent clustering, market positioning
+4️⃣ SKILLS HEATMAP — Core skills, emerging skills, high-growth capabilities
+5️⃣ GEOGRAPHY BREAKDOWN — Top hubs, regional concentration, remote indicators
+6️⃣ COMPENSATION SNAPSHOT (if available) — P25/P50/P75, variance patterns, market competitiveness
+7️⃣ HIRING TRENDS — Volume trends, velocity, growth signals
+8️⃣ STRATEGIC CALLOUTS — 5 Risks + 5 Opportunities + 5 Recommendations
+
+Then generate a complete, self-contained interactive HTML dashboard using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) with:
+- Top row: 4-5 KPI stat cards with headline numbers
+- Minimum 4 chart types (bar, line, pie/donut, scatter) using REAL extracted data
+- Professional styling: white background, #4361ee blue, #f72585 pink, #f77f00 orange, #06b6d4 teal, #0a9c5a green
+- Each chart has title + 1-line insight caption
+- "Strategic Callouts" section at bottom
+
+Return EXACTLY:
+===ANALYSIS===
+[executive summary + KPI snapshot + strategic callouts — structured, concise]
+===DASHBOARD_HTML===
+[complete self-contained HTML]
+===END===`,
+
+    charts: `${MASTER_SYSTEM}
+
+MODE: CHARTS & TRENDS
+Focus on visual storytelling:
+- 6+ relevant chart interpretations
+- Trend explanations with directional signals
+- Anomaly detection and flagging
+- Seasonality insights where applicable
+
+Generate a complete interactive HTML dashboard using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) with:
+- 6+ charts — each answering a specific business question
+- Mix of: bar (comparisons), line (trends), pie/donut (distributions), scatter (relationships)
+- Each chart: clear title + insight caption explaining the "so what"
+- Colors: #4361ee, #f72585, #f77f00, #06b6d4, #0a9c5a, #7209b7
+- REAL data values extracted from the uploaded file — no placeholders
+- Anomalies highlighted in red/amber
+
+Return EXACTLY:
+===ANALYSIS===
+[trend narrative — what the data is telling us, anomalies, key directional signals]
+===DASHBOARD_HTML===
+[complete self-contained HTML]
+===END===`,
+
+    correlation: `${MASTER_SYSTEM}
+
+MODE: CORRELATIONS
+Identify relationships and business implications:
+1. CORRELATION MATRIX — Which variables move together (positive/negative/neutral)
+2. STRONGEST RELATIONSHIPS — Top 5 correlations with business meaning
+3. BUSINESS IMPLICATIONS — What these relationships mean for hiring strategy
+4. SPURIOUS CORRELATION WARNING — Flag where correlation ≠ causation
+5. ACTIONABLE FINDINGS — What leadership should do based on these patterns
+
+Generate HTML visualization with:
+- Correlation heatmap or scatter matrix using Chart.js
+- Strong correlations (>0.7 or <-0.7) highlighted in color
+- Coefficient table with plain-English interpretation per pair
+
+Return EXACTLY:
+===ANALYSIS===
+[correlation findings — insight-first, executive framing]
+===DASHBOARD_HTML===
+[complete self-contained HTML]
+===END===`,
+
+    stats: `${MASTER_SYSTEM}
+
+MODE: STATISTICAL SUMMARY
+Switch to neutral analytical tone. For each field:
+
+NUMERIC FIELDS: Mean, Median, Std Dev, Min, Max, Q1, Q3, IQR, Outlier count, Missing %
+CATEGORICAL FIELDS: Unique values, Top 3 most common, Distribution %, Missing %
+DATASET HEALTH: Completeness score, Anomaly flags, Data quality rating
+
+Generate HTML report with:
+- Clean statistics table per column
+- Distribution histograms for key numeric fields using Chart.js
+- Outliers and anomalies highlighted in red
+- Data quality summary card at top
+
+Return EXACTLY:
+===ANALYSIS===
+[statistical findings — precise, structured, neutral tone]
+===DASHBOARD_HTML===
+[complete self-contained HTML stats report]
+===END===`,
+
+    funnel: `${MASTER_SYSTEM}
+
+MODE: HIRING FUNNEL
+Recruiter-actionable funnel intelligence:
+- Stage conversion rates (Applied → Screened → Interviewed → Offered → Hired)
+- Drop-off analysis at each stage — where are we losing candidates?
+- Bottleneck identification — which stage has the worst conversion?
+- Funnel optimization recommendations — specific, actionable
+- Comparison by role/department/source if data permits
+
+Generate HTML dashboard with:
+- Funnel visualization (Chart.js horizontal bar or custom SVG funnel)
+- Stage conversion rate KPI cards
+- Drop-off % highlighted in amber/red
+- Bottleneck alert callout box
+- Comparison charts by segment if data available
+
+Return EXACTLY:
+===ANALYSIS===
+[funnel analysis — bottlenecks, drop-off patterns, optimization opportunities]
+===DASHBOARD_HTML===
+[complete self-contained HTML funnel dashboard]
+===END===`,
+
+    diversity: `${MASTER_SYSTEM}
+
+MODE: DIVERSITY & INCLUSION
+Neutral, data-driven, legally compliant framing:
+- Distribution overview across available demographic dimensions
+- Representation ratios at each pipeline stage
+- Cohort comparisons — do groups convert equally through the funnel?
+- Bias signal detection — flag statistically significant gaps
+- Neutral, constructive recommendations — avoid legal positioning
+
+Generate HTML dashboard with:
+- Pie/donut charts for each demographic dimension available
+- Funnel parity chart — conversion rates by cohort
+- Representation trend line if time data available
+- Recommendations panel
+
+Return EXACTLY:
+===ANALYSIS===
+[D&I findings — neutral tone, data-backed, constructive]
+===DASHBOARD_HTML===
+[complete self-contained HTML D&I dashboard]
+===END===`,
+
+    time: `${MASTER_SYSTEM}
+
+MODE: TIME-TO-HIRE ANALYSIS
+Efficiency-focused output:
+- Median TTH overall + by role, department, level, source
+- Stage duration breakdown — where does time get consumed?
+- Acceleration opportunities — which stages could be compressed?
+- SLA breach identification — roles significantly above median
+- Efficiency insights — recruiter and process-level recommendations
+
+Generate HTML dashboard with:
+- Line/bar charts showing TTH trend over time
+- Stage duration waterfall or stacked bar
+- SLA compliance gauge or traffic-light cards
+- Fastest vs slowest segments comparison
+
+Return EXACTLY:
+===ANALYSIS===
+[time analysis — efficiency gaps, acceleration opportunities, strategic implications]
+===DASHBOARD_HTML===
+[complete self-contained HTML time dashboard]
+===END===`,
+
+    source: `${MASTER_SYSTEM}
+
+MODE: SOURCE EFFECTIVENESS
+Channel ROI intelligence:
+- Volume by source (quantity)
+- Quality proxy: interview rate, offer rate, hire rate by source
+- Efficiency ranking: which sources produce the best candidates fastest
+- Cost-per-hire by source if data available
+- Reallocation strategy: where to invest more / less sourcing effort
+
+Generate HTML dashboard with:
+- Source performance comparison bar charts (volume vs quality)
+- Quality vs quantity scatter plot
+- ROI ranking table with efficiency score
+- Trend: source mix over time if date data available
+
+Return EXACTLY:
+===ANALYSIS===
+[source intelligence — ROI findings, reallocation recommendations]
+===DASHBOARD_HTML===
+[complete self-contained HTML source dashboard]
+===END===`,
+
+    forecast: `${MASTER_SYSTEM}
+
+MODE: PREDICTIVE INTELLIGENCE
+Forward-looking analysis (if time-series data exists):
+- 3-6 period forecast with trend extrapolation
+- Confidence bands (optimistic / base / conservative scenarios)
+- Scenario projections with named assumptions
+- Risk factors that could alter the forecast
+- Strategic recommendations based on projected trajectory
+
+Generate HTML dashboard with:
+- Trend lines + forecast projections (dashed) using Chart.js
+- Confidence interval shading
+- Scenario comparison (best/base/worst) if data supports
+- Key assumption callout cards
+
+Return EXACTLY:
+===ANALYSIS===
+[predictive narrative — methodology, key assumptions, strategic implications of the forecast]
+===DASHBOARD_HTML===
+[complete self-contained HTML forecast dashboard]
+===END===`,
+
+    talent_intelligence: `${MASTER_SYSTEM}
+
+MODE: TALENT INTELLIGENCE DASHBOARD
+You have received a talent insights report or dataset. Extract every data point, metric, and narrative insight — even figures embedded in text.
+
+Build a comprehensive executive talent intelligence dashboard covering ALL relevant sections:
+
+📊 SUPPLY VS DEMAND — Talent pool size, supply/demand index, gap indicators
+💼 EMPLOYER LANDSCAPE — Top hiring companies ranked, talent flow, market concentration  
+🎓 SKILLS ANALYSIS — Top skills (bar chart), emerging vs declining skills, growth rates
+📍 GEOGRAPHY — Top talent hubs, regional concentration table, remote/hybrid split
+💰 COMPENSATION — P25/P50/P75/P90 salary bands, YoY movement, market competitiveness
+⏱️ HIRING TRENDS — Volume by period, velocity, demand growth rates
+🔮 STRATEGIC CALLOUTS — 5 Risks + 5 Opportunities + 5 Recruiter Recommendations
+
+TECHNICAL REQUIREMENTS:
+- Chart.js from CDN: https://cdn.jsdelivr.net/npm/chart.js
+- Executive design: white background, #4361ee, #f72585, #f77f00, #06b6d4, #0a9c5a
+- Top row: 5 headline KPI stat cards
+- Grid: 2-3 charts per row, each with title + insight caption
+- "Strategic Intelligence Summary" section at bottom with 3-column layout (Risks | Opportunities | Actions)
+- REAL extracted data only — never use placeholder numbers
+- Minimum 600 lines of HTML — richly detailed
+- Fully self-contained with all CSS inline
+
+Return EXACTLY:
+===ANALYSIS===
+[2-3 paragraph executive summary: what the report contains, key themes, confidence level]
+===DASHBOARD_HTML===
+[complete, self-contained, richly detailed HTML dashboard]
+===END===`
+
+  };
+
+  const systemPrompt = prompts[type] || prompts.overview;
+  renderDashboard(systemPrompt, type);
+}
+
+async function runDashCustom() {
+  const userQ = document.getElementById('dash-custom-prompt').value.trim();
+  if (!userQ) return;
+  const systemPrompt = MASTER_SYSTEM + `
+
+MODE: CUSTOM ANALYSIS
+The user has asked: "${userQ}"
+
+Interpret their intent, identify the relevant data fields, and run a targeted analysis.
+Provide: Direct answer → Supporting explanation → Confidence level → Assumptions.
+
+Then create a complete interactive HTML visualization/dashboard using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) that best answers their question. Use REAL data extracted from the file.
+
+Return EXACTLY:
+===ANALYSIS===
+[direct answer + supporting analysis — concise, data-backed, executive tone]
+===DASHBOARD_HTML===
+[complete self-contained HTML]
+===END===`;
+  document.getElementById('dash-custom-input').style.display = 'none';
+  renderDashboard(systemPrompt, 'custom');
+}
+
+async function renderDashboard(systemPrompt, type) {
+  const dashData = getDashCombinedData();
+  if (!dashData) {
+    alert('Please upload at least one data file first.');
+    return;
+  }
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey)) {
+    alert('Please add a valid API key in the sidebar.');
+    return;
+  }
+
+  const content = document.getElementById('dash-content');
+  const typeLabels = { overview:'Smart Overview', charts:'Charts & Trends', correlation:'Correlations',
+    stats:'Statistical Summary', funnel:'Hiring Funnel', diversity:'D&I Analysis',
+    time:'Time-to-Hire', source:'Source Effectiveness', forecast:'Predictive Insights',
+    talent_intelligence:'Talent Intelligence Dashboard', custom:'Custom Analysis' };
+
+  content.innerHTML = `
+    <div class="dash-loading">
+      <div class="typing"><span></span><span></span><span></span></div>
+      <span>Analyzing your data and generating the <strong>${typeLabels[type] || type}</strong> dashboard…</span>
+    </div>`;
+
+  // Smart truncation: PDFs are text blobs (few newlines), CSVs have many rows
+  const MAX_CHARS = 18000;
+  let truncated;
+  if (dashData.raw.length <= MAX_CHARS) {
+    truncated = dashData.raw;
+  } else {
+    const dataLines = dashData.raw.split('\n');
+    if (dataLines.length < 50) {
+      // PDF / text blob — truncate by chars
+      truncated = dashData.raw.slice(0, MAX_CHARS) + `\n\n... (content truncated at ${MAX_CHARS} chars for analysis)`;
+    } else {
+      // CSV / structured data — truncate by rows
+      truncated = dataLines.slice(0, 401).join('\n') + `\n... (${dataLines.length - 401} more rows truncated)`;
+    }
+  }
+
+  const fileTypeHint = dashData.fileType ? ` [File type: ${dashData.fileType}]` : '';
+  const userMsg = `Here is the recruiting data from file "${dashData.name}"${fileTypeHint}:\n\n${truncated}`;
+
+  try {
+    const reply = await callAI(systemPrompt, [{ role:'user', content: userMsg }], 6000);
+    parseDashResponse(reply, type, typeLabels[type] || type);
+  } catch(e) {
+    content.innerHTML = `<div class="dash-result-box" style="border-color:rgba(229,56,59,0.3);background:rgba(229,56,59,0.05);">
+      <strong style="color:var(--danger);">⚠️ Error:</strong> ${e.message}
+    </div>`;
+  }
+}
+
+function parseDashResponse(reply, type, label) {
+  const content = document.getElementById('dash-content');
+
+  // Parse ===ANALYSIS=== and ===DASHBOARD_HTML=== sections
+  const analysisMatch = reply.match(/===ANALYSIS===\s*([\s\S]*?)===DASHBOARD_HTML===/);
+  const htmlMatch = reply.match(/===DASHBOARD_HTML===\s*([\s\S]*?)===END===/);
+
+  const analysisText = analysisMatch ? analysisMatch[1].trim() : '';
+  let dashHtml = htmlMatch ? htmlMatch[1].trim() : '';
+
+  // If no structured response, show raw text
+  if (!analysisText && !dashHtml) {
+    content.innerHTML = `
+      <div class="dash-card" style="grid-column:1/-1;">
+        <div class="dash-card-title">📊 ${label}</div>
+        <div style="font-size:0.85rem;line-height:1.8;white-space:pre-wrap;color:var(--text);">${reply}</div>
+      </div>`;
+    return;
+  }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:16px;">';
+
+  // Analysis text section
+  if (analysisText) {
+    html += `
+      <div class="dash-card">
+        <div class="dash-card-title">🔍 ${label} — Key Findings</div>
+        <div style="font-size:0.84rem;line-height:1.8;color:var(--text);white-space:pre-wrap;">${analysisText}</div>
+      </div>`;
+  }
+
+  // Interactive dashboard iframe
+  if (dashHtml) {
+    // Clean up any markdown code fences
+    dashHtml = dashHtml.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    const blob = new Blob([dashHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    html += `
+      <div class="dash-card" style="padding:0;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1.5px solid var(--border);">
+          <div class="dash-card-title" style="margin:0;">📊 Interactive Dashboard</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="document.getElementById('dash-iframe-${type}').requestFullscreen()" 
+              style="background:white;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--text-muted);">⛶ Fullscreen</button>
+            <a href="${url}" download="dashboard-${type}.html" 
+              style="background:rgba(67,97,238,0.08);border:1.5px solid rgba(67,97,238,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--accent);text-decoration:none;font-weight:600;">⬇ Download</a>
+          </div>
+        </div>
+        <iframe id="dash-iframe-${type}" src="${url}" style="width:100%;height:${type==='talent_intelligence'?'780':'520'}px;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>`;
+  }
+
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+// =================== END DASHBOARD ===================
+
+// =================== AI LAUNCH & PDF DOWNLOAD ===================
+const AI_URLS = {
+  claude:      'https://claude.ai/new',
+  chatgpt:     'https://chatgpt.com/',
+  gemini:      'https://gemini.google.com/app',
+  copilot:     'https://copilot.microsoft.com/',
+  perplexity:  'https://www.perplexity.ai/',
+  mistral:     'https://chat.mistral.ai/chat'
+};
+
+function toggleAIDropdown() {
+  const menu = document.getElementById('ai-dropdown-menu');
+  const arrow = document.getElementById('ai-dd-arrow');
+  const open = menu.style.display === 'block';
+  menu.style.display = open ? 'none' : 'block';
+  arrow.textContent = open ? '▼' : '▲';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('ai-launch-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('ai-dropdown-menu');
+    const arrow = document.getElementById('ai-dd-arrow');
+    if (menu) menu.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+  }
+});
+
+function launchWithAI(platform) {
+  if (!generatedPrompt) { alert('Please generate a brief first.'); return; }
+  navigator.clipboard.writeText(generatedPrompt).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = generatedPrompt;
+    document.body.appendChild(t); t.select();
+    document.execCommand('copy'); document.body.removeChild(t);
+  });
+  const note = document.getElementById('ai-launch-note');
+  if (note) { note.style.display = 'block'; setTimeout(() => note.style.display = 'none', 6000); }
+  window.open(AI_URLS[platform] || AI_URLS.claude, '_blank');
+}
+
+function downloadBriefPDF() {
+  if (!generatedPrompt) { alert('Please generate a brief first.'); return; }
+  generatePDF('Intelligence Brief', generatedPrompt);
+}
+
+function downloadBriefTXT() {
+  if (!generatedPrompt) { alert('Please generate a brief first.'); return; }
+  const blob = new Blob([generatedPrompt], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'competitor-intelligence-brief.txt';
+  a.click();
+}
+
+function downloadResultPDF() {
+  const text = document.getElementById('ai-result-input').value.trim();
+  if (!text) { alert('Please paste the AI result first.'); return; }
+  generatePDF('Competitor Intelligence Report', text);
+}
+
+function downloadResultTXT() {
+  const text = document.getElementById('ai-result-input').value.trim();
+  if (!text) { alert('Please paste the AI result first.'); return; }
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'competitor-intelligence-report.txt';
+  a.click();
+}
+
+function generatePDF(title, bodyText) {
+  const date = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const escaped = bodyText
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^#{1,3}\s+(.+)$/gm,'<h3 style="color:#4361ee;margin:18px 0 6px;font-size:1rem;">$1</h3>')
+    .replace(/^[-•]\s+(.+)$/gm,'<li>$1</li>')
+    .replace(/^(\d+)\.\s+(.+)$/gm,'<li><strong>$1.</strong> $2</li>')
+    .replace(/━+/g,'<hr style="border:1px solid #e5e7eb;margin:14px 0;">')
+    .replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Outfit',sans-serif; color:#1f2937; background:white; padding:40px 48px; font-size:13px; line-height:1.75; }
+  .cover { border-bottom:3px solid #4361ee; padding-bottom:24px; margin-bottom:28px; }
+  .cover h1 { font-size:1.6rem; font-weight:700; color:#4361ee; margin-bottom:6px; }
+  .cover .meta { font-size:0.8rem; color:#6b7280; }
+  .cover .badge { display:inline-block; background:#4361ee; color:white; border-radius:6px; padding:3px 10px; font-size:0.72rem; font-weight:600; margin-top:8px; }
+  p { margin:6px 0; } h3 { color:#4361ee; margin:18px 0 6px; border-left:3px solid #4361ee; padding-left:8px; }
+  li { margin:3px 0 3px 20px; } strong { color:#111827; }
+  hr { border:none; border-top:1px solid #e5e7eb; margin:16px 0; }
+  .footer { margin-top:40px; padding-top:16px; border-top:2px solid #f3f4f6; font-size:0.72rem; color:#9ca3af; display:flex; justify-content:space-between; }
+  @media print { body { padding:20px 28px; } }
+</style></head><body>
+<div class="cover">
+  <h1>🎯 ${title}</h1>
+  <div class="meta">Generated: ${date} · Recruiter AI Intelligence Platform</div>
+  <div class="badge">Confidential · Internal Use Only</div>
+</div>
+<div><p>${escaped}</p></div>
+<div class="footer"><span>Competitor Intelligence Platform</span><span>${date}</span></div>
+<script>window.onload = () => { window.print(); }<\/script>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) { const a = document.createElement('a'); a.href = url; a.download = title.toLowerCase().replace(/\s+/g,'-') + '.html'; a.click(); }
+}
+// =================== END AI LAUNCH ===================
+
+// =================== BATTLE CARDS ===================
+function showBattle() {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-battle').classList.add('active');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'none';
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('context-panel').classList.remove('visible');
+  document.getElementById('battle-panel').classList.add('visible');
+  document.getElementById('outreach-panel').style.display = 'none';
+  currentMode = null;
+}
+
+document.getElementById('bc-role').addEventListener('change', function() {
+  const custom = document.getElementById('bc-role-custom-group');
+  custom.style.display = this.value === 'Custom...' ? 'flex' : 'none';
+});
+
+function generatePrompt() {
+  const core = document.getElementById('bc-core').value.trim() || 'Your Organisation';
+  const competitors = document.getElementById('bc-competitors').value.trim() || 'AWS, Google, Microsoft';
+  const roleEl = document.getElementById('bc-role');
+  const role = roleEl.value === 'Custom...' ? document.getElementById('bc-role-custom').value.trim() : roleEl.value;
+  const region = document.getElementById('bc-region').value;
+  const seniority = document.getElementById('bc-seniority').value;
+  const freshness = document.getElementById('bc-freshness').value;
+  const usps = document.getElementById('bc-usps').value.trim();
+  const weaknesses = document.getElementById('bc-weaknesses').value.trim();
+  const output = document.getElementById('bc-output').value;
+
+  const competitorList = competitors.split(',').map(c => c.trim()).filter(Boolean);
+
+  generatedPrompt = `You are a strategic talent intelligence consultant embedded with a Talent Acquisition team. Your goal is to produce a deeply researched, recruiter-ready competitive playbook based on the market configuration below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 1 — MARKET CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your Organisation: ${core}
+Rival Employers to Profile: ${competitorList.join(', ')}
+Role Focus: ${role}
+Talent Market: ${region}
+Seniority Band: ${seniority}
+Data Recency: ${freshness}${usps ? `
+Our Recruitment Edge: ${usps}` : ''}${weaknesses ? `
+Areas to Navigate Carefully: ${weaknesses}` : ''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 2 — INTELLIGENCE RESEARCH PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Priority Intelligence Sources: Company sites and investor pages, 10-K/10-Q and earnings calls, credible news (TechCrunch, Bloomberg, ET), Glassdoor, Blind, LinkedIn Company Insights, Levels.fyi, Layoffs.fyi, Crunchbase, Built In, Comparably, Gartner/Forrester where relevant. Cite every non-obvious claim with [numbered references].
+
+Profile Each Rival Employer Across:
+1. Snapshot: HQ, size, stage, primary products, ICP, revenue model
+2. Financial Health: Cash/funding, revenue trend, profitability, margin, guidance, runway signals
+3. Momentum: Product velocity, customer wins, GTM motions, partnerships, churn, recent layoffs or hiring freezes
+4. Talent Brand & Culture: EVP themes, mission clarity, Glassdoor themes, Blind sentiment, management quality, attrition signals (with short quotes and links)
+5. Compensation & Equity: Indicative ranges for ${role} in ${region} from Levels.fyi, postings, and public data; equity liquidity outlook
+6. Leadership: CEO and exec stability, notable departures or hires, leadership signals (with one supporting quote and link)
+7. Risks: Regulatory, platform dependencies, concentration risk, strategic pivots, litigation
+8. Candidate Objections: Common objections candidates raise about them
+9. How ${core} Wins: Key advantages against this competitor for ${role} in ${region}
+10. Talk Tracks & Objection Handling: Specific recruiter scripts
+11. Ethical Red Flags: Diligence questions to ethically plant with candidates
+12. Sources List: Mapped to in-text citations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODULE 3 — DELIVERABLE FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Style: Clear headings and tables. Tight sentences. No fluff. Numbered in-line citations [1]. Include a short quote and link in Culture and Leadership sections.
+Constraints: Use only public, verifiable info within the freshness window. If sources conflict, show both and explain likely reality. If data is unavailable, mark "Insufficient public data."
+
+Generate the following output sections: ${output}
+
+${output.includes('A') || output.includes('All') ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE A — MARKET SNAPSHOT TABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create a table with columns:
+Competitor | Stage | Est. Revenue/ARR Band | Profitability | Hiring Trend | Employee Sentiment (Glassdoor/Blind) | Product Momentum | Recent Layoffs/Churn | Compensation Positioning | Overall Risk | Primary Angle To Win for ${core}
+` : ''}
+${output.includes('B') || output.includes('All') || output.includes('Cards') ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE B — DEEP-DIVE RECRUITER PLAYBOOKS
+(Repeat the full structure below for each of: ${competitorList.join(', ')})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For each competitor, use this exact structure:
+
+## [COMPANY NAME] — Talent Intelligence Playbook
+
+### 🏢 Organisation Snapshot
+- HQ, Founded, Stage, Headcount, India office presence
+
+### 📈 Financial Health & Growth Signals
+[Revenue trend, funding, profitability, runway — with citations]
+
+### 🌟 Employer Brand & Culture Reality
+[EVP themes, Glassdoor rating, Blind sentiment, 1 short direct quote with link]
+
+### 💰 Compensation & Equity Positioning
+[${role} in ${region}: Base, total comp, equity — from Levels.fyi and postings]
+
+### 🧭 Leadership & Stability Signals
+[CEO/exec stability, recent departures, 1 short quote with link]
+
+### ⚠️ Risk Factors for Candidates
+[Top 3 risks as bullet points]
+
+### 💬 Candidate Conversation Patterns
+[Top 3-4 objections candidates raise about this company]
+
+### 🎯 Why Candidates Choose ${core} Instead
+[3-5 specific, honest win angles for ${role} in ${region}${usps ? ` — incorporate our USPs: ${usps}` : ''}]
+
+### 🗺️ Recruiter Conversation Guide
+For each candidate objection above, provide:
+- Objection: "[exact words candidate might say]"
+- Talk Track: [recruiter response script]
+- Backup: [one supporting link or data point]
+
+### 🔦 Smart Diligence Questions to Share
+[3-4 thoughtful questions a candidate should ask them, framed as "I'd encourage you to ask about..."]
+
+### 📎 Research References
+[Numbered list of all citations used in this card]
+
+---
+` : ''}
+${output.includes('C') || output.includes('All') || output.includes('Scorecard') ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE C — HEAD-TO-HEAD SCORECARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create a table.
+Rows: Financial Health | Product Momentum | Leadership Stability | Talent Brand | Compensation Competitiveness (for ${role} in ${region}) | Career Growth | Work-Life Reality | Risk Level
+Columns: ${competitorList.join(' | ')} — each scored 1–5 (1=Poor, 5=Excellent) with a one-line justification and source link.
+` : ''}
+${output.includes('D') || output.includes('All') || output.includes('Slack') ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DELIVERABLE D — QUICK-SHARE BRIEF (10 lines max)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Format exactly as:
+"[Competitor]: [one-sentence reality] | Win angle for ${core}: [short angle] | Diligence: [one question to plant]"
+One line per competitor.
+` : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUALITY ASSURANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Conclude the entire report with a section titled:
+"Talent Market Intelligence: Key Shifts Recruiters Should Know"
+Summarize 5-7 major shifts across the competitive landscape that a recruiter at ${core} should know when talking to ${role} candidates in ${region}.
+
+Verify: All claims are cited. No hallucinated data. Conflicting sources are flagged. Unavailable data is marked. Output is recruiter-actionable.`;
+
+  document.getElementById('prompt-text-content').textContent = generatedPrompt;
+  document.getElementById('prompt-output').style.display = 'block';
+  document.getElementById('copy-btn').style.display = 'inline-flex';
+  document.getElementById('ai-launch-dropdown-wrap').style.display = 'block';
+  document.getElementById('prompt-output').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyPrompt() {
+  if (!generatedPrompt) return;
+  navigator.clipboard.writeText(generatedPrompt).then(() => {
+    const btns = document.querySelectorAll('.btn-copy, .prompt-box-header button');
+    btns.forEach(b => { const orig = b.textContent; b.textContent = '✅ Copied!'; setTimeout(() => b.textContent = orig, 2000); });
+  }).catch(() => {
+    const el = document.getElementById('prompt-text-content');
+    el.select && el.select();
+    document.execCommand('copy');
+  });
+}
+
+function resetBattle() {
+  document.getElementById('bc-core').value = '';
+  document.getElementById('bc-competitors').value = '';
+  document.getElementById('bc-usps').value = '';
+  document.getElementById('bc-weaknesses').value = '';
+  document.getElementById('prompt-output').style.display = 'none';
+  document.getElementById('copy-btn').style.display = 'none';
+  document.getElementById('ai-launch-dropdown-wrap').style.display = 'none';
+  generatedPrompt = '';
+}
+
+// =================== AI CHAT MODES ===================
+function promptMode(mode) {
+  if (mode === 'outreach') { showOutreachPanel(); return; }
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey)) {
+    const provider = PROVIDERS[getProvider()];
+    const links = { groq:'https://console.groq.com', gemini:'https://aistudio.google.com/app/apikey', openai:'https://platform.openai.com/api-keys', anthropic:'https://console.anthropic.com', mistral:'https://console.mistral.ai' };
+    const go = confirm('AI features need an API key for ' + (provider ? provider.name : 'your selected provider') + '.\n\nClick OK to get a free key, or Cancel to use Battle Cards (no key needed).');
+    if (go) window.open(links[getProvider()] || 'https://console.groq.com', '_blank');
+    else showBattle();
+    return;
+  }
+  setMode(mode);
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  // hide dashboard if switching to chat mode
+  document.getElementById('dashboard-panel').classList.remove('visible');
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  const btnId = 'btn-' + mode;
+  if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+  const m = MODES[mode];
+  document.getElementById('mode-label').textContent = m.label;
+  const panel = document.getElementById('context-panel');
+  const jdG = document.getElementById('ctx-jd-group');
+  const resG = document.getElementById('ctx-resume-group');
+  const batchG = document.getElementById('ctx-batch-group');
+
+  if (m.contextGroups.length > 0) {
+    panel.classList.add('visible');
+    jdG.style.display = m.contextGroups.includes('jd') ? 'flex' : 'none';
+    if (mode === 'screen' || mode === 'interview') {
+      // Show both single resume + batch group
+      resG.style.display = 'flex';
+      batchG.style.display = 'flex';
+      if (mode === 'interview') {
+        // Update batch group label for interview context
+        const batchLabel = batchG.querySelector('.ctx-label');
+        if (batchLabel) batchLabel.innerHTML = '👥 Additional Candidates <span style="font-size:0.62rem;color:var(--accent);">→ get questions per candidate</span><span style="font-size:0.65rem;color:var(--text-muted);" id="batch-count-label"></span>';
+      } else {
+        const batchLabel = batchG.querySelector('.ctx-label');
+        if (batchLabel) batchLabel.innerHTML = '👥 Additional Resumes <span style="font-size:0.62rem;color:var(--accent);">→ Batch mode auto-activates</span><span style="font-size:0.65rem;color:var(--text-muted);" id="batch-count-label"></span>';
+      }
+    } else {
+      resG.style.display = m.contextGroups.includes('resume') ? 'flex' : 'none';
+      batchG.style.display = 'none';
+    }
+  } else {
+    panel.classList.remove('visible');
+    batchG.style.display = 'none';
+  }
+
+  const chips = document.getElementById('quick-chips');
+  chips.innerHTML = m.chips.map(c => `<div class="chip" onclick="useChip('${c.replace(/'/g,"\\'")}')">${c}</div>`).join('');
+  document.getElementById('user-input').placeholder = m.placeholder;
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('battle-panel').classList.remove('visible');
+  document.getElementById('outreach-panel').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'flex';
+  document.getElementById('input-area').style.display = 'block';
+  // Clear chat history on mode switch for a clean slate
+  chatHistory = [];
+  document.getElementById('chat-container').innerHTML = '';
+}
+
+// =================== FILE UPLOAD HANDLING ===================
+let resumeFileText = ''; // stores extracted text from single resume upload
+let batchFiles = [];     // [{name, text}]
+
+function switchResumeTab(tab) {
+  document.getElementById('tab-paste').classList.toggle('active', tab === 'paste');
+  document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+  document.getElementById('resume-paste-panel').style.display = tab === 'paste' ? 'block' : 'none';
+  document.getElementById('resume-upload-panel').style.display = tab === 'upload' ? 'block' : 'none';
+}
+
+function dzOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
+function dzLeave(id) { document.getElementById(id).classList.remove('drag-over'); }
+function dzDrop(e, type) {
+  e.preventDefault();
+  const id = type === 'single' ? 'resume-drop' : 'batch-drop';
+  document.getElementById(id).classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  if (type === 'single' && files.length > 0) handleResumeFile(files[0]);
+  else if (type === 'batch') handleBatchFiles(files);
+}
+
+async function handleResumeFile(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('resume-file-status');
+  statusEl.innerHTML = `<div class="file-chip processing">⏳ Reading ${file.name}...</div>`;
+  try {
+    const text = await extractText(file);
+    resumeFileText = text;
+    statusEl.innerHTML = `<div class="file-chip done">✅ ${file.name} <span class="rm" onclick="clearResumeFile()">✕</span></div>`;
+  } catch(err) {
+    statusEl.innerHTML = `<div class="file-chip" style="border-color:var(--danger);color:var(--danger)">❌ Failed: ${err.message}</div>`;
+  }
+}
+
+function clearResumeFile() {
+  resumeFileText = '';
+  document.getElementById('resume-file-status').innerHTML = '';
+  document.getElementById('resume-file-input').value = '';
+}
+
+async function handleBatchFiles(files) {
+  const list = document.getElementById('batch-file-list');
+  for (const file of Array.from(files)) {
+    if (batchFiles.length >= 10) { alert('Max 10 files allowed.'); break; }
+    if (batchFiles.find(f => f.name === file.name)) continue;
+    const idx = batchFiles.length;
+    batchFiles.push({ name: file.name, text: '' });
+    const item = document.createElement('div');
+    item.className = 'batch-file-item';
+    item.id = 'bf-' + idx;
+    item.innerHTML = `<span style="font-size:1rem">📄</span><span class="bf-name" title="${file.name}">${file.name}</span><span class="bf-status loading" id="bfs-${idx}">⏳ Reading...</span><span class="bf-rm" onclick="removeBatchFile(${idx})">✕</span>`;
+    list.appendChild(item);
+    updateBatchCount();
+    try {
+      const text = await extractText(file);
+      batchFiles[idx].text = text;
+      const s = document.getElementById('bfs-' + idx);
+      if (s) { s.textContent = '✅ Ready'; s.className = 'bf-status ok'; }
+    } catch(e) {
+      const s = document.getElementById('bfs-' + idx);
+      if (s) { s.textContent = '❌ Error'; s.style.color = 'var(--danger)'; }
+    }
+  }
+  document.getElementById('batch-file-input').value = '';
+}
+
+function removeBatchFile(idx) {
+  batchFiles[idx] = null;
+  const item = document.getElementById('bf-' + idx);
+  if (item) item.remove();
+  updateBatchCount();
+}
+
+function updateBatchCount() {
+  const count = batchFiles.filter(f => f && f.text).length;
+  const lbl = document.getElementById('batch-count-label');
+  if (lbl) lbl.textContent = count > 0 ? `${count} file${count>1?'s':''} loaded` : '';
+}
+
+// Text extractor — PDF via FileReader + basic parser, DOCX via zip, TXT direct
+async function extractText(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'txt') {
+    return await readAsText(file);
+  } else if (ext === 'pdf') {
+    return await extractPDF(file);
+  } else if (ext === 'docx' || ext === 'doc') {
+    return await extractDOCX(file);
+  }
+  throw new Error('Unsupported format. Use PDF, DOCX, or TXT.');
+}
+
+function readAsText(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('Read failed'));
+    r.readAsText(file);
+  });
+}
+
+async function extractPDF(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const ab = await file.arrayBuffer();
+  // verbosity 0 = suppress all non-error logs at the PDF.js source level
+  const loadingTask = window.pdfjsLib.getDocument({ data: ab, verbosity: 0 });
+  const pdf = await loadingTask.promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(s => s.str).join(' ') + '\n';
+  }
+  if (!text.trim()) throw new Error('PDF appears to be scanned/image-only. Please paste the text instead.');
+  return text;
+}
+
+async function extractDOCX(file) {
+  // Use mammoth.js from CDN
+  if (!window.mammoth) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  }
+  const ab = await file.arrayBuffer();
+  const result = await window.mammoth.extractRawText({ arrayBuffer: ab });
+  if (!result.value.trim()) throw new Error('Could not extract text from DOCX.');
+  return result.value;
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('Failed to load: ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+function useChip(text) {
+  const input = document.getElementById('user-input');
+  // For search mode, expand chip into a proper prompt
+  if (currentMode === 'search') {
+    const searchPrompts = {
+      'Boolean (LinkedIn)': 'Generate a Boolean search string for LinkedIn for: ',
+      'Google X-Ray': 'Generate a Google X-Ray search string (site:linkedin.com/in) for: ',
+      'GitHub Search': 'Generate a GitHub search string to find developers with skills: ',
+      'Xing Search': 'Generate a Xing search string to find candidates in European markets for: ',
+      'Behance Search': 'Generate a Google X-Ray search string (site:behance.net) to find creative professionals / designers for: ',
+      'Dribbble Search': 'Generate a Google X-Ray search string (site:dribbble.com) to find UI/UX designers and visual designers for: ',
+      'Stack Overflow Search': 'Generate a Stack Overflow / careers search string for: ',
+      'Twitter / X Search': 'Generate a Twitter/X advanced search string to find thought leaders and professionals for: ',
+      'Google Patent Search': 'Generate a Google Patent search string to find inventors/researchers in: ',
+      'Google Scholar Search': 'Generate a Google Scholar search string to find academic researchers in: '
+    };
+    if (searchPrompts[text]) {
+      input.value = searchPrompts[text];
+      input.focus();
+      autoResize(input);
+      // Place cursor at end
+      input.setSelectionRange(input.value.length, input.value.length);
+      return;
+    }
+  }
+  input.value = text;
+  autoResize(input);
+}
+
+function checkKey() {
+  const key  = document.getElementById('api-key').value.trim();
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  const btn  = document.getElementById('send-btn');
+  const provider = PROVIDERS[getProvider()];
+  const valid = isKeyValid(key);
+  if (valid) {
+    dot.classList.add('active');
+    text.textContent = (provider ? provider.name : 'API') + ' key set ✓ — all features unlocked';
+    btn.disabled = false;
+    const psb = document.getElementById('personal-send-btn');
+    if (psb) psb.disabled = false;
+  } else {
+    dot.classList.remove('active');
+    text.textContent = 'Add your API key to unlock all AI features';
+    btn.disabled = true;
+    const psb = document.getElementById('personal-send-btn');
+    if (psb) psb.disabled = true;
+  }
+}
+
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
+
+function addSystemMsg(text) {
+  // Suppress mode-switch notifications — keep chat clean
+  if (text && text.startsWith('Switched to')) return;
+  const c = document.getElementById('chat-container');
+  const d = document.createElement('div');
+  d.style.cssText = 'font-size:0.72rem;color:var(--text-muted);text-align:center;padding:4px 0;';
+  d.textContent = text;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function addMessage(role, content) {
+  const c = document.getElementById('chat-container');
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + role;
+  const av = document.createElement('div');
+  av.className = 'avatar';
+  av.textContent = role === 'user' ? '👤' : '🤖';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if (role === 'ai') bubble.innerHTML = formatAI(content);
+  else bubble.textContent = content;
+  msg.appendChild(av);
+  msg.appendChild(bubble);
+  c.appendChild(msg);
+  c.scrollTop = c.scrollHeight;
+}
+
+function formatAI(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(Match Score|Score)[:\s]+(\d+)\/10/gi, (m,label,score) => {
+      const pct = score*10; const col = score>=7?'var(--success)':score>=5?'var(--gold)':'var(--danger)';
+      return `<strong>${label}: ${score}/10</strong><div class="score-bar"><div class="score-fill" style="width:${pct}%;background:${col}"></div></div>`;
+    })
+    .replace(/^#{1,3}\s+(.+)$/gm, '<div class="section-hdr">$1</div>')
+    .replace(/^\d+\.\s+(.+)$/gm, '<div style="padding:2px 0 2px 8px;border-left:2px solid var(--border);margin:3px 0;">$1</div>')
+    .replace(/^[-•]\s+(.+)$/gm, '<div style="padding:2px 0 2px 8px;display:flex;gap:6px;"><span style="color:var(--accent)">▸</span><span>$1</span></div>')
+    .replace(/🔴(.*)/g,'<div class="resp-block bad">🔴$1</div>')
+    .replace(/🟡(.*)/g,'<div class="resp-block warn">🟡$1</div>')
+    .replace(/🟢(.*)/g,'<div class="resp-block good">🟢$1</div>')
+    .replace(/\n\n/g,'<br/><br/>').replace(/\n/g,'<br/>');
+}
+
+async function sendMessage() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey) || isLoading) return;
+  const input = document.getElementById('user-input');
+  const userText = input.value.trim();
+  if (!userText) return;
+  const m = MODES[currentMode];
+
+  const pastedResume = document.getElementById('ctx-resume').value.trim();
+  const resumeText   = resumeFileText || pastedResume;
+  const validBatch   = batchFiles.filter(f => f && f.text);
+  const jd = document.getElementById('ctx-jd').value.trim();
+  let ctx = '';
+  if (jd && m.contextGroups.includes('jd')) ctx += `\n\n[JOB DESCRIPTION]\n${jd}`;
+
+  let isBatch = false;
+  if (currentMode === 'screen' || currentMode === 'interview') {
+    if (validBatch.length > 0) {
+      isBatch = true;
+      if (resumeText) ctx += `\n\n[CANDIDATE 1 — Primary Resume]\n${resumeText}`;
+      validBatch.forEach((f, i) => {
+        const num = resumeText ? i + 2 : i + 1;
+        ctx += `\n\n[CANDIDATE ${num} — ${f.name}]\n${f.text}`;
+      });
+      if (currentMode === 'screen')    ctx += `\n\n[MODE: BATCH — screen all candidates above against the JD and produce individual verdicts + ranked summary table]`;
+      if (currentMode === 'interview') ctx += `\n\n[MODE: BATCH — generate tailored technical + behavioral interview questions for EACH candidate separately, using their name as a section header]`;
+    } else if (resumeText) {
+      ctx += `\n\n[CANDIDATE RESUME]\n${resumeText}`;
+      if (currentMode === 'screen') ctx += `\n\n[MODE: SINGLE — screen this one candidate against the JD]`;
+    }
+  } else if (m.contextGroups.includes('resume') && resumeText) {
+    ctx += `\n\n[CANDIDATE RESUME]\n${resumeText}`;
+  }
+
+  const full = ctx ? ctx + '\n\n[REQUEST]\n' + userText : userText;
+  addMessage('user', userText);
+  input.value = ''; input.style.height = 'auto';
+  chatHistory.push({ role: 'user', content: full });
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+  const typing = document.createElement('div');
+  typing.className = 'msg ai'; typing.id = 'typing-ind';
+  typing.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  document.getElementById('chat-container').appendChild(typing);
+  document.getElementById('chat-container').scrollTop = 99999;
+  try {
+    const reply = await callAI(m.systemPrompt, chatHistory, 2000);
+    document.getElementById('typing-ind')?.remove();
+    chatHistory.push({ role: 'assistant', content: reply });
+    addMessage('ai', reply);
+    if (currentMode === 'screen') {
+      addOutreachCTA(reply, isBatch, resumeText, validBatch, jd);
+    }
+  } catch(e) {
+    document.getElementById('typing-ind')?.remove();
+    addMessage('ai', '⚠️ Error: ' + e.message);
+  }
+  isLoading = false;
+  document.getElementById('send-btn').disabled = !isKeyValid(document.getElementById('api-key').value.trim());
+}
+
+function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
+  const container = document.getElementById('chat-container');
+  const lowerReply = reply.toLowerCase();
+  const hasStrongFit = lowerReply.includes('strong fit') || lowerReply.includes('🟢');
+  const hasGoodFit   = lowerReply.includes('good fit')   || lowerReply.includes('🟡');
+  const hasPartialFit= lowerReply.includes('partial fit') || lowerReply.includes('🟠');
+  const anyFit = hasStrongFit || hasGoodFit || hasPartialFit;
+
+  // Always show analysis buttons; outreach only for fits
+  const cta = document.createElement('div');
+  cta.style.cssText = 'animation:fadeUp 0.3s ease;max-width:840px;margin-top:6px;';
+
+  // Build candidate list for batch
+  let candidates = [];
+  if (isBatch) {
+    if (singleResumeText) candidates.push({ name: 'Primary Resume', text: singleResumeText });
+    batchFilesList.forEach(f => { if (f && f.text) candidates.push({ name: f.name.replace(/\.[^.]+$/,''), text: f.text }); });
+  } else if (singleResumeText) {
+    candidates = [{ name: 'Candidate', text: singleResumeText }];
+  }
+  if (!candidates.length) return;
+
+  const encJD = encodeURIComponent(jd);
+
+  // ── single candidate card ──────────────────────────────────────
+  if (!isBatch) {
+    const enc = encodeURIComponent(candidates[0].text);
+    const fitBanner = hasStrongFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟢</span><span style="font-weight:600;color:var(--success);font-size:0.85rem;">Strong Fit — recommended for outreach</span></div>`
+      : hasGoodFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟡</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Good Fit — consider outreach</span></div>`
+      : hasPartialFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟠</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Partial Fit — outreach optional</span></div>`
+      : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🔴</span><span style="font-weight:600;color:var(--danger);font-size:0.85rem;">Not a Fit — analysis tools still available</span></div>`;
+
+    cta.innerHTML = `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+        ${fitBanner}
+        <div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What would you like to do next?</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${anyFit ? `
+          <button class="psa-btn psa-green" onclick="runPostScreeningAction('outreach-personal','${enc}','${encJD}')">✉️ Personal Outreach Email</button>
+          <button class="psa-btn psa-blue"  onclick="runPostScreeningAction('outreach-linkedin','${enc}','${encJD}')">💼 LinkedIn InMail</button>
+          ` : ''}
+          <button class="psa-btn psa-purple" onclick="runPostScreeningAction('gap','${enc}','${encJD}')">🔎 Gap Analysis</button>
+          <button class="psa-btn psa-red"    onclick="runPostScreeningAction('redflags','${enc}','${encJD}')">🚩 Red Flags Check</button>
+          <button class="psa-btn psa-gold"   onclick="runPostScreeningAction('interview','${enc}','${encJD}')">🎯 Interview Questions</button>
+        </div>
+        <div id="psa-result-single" style="margin-top:12px;"></div>
+      </div>`;
+
+  // ── batch candidate cards ──────────────────────────────────────
+  } else {
+    // Store batch candidates globally so buttons can reference by index safely
+    window._batchCandidates = candidates;
+    window._batchJD = jd;
+
+    const rows = candidates.map((c, i) => {
+      const cLower = c.name.toLowerCase();
+      const snippet = reply.substring(Math.max(0, lowerReply.indexOf(cLower) - 20), lowerReply.indexOf(cLower) + 300);
+      const cStrong  = snippet.includes('strong fit') || (i===0 && hasStrongFit && candidates.length===1);
+      const cGood    = snippet.includes('good fit');
+      const cPartial = snippet.includes('partial fit');
+      const cFit = cStrong || cGood || cPartial;
+      const fitIcon = cStrong ? '🟢' : cGood ? '🟡' : cPartial ? '🟠' : '🔴';
+
+      return `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <span style="font-size:1rem;">${fitIcon}</span>
+            <span style="font-weight:600;font-size:0.85rem;flex:1;">${c.name}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${cFit ? `
+            <button class="psa-btn psa-green psa-sm" onclick="runBatchAction('outreach-personal',${i})">✉️ Outreach</button>
+            <button class="psa-btn psa-blue psa-sm"  onclick="runBatchAction('outreach-linkedin',${i})">💼 InMail</button>
+            ` : ''}
+            <button class="psa-btn psa-purple psa-sm" onclick="runBatchAction('gap',${i})">🔎 Gap Analysis</button>
+            <button class="psa-btn psa-red psa-sm"    onclick="runBatchAction('redflags',${i})">🚩 Red Flags</button>
+            <button class="psa-btn psa-gold psa-sm"   onclick="runBatchAction('interview',${i})">🎯 Interview Qs</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    cta.innerHTML = `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text);margin-bottom:10px;">📋 Next Steps — Per Candidate</div>
+        ${rows}
+      </div>`;
+  }
+
+  container.appendChild(cta);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── Runs any post-screening action inline ────────────────────────
+function runBatchAction(action, idx) {
+  const candidates = window._batchCandidates || [];
+  const jd = window._batchJD || '';
+  if (!candidates[idx]) return;
+  const enc = encodeURIComponent(candidates[idx].text);
+  const encJD = encodeURIComponent(jd);
+  runPostScreeningAction(action, enc, encJD);
+}
+
+async function runPostScreeningAction(action, encodedResume, encodedJD) {
+  const resume = decodeURIComponent(encodedResume);
+  const jd     = decodeURIComponent(encodedJD);
+
+  if (action === 'outreach-personal') {
+    launchOutreachForCandidate(encodedResume, encodedJD);
+    return;
+  }
+  if (action === 'outreach-linkedin') {
+    showOutreachPanel(); switchOutreachTab('linkedin');
+    return;
+  }
+
+  // For gap / redflags / interview — run inline in chat
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey)) { alert('Please add a valid API key in the sidebar.'); return; }
+
+  const prompts = {
+    gap: {
+      label: '🔎 Gap Analysis',
+      system: MODES.gap.systemPrompt,
+      request: 'Perform a detailed gap analysis of this candidate against the job description.'
+    },
+    redflags: {
+      label: '🚩 Red Flags Check',
+      system: MODES.redflags.systemPrompt,
+      request: 'Check this resume for red flags, yellow flags, and green flags. Suggest probing questions.'
+    },
+    interview: {
+      label: '🎯 Interview Questions',
+      system: MODES.interview.systemPrompt,
+      request: 'Generate 3 technical and 2 behavioral interview questions tailored to this candidate and the job description.'
+    }
+  };
+
+  const cfg = prompts[action];
+  const container = document.getElementById('chat-container');
+
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  userDiv.style.animation = 'fadeUp 0.3s ease';
+  userDiv.innerHTML = `<div class="avatar">👤</div><div class="bubble">${cfg.label} — run for this candidate</div>`;
+  container.appendChild(userDiv);
+
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg ai';
+  typingDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  container.appendChild(typingDiv);
+  container.scrollTop = 99999;
+
+  try {
+    const msgContent = `[JOB DESCRIPTION]\n${jd}\n\n[CANDIDATE RESUME]\n${resume}\n\n[REQUEST]\n${cfg.request}`;
+    let reply;
+    try {
+      reply = await callAI(cfg.system, [{ role: 'user', content: msgContent }], 1500);
+    } catch(e) { reply = '⚠️ ' + e.message; }
+    typingDiv.remove();
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'msg ai';
+    aiDiv.style.animation = 'fadeUp 0.3s ease';
+    aiDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble">${formatAI(reply)}</div>`;
+    container.appendChild(aiDiv);
+
+    if (action === 'interview') {
+      const smallCta = document.createElement('div');
+      smallCta.style.cssText = 'animation:fadeUp 0.3s ease;max-width:840px;margin-top:4px;';
+      smallCta.innerHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;">
+          <button class="psa-btn psa-green psa-sm" onclick="runPostScreeningAction('outreach-personal','${encodedResume}','${encodedJD}')">✉️ Now create outreach email</button>
+          <button class="psa-btn psa-blue psa-sm"  onclick="runPostScreeningAction('outreach-linkedin','${encodedResume}','${encodedJD}')">💼 LinkedIn InMail</button>
+        </div>`;
+      container.appendChild(smallCta);
+    }
+  } catch(e) {
+    typingDiv.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg ai';
+    errDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble" style="color:var(--danger);">⚠️ Error: ${e.message}</div>`;
+    container.appendChild(errDiv);
+  }
+  container.scrollTop = container.scrollHeight;
+}
+
+function launchOutreachForCandidate(encodedResume, encodedJD) {
+  const resume = decodeURIComponent(encodedResume);
+  const jd     = decodeURIComponent(encodedJD);
+  showOutreachPanel();
+  switchOutreachTab('personal');
+  setTimeout(() => {
+    const jdEl  = document.getElementById('personal-jd');
+    const resEl = document.getElementById('personal-resume');
+    if (jdEl)  jdEl.value  = jd;
+    if (resEl) resEl.value = resume;
+    const inputEl = document.getElementById('personal-input');
+    if (inputEl) {
+      inputEl.value = 'Write a personalized first outreach email for this candidate based on their profile and the job description above.';
+      autoResize(inputEl);
+    }
+  }, 200);
+}
+
+// =================== MULTI-PROVIDER API ===================
+const PROVIDERS = {
+  groq: {
+    name: 'Groq', placeholder: 'gsk_...', free: true,
+    hint: 'Free · <a href="https://console.groq.com" target="_blank">Get key →</a>',
+    validate: k => k.startsWith('gsk_') && k.length > 20
+  },
+  gemini: {
+    name: 'Gemini', placeholder: 'AIza...', free: true,
+    hint: 'Free · <a href="https://aistudio.google.com/app/apikey" target="_blank">Get key →</a>',
+    validate: k => k.startsWith('AIza') && k.length > 20
+  },
+  openai: {
+    name: 'OpenAI', placeholder: 'sk-...', free: false,
+    hint: 'Paid · <a href="https://platform.openai.com/api-keys" target="_blank">Get key →</a>',
+    validate: k => k.startsWith('sk-') && k.length > 20
+  },
+  anthropic: {
+    name: 'Anthropic', placeholder: 'sk-ant-...', free: false,
+    hint: 'Paid · <a href="https://console.anthropic.com" target="_blank">Get key →</a>',
+    validate: k => k.startsWith('sk-ant-') && k.length > 20
+  },
+  mistral: {
+    name: 'Mistral', placeholder: 'Paste key...', free: true,
+    hint: 'Free tier · <a href="https://console.mistral.ai" target="_blank">Get key →</a>',
+    validate: k => k.length > 20
+  }
+};
+
+function getProvider() { return document.getElementById('provider-select')?.value || 'groq'; }
+
+function onProviderChange() {
+  const p = PROVIDERS[getProvider()];
+  document.getElementById('api-key').placeholder = p.placeholder;
+  document.getElementById('provider-hint').innerHTML = p.hint;
+  document.getElementById('api-key').value = '';
+  checkKey();
+}
+
+function isKeyValid(key) {
+  const p = PROVIDERS[getProvider()];
+  return p ? p.validate(key) : key.length > 20;
+}
+
+// ── Universal AI call — routes to correct provider ──
+async function callAI(systemPrompt, messages, maxTokens=2000) {
+  const apiKey = document.getElementById('api-key').value.trim();
+  const provider = getProvider();
+  switch(provider) {
+    case 'groq':      return await callGroq(apiKey, systemPrompt, messages, maxTokens);
+    case 'gemini':    return await callGemini(apiKey, systemPrompt, messages, maxTokens);
+    case 'openai':    return await callOpenAI(apiKey, systemPrompt, messages, maxTokens);
+    case 'anthropic': return await callAnthropic(apiKey, systemPrompt, messages, maxTokens);
+    case 'mistral':   return await callMistral(apiKey, systemPrompt, messages, maxTokens);
+    default: throw new Error('Unknown provider: ' + provider);
+  }
+}
+
+async function callAISimple(prompt, maxTokens=2000, temperature=0.7) {
+  return callAI('You are a helpful assistant.', [{ role:'user', content: prompt }], maxTokens);
+}
+
+// ── GROQ ──
+async function callGroq(apiKey, systemPrompt, messages, maxTokens=2000) {
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  const body = JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] });
+  // Try direct first, then CORS proxies
+  const attempts = [
+    () => fetch(GROQ_URL, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
+    () => fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(GROQ_URL), { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
+    () => fetch('https://corsproxy.io/?url='+encodeURIComponent(GROQ_URL), { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
+  ];
+  for (const attempt of attempts) {
+    try { const r = await attempt(); const d = await r.json(); if(d.error) throw new Error(d.error.message); return d.choices[0].message.content; }
+    catch(e) { if(e.message && !e.message.match(/fetch|CORS|network/i)) throw e; }
+  }
+  throw new Error('Cannot reach Groq. Try a different provider or check your key.');
+}
+
+// ── GEMINI ──
+async function callGemini(apiKey, systemPrompt, messages, maxTokens=2000) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const contents = messages.map(m => ({ role: m.role==='assistant'?'model':'user', parts:[{text:m.content}] }));
+  const body = { systemInstruction:{parts:[{text:systemPrompt}]}, contents, generationConfig:{maxOutputTokens:maxTokens, temperature:0.7} };
+  const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.candidates[0].content.parts[0].text;
+}
+
+// ── OPENAI ──
+async function callOpenAI(apiKey, systemPrompt, messages, maxTokens=2000) {
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body: JSON.stringify({ model:'gpt-4o', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.choices[0].message.content;
+}
+
+// ── ANTHROPIC ──
+async function callAnthropic(apiKey, systemPrompt, messages, maxTokens=2000) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body: JSON.stringify({ model:'claude-opus-4-5', max_tokens:maxTokens, system:systemPrompt, messages })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content[0].text;
+}
+
+// ── MISTRAL ──
+async function callMistral(apiKey, systemPrompt, messages, maxTokens=2000) {
+  const r = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+    body: JSON.stringify({ model:'mistral-large-latest', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
+  });
+  const d = await r.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.choices[0].message.content;
+}
+// =================== OUTREACH PANEL ===================
+let olCTA = 'cv';
+let olFU = 1;
+let olOpenSec = null;
+let personalFileText = '';
+let personalHistory = [];
+
+function showOutreachPanel() {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-outreach').classList.add('active');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'none';
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('battle-panel').classList.remove('visible');
+  document.getElementById('context-panel').classList.remove('visible');
+  document.getElementById('outreach-panel').style.display = 'flex';
+  currentMode = null;
+  // default to linkedin tab
+  switchOutreachTab('linkedin');
+}
+
+function switchOutreachTab(tab) {
+  document.getElementById('otab-linkedin').classList.toggle('active', tab === 'linkedin');
+  document.getElementById('otab-personal').classList.toggle('active', tab === 'personal');
+  document.getElementById('ot-linkedin').style.display = tab === 'linkedin' ? 'block' : 'none';
+  const pt = document.getElementById('ot-personal');
+  pt.style.display = tab === 'personal' ? 'flex' : 'none';
+  if (tab === 'personal') {
+    pt.style.flexDirection = 'column';
+    const k = document.getElementById('api-key').value.trim();
+    document.getElementById('personal-send-btn').disabled = !isKeyValid(k);
+  }
+  // Always sync key to LinkedIn panel
+  const sideKey = document.getElementById('api-key').value.trim();
+  const olKey = document.getElementById('ol-groq-key');
+  if (olKey && isKeyValid(sideKey)) olKey.value = sideKey;
+}
+
+// ── LinkedIn InMail helpers ──
+function olSetCTA(val) {
+  olCTA = val;
+  document.getElementById('ol-btn-cv').className = 'ol-cta-btn' + (val === 'cv' ? ' ol-cv-active' : '');
+  document.getElementById('ol-btn-call').className = 'ol-cta-btn' + (val === 'call' ? ' ol-call-active' : '');
+  const durationWrap = document.getElementById('ol-call-duration-wrap');
+  if (durationWrap) durationWrap.style.display = val === 'call' ? 'block' : 'none';
+  const badge = document.getElementById('ol-cta-badge');
+  const dur = olGetCallDuration();
+  badge.textContent = val === 'cv' ? 'CV Ask' : `Interest + ${dur} Call`;
+  badge.style.background = val === 'cv' ? 'rgba(96,165,250,0.2)' : 'rgba(167,139,250,0.2)';
+  badge.style.color = val === 'cv' ? '#93c5fd' : '#c4b5fd';
+  document.getElementById('ol-db-cta').textContent = val === 'cv' ? 'CV Ask' : `Interest + ${dur} Call`;
+}
+
+function olGetCallDuration() {
+  const sel = document.getElementById('ol-call-duration');
+  if (!sel) return '15-min';
+  if (sel.value === 'custom') {
+    const custom = document.getElementById('ol-call-duration-custom').value.trim();
+    return custom || '15-min';
+  }
+  return sel.value + '-min';
+}
+
+function olUpdateCallDuration(val) {
+  const customInput = document.getElementById('ol-call-duration-custom');
+  customInput.style.display = val === 'custom' ? 'block' : 'none';
+  // Refresh badge
+  if (olCTA === 'call') olSetCTA('call');
+}
+
+function olSetFU(n) {
+  olFU = n;
+  [1,2,3].forEach(i => {
+    document.getElementById('ol-fu'+i).className = 'ol-count-btn' + (i===n ? ' ol-count-active' : '');
+  });
+  const descs = {1:'1 gentle follow-up',2:'1 gentle + 1 direct follow-up',3:'1 gentle + 1 direct + 1 final nudge'};
+  document.getElementById('ol-fu-desc').textContent = descs[n];
+  document.getElementById('ol-fu-label').textContent = n + ' selected';
+  document.getElementById('ol-db-fu').textContent = n;
+}
+
+function olCheckKey() {}
+
+function olEsc(s) { return (s||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$'); }
+function olEscH(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function olCopyText(text, id) {
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById(id); const o = b.textContent;
+    b.textContent = '✓ Copied!'; b.style.color = 'var(--success)';
+    setTimeout(() => { b.textContent = o; b.style.color = ''; }, 2000);
+  }).catch(() => {
+    const t = document.createElement('textarea'); t.value = text;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+  });
+}
+
+function olToggle(id) {
+  const was = olOpenSec === id;
+  document.querySelectorAll('.ol-msg-body').forEach(e => e.classList.remove('open'));
+  document.querySelectorAll('.ol-chev').forEach(e => e.textContent = '▼');
+  olOpenSec = was ? null : id;
+  if (olOpenSec) {
+    document.getElementById('olb-'+olOpenSec)?.classList.add('open');
+    const c = document.getElementById('olc-'+olOpenSec);
+    if (c) c.textContent = '▲';
+  }
+}
+
+function olMsgCard(id, icon, badge, bCls, title, subj, body) {
+  const bf = (body||'').replace(/\\n/g, '\n');
+  return `<div class="ol-msg-card">
+    <div class="ol-msg-hdr" onclick="olToggle('${id}')">
+      <span>${icon}</span>
+      <span style="font-weight:600;font-size:0.9rem;flex:1;">${title}</span>
+      <span class="ol-badge ${bCls}">${badge}</span>
+      <span class="ol-chev" id="olc-${id}" style="color:var(--text-muted);font-size:0.72rem;margin-left:6px;">▼</span>
+    </div>
+    <div class="ol-msg-body" id="olb-${id}">
+      <div class="ol-inner" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;"><div class="ol-micro">Suggested Subject</div>
+        <div style="font-size:0.83rem;font-weight:500;color:var(--text);">"${olEscH(subj)}"</div></div>
+        <button class="ol-copy-btn" id="olcs-${id}" onclick="olCopyText(\`${olEsc(subj)}\`,\'olcs-${id}\')">📋 Copy</button>
+      </div>
+      <div class="ol-inner">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="ol-micro">Message Body</div>
+          <button class="ol-copy-btn" id="olcb-${id}" onclick="olCopyText(\`${olEsc(bf)}\`,\'olcb-${id}\')">📋 Copy</button>
+        </div>
+        <pre class="ol-pre">${olEscH(bf)}</pre>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderVariantPreview(v, idx) {
+  const bf = (v.body || '').replace(/\\n/g, '\n');
+  const fullMsg = bf;
+  const copyAll = (v.subject ? 'Subject: ' + v.subject + '\n\n' : '') + bf;
+  return '<div style="padding:0;">'
+    // Subject row
+    + '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">'
+    + '<div>'
+    + '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);margin-bottom:3px;">Subject Line</div>'
+    + '<div style="font-size:0.84rem;font-weight:600;color:var(--text);">\"' + olEscH(v.subject) + '\"</div>'
+    + '</div>'
+    + '<button class="ol-copy-btn" id="olvc-' + idx + '" onclick="olCopyText(\`' + olEsc(v.subject) + '\`,\'olvc-' + idx + '\')">📋 Copy</button>'
+    + '</div>'
+    // Message body
+    + '<div style="padding:14px 16px;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    + '<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);">Full Message</div>'
+    + '<div style="display:flex;gap:6px;">'
+    + '<button class="ol-copy-btn" id="olvb-' + idx + '" onclick="olCopyText(\`' + olEsc(bf) + '\`,\'olvb-' + idx + '\')">📋 Copy Message</button>'
+    + '<button class="ol-copy-btn" style="background:rgba(67,97,238,0.08);border-color:rgba(67,97,238,0.3);color:var(--accent);" id="olva-' + idx + '" onclick="olCopyText(\`' + olEsc(copyAll) + '\`,\'olva-' + idx + '\')">📋 Copy All</button>'
+    + '</div></div>'
+    + '<pre style="font-family:Outfit,sans-serif;font-size:0.83rem;line-height:1.75;white-space:pre-wrap;color:var(--text);background:white;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:0;">' + olEscH(bf) + '</pre>'
+    + '</div></div>';
+}
+
+function olSelectVariant(idx) {
+  const variants = window._olVariants || [];
+  if (!variants[idx]) return;
+  // Update button styles
+  variants.forEach((_, i) => {
+    const btn = document.getElementById('ol-var-btn-' + i);
+    if (!btn) return;
+    if (i === idx) {
+      btn.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
+      btn.style.color = 'white';
+      btn.style.borderColor = 'transparent';
+    } else {
+      btn.style.background = 'white';
+      btn.style.color = 'var(--text-muted)';
+      btn.style.borderColor = 'var(--border)';
+    }
+  });
+  // Update preview
+  const preview = document.getElementById('ol-variant-preview');
+  if (preview) preview.innerHTML = renderVariantPreview(variants[idx], idx);
+}
+
+async function olGenerate() {
+  const jd = document.getElementById('ol-jd').value.trim();
+  const url = document.getElementById('ol-url').value.trim();
+  const sample = document.getElementById('ol-sample').value.trim();
+  const name = document.getElementById('ol-name').value.trim() || 'Recruiter';
+  const groqKey = document.getElementById('ol-groq-key').value.trim();
+
+  document.getElementById('ol-error').style.display = 'none';
+  if (!jd) { const e = document.getElementById('ol-error'); e.textContent = '⚠️ Please paste the Job Description.'; e.style.display = 'block'; return; }
+  if (!url) { const e = document.getElementById('ol-error'); e.textContent = '⚠️ Please enter the Job URL.'; e.style.display = 'block'; return; }
+  if (!isKeyValid(groqKey)) { const e = document.getElementById('ol-error'); e.innerHTML = '⚠️ Please enter your API key in the sidebar first. <a href="https://console.groq.com" target="_blank" style="color:var(--accent);">Get one free →</a>'; e.style.display = 'block'; return; }
+
+  const location = document.getElementById('ol-location').value.trim() || 'Location TBC';
+  const ctaNow = olCTA; const fuNow = olFU;
+  const btn = document.getElementById('ol-generate-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ol-spinner"></span>Step 1/2: Extracting company info...';
+
+  // Step 1: extract company
+  let companyName = 'the company';
+  try {
+    const ex = (await callAISimple('Reply with ONLY the hiring company name — nothing else:\n\n'+jd, 20, 0)).trim();
+    if (ex && ex.length < 80) companyName = ex;
+    document.getElementById('ol-db-company').textContent = companyName;
+    document.getElementById('ol-db-company-wrap').style.display = 'inline';
+    const locEl = document.getElementById('ol-db-location');
+    if (locEl) locEl.textContent = location || '—';
+  } catch(e) { console.warn('Company extract failed:', e.message); }
+
+  btn.innerHTML = '<span class="ol-spinner"></span>Step 2/2: Crafting your InMails...';
+  document.getElementById('ol-results').style.display = 'none';
+
+  // Build prompt
+  const callDur = olGetCallDuration();
+  const ctaInstr = ctaNow === 'cv'
+    ? 'End asking the candidate to share their updated CV.'
+    : `End by asking if open to this opportunity and suggest a ${callDur} intro call.`;
+
+  let fuSchema = '';
+  if (fuNow >= 2) fuSchema += ',"followUp2":{"subject":"string","body":"string"}';
+  if (fuNow >= 3) fuSchema += ',"followUp3":{"subject":"string","body":"string"}';
+
+  let fuInstr = '';
+  if (fuNow===1) fuInstr = '1 follow-up "followUp": 60-80 words, warm, polite, includes job URL, ends with Best regards / '+name+'.';
+  else if (fuNow===2) fuInstr = '"followUp" (60-80 words, warm, includes job URL) and "followUp2" (50-70 words, slightly more direct, includes job URL). Both end with Best regards / '+name+'.';
+  else fuInstr = '"followUp" (60-80w warm), "followUp2" (50-70w more direct), "followUp3" (40-60w final nudge). All include job URL, end with Best regards / '+name+'.';
+
+  const sampleBlock = sample
+    ? 'Style reference:\n"""\n'+sample+'\n"""\n'
+    : 'Write warm, professional, human recruiter tone. Concise but compelling.';
+
+  // Build outreach prompt
+  const prompt = `You are an expert LinkedIn recruiter copywriter writing on behalf of ${name}, a recruiter at ${companyName}.
+
+THE HIRING COMPANY: "${companyName}"
+RECRUITER NAME: ${name}
+JOB URL: ${url}
+CTA: ${ctaInstr}
+FOLLOW-UPS: ${fuInstr}
+
+JOB DESCRIPTION (read carefully — extract specific role title, tech stack, team mission, impact):
+---
+${jd}
+---
+
+${sampleBlock}
+
+MANDATORY STRUCTURE FOR EVERY OUTREACH MESSAGE:
+- First line: Hi {firstName},
+- Second line: blank line
+- Para 1: Introduce yourself as ${name} from the talent/recruiting team at ${companyName}. Mention one compelling specific detail about ${companyName} or the team from the JD.
+- Para 2: Describe what the role actually involves — use SPECIFIC details from the JD (exact role title, technologies, scope, team impact). Make this feel like you genuinely read the JD.
+- Para 3: ${ctaInstr}
+- Blank line before sign-off
+- Second-to-last line: Best Regards,
+- Last line: ${name}
+
+WRITING RULES:
+- Extract from JD: exact role title, 2-3 specific technologies or skills, team mission, measurable impact
+- Every variant must reference AT LEAST 2 specific JD details — no generic copy
+- BANNED: "exciting opportunity", "fast-paced", "dynamic team", "I came across your profile", "hope this finds you well", "passionate about", "hit the ground running"
+- 130-160 words per message body
+- Use \\\\n\\\\n between paragraphs
+
+GENERATE EXACTLY 3 VARIANTS with genuinely different angles:
+- Variant A — "Role & Impact Focus": lead with the specific role scope and business impact
+- Variant B — "Tech & Challenge Focus": lead with the tech stack and the engineering/analytical challenge
+- Variant C — "Growth & Opportunity Focus": lead with career growth, visibility or mission angle
+
+SUBJECT LINE RULES (generate 4 options):
+- Each must reference the exact role title + a specific skill or product from the JD
+- Make them curiosity-driven and specific — no generic phrases
+- Vary the angle: one impact-led, one skill-led, one company-mission-led, one question-format
+- Max 12 words each. No ALL CAPS.
+
+FOLLOW-UP RULES:
+${fuInstr}
+- Start: Hi {firstName},
+- Reference the original outreach + add ONE new JD-specific detail not mentioned before
+- Include job URL: ${url}
+- End: blank line, then "Best Regards,", then "${name}" on next line
+
+Return ONLY raw valid JSON — no markdown, no preamble:
+{"subjectLines":["s1","s2","s3","s4"],"outreachVariants":[{"label":"Role & Impact Focus","subject":"string","body":"string"},{"label":"Tech & Challenge Focus","subject":"string","body":"string"},{"label":"Growth & Opportunity Focus","subject":"string","body":"string"}],"followUp":{"subject":"string","body":"string"}${fuSchema}}
+CRITICAL: Return ONLY valid JSON.`;
+
+  try {
+    let olRawText;
+    try { olRawText = await callAISimple(prompt, 3500, 0.75); } catch(e) { throw e; }
+
+    let raw = (olRawText||'').trim();
+    raw = raw.replace(/```json|```/gi,'').trim();
+    const s = raw.indexOf('{'), e2 = raw.lastIndexOf('}');
+    if (s !== -1 && e2 !== -1) raw = raw.slice(s, e2+1);
+    const r = JSON.parse(raw);
+
+    // Render subjects
+    document.getElementById('ol-subj-lines').innerHTML = (r.subjectLines||[]).map((s,i) =>
+      `<div class="ol-subj-row"><span>"${olEscH(s)}"</span><button class="ol-copy-btn" id="olsb${i}" onclick="olCopyText(\`${olEsc(s)}\`,\'olsb${i}\')">📋 Copy</button></div>`
+    ).join('');
+
+    // Render 3 variant selector + message cards
+    const variants = r.outreachVariants || [];
+    window._olVariants = variants;
+
+    let variantHtml = '';
+    if (variants.length > 0) {
+      const v0 = variants[0];
+      const btnStyle = (i) => i === 0
+        ? 'background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;border:1.5px solid transparent;'
+        : 'background:white;color:var(--text-muted);border:1.5px solid var(--border);';
+      const icons = ['🎯','💻','🚀'];
+      variantHtml = '<div class="ol-card" style="margin-bottom:12px;">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">'
+        + '<span>✍️</span><span style="font-weight:600;font-size:0.9rem;flex:1;">Choose your outreach style</span>'
+        + '<span style="font-size:0.65rem;color:var(--text-muted);">Click a style to preview</span></div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">'
+        + variants.map((v,i) =>
+            '<button onclick="olSelectVariant(' + i + ')" id="ol-var-btn-' + i + '"'
+            + ' style="' + btnStyle(i) + 'border-radius:10px;padding:9px 16px;font-family:Outfit,sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;">'
+            + icons[i] + ' ' + v.label + '</button>'
+          ).join('')
+        + '</div>'
+        + '<div id="ol-variant-preview" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">'
+        + renderVariantPreview(v0, 0)
+        + '</div></div>';
+    } else if (r.outreach) {
+      variantHtml = olMsgCard('outreach', '📤', 'Outreach', 'ol-badge-blue', 'First Outreach InMail', r.outreach.subject, r.outreach.body);
+    }
+
+    let cards = variantHtml;
+    cards += olMsgCard('followup',  '💬', 'Follow-Up 1', 'ol-badge-indigo', '1st Follow-Up InMail',   r.followUp.subject,  r.followUp.body);
+    if (r.followUp2) cards += olMsgCard('followup2','💬','Follow-Up 2','ol-badge-purple','2nd Follow-Up InMail',r.followUp2.subject,r.followUp2.body);
+    if (r.followUp3) cards += olMsgCard('followup3','💬','Follow-Up 3','ol-badge-pink',  '3rd Follow-Up InMail',r.followUp3.subject,r.followUp3.body);
+    document.getElementById('ol-msg-cards').innerHTML = cards;
+
+    document.getElementById('ol-results').style.display = 'block';
+    setTimeout(() => document.getElementById('ol-results').scrollIntoView({behavior:'smooth'}), 100);
+    olToggle('outreach');
+
+  } catch(err) {
+    const e = document.getElementById('ol-error');
+    e.textContent = '⚠️ Error: ' + err.message + ' — please try again.';
+    e.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Generate LinkedIn InMails';
+  }
+}
+
+function olReset() {
+  document.getElementById('ol-jd').value = '';
+  document.getElementById('ol-url').value = '';
+  document.getElementById('ol-sample').value = '';
+  olSetCTA('cv'); olSetFU(1);
+  document.getElementById('ol-results').style.display = 'none';
+  document.getElementById('ol-error').style.display = 'none';
+  document.getElementById('ol-db-company-wrap').style.display = 'none';
+}
+
+// ── Personal Outreach (AI Chat) ──
+function switchPersonalResTab(tab) {
+  document.getElementById('ptab-paste').classList.toggle('active', tab==='paste');
+  document.getElementById('ptab-upload').classList.toggle('active', tab==='upload');
+  document.getElementById('personal-paste-panel').style.display = tab==='paste'?'block':'none';
+  document.getElementById('personal-upload-panel').style.display = tab==='upload'?'block':'none';
+}
+
+async function handlePersonalFile(file) {
+  if (!file) return;
+  const s = document.getElementById('personal-file-status');
+  s.innerHTML = `<div class="file-chip processing">⏳ Reading ${file.name}...</div>`;
+  try {
+    const text = await extractText(file);
+    personalFileText = text;
+    s.innerHTML = `<div class="file-chip done">✅ ${file.name} <span class="rm" onclick="clearPersonalFile()">✕</span></div>`;
+  } catch(err) {
+    s.innerHTML = `<div class="file-chip" style="border-color:var(--danger);color:var(--danger)">❌ ${err.message}</div>`;
+  }
+}
+
+function clearPersonalFile() {
+  personalFileText = '';
+  document.getElementById('personal-file-status').innerHTML = '';
+  document.getElementById('personal-file-input').value = '';
+}
+
+function personalDzDrop(e) {
+  e.preventDefault();
+  document.getElementById('personal-dz').classList.remove('drag-over');
+  if (e.dataTransfer.files.length > 0) handlePersonalFile(e.dataTransfer.files[0]);
+}
+
+function usePersonalChip(text) {
+  document.getElementById('personal-input').value = text;
+  autoResize(document.getElementById('personal-input'));
+}
+
+function personalHandleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendPersonalMessage(); }
+}
+
+function addPersonalMsg(role, content) {
+  const c = document.getElementById('personal-chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + role;
+  const av = document.createElement('div'); av.className = 'avatar';
+  av.textContent = role==='user'?'👤':'🤖';
+  const bub = document.createElement('div'); bub.className = 'bubble';
+  if (role==='ai') bub.innerHTML = formatAI(content);
+  else bub.textContent = content;
+  msg.appendChild(av); msg.appendChild(bub);
+  c.appendChild(msg); c.scrollTop = c.scrollHeight;
+}
+
+async function sendPersonalMessage() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey) || isLoading) return;
+  const input = document.getElementById('personal-input');
+  const text = input.value.trim(); if (!text) return;
+
+  const jd = document.getElementById('personal-jd').value.trim();
+  const pastedRes = document.getElementById('personal-resume').value.trim();
+  const res = personalFileText || pastedRes;
+  let ctx = '';
+  if (jd) ctx += `\n\n[JOB DESCRIPTION]\n${jd}`;
+  if (res) ctx += `\n\n[CANDIDATE PROFILE]\n${res}`;
+  const full = ctx ? ctx + '\n\n[REQUEST]\n' + text : text;
+
+  addPersonalMsg('user', text);
+  input.value = ''; input.style.height = 'auto';
+  personalHistory.push({role:'user', content:full});
+  isLoading = true;
+  document.getElementById('personal-send-btn').disabled = true;
+
+  const c = document.getElementById('personal-chat');
+  const typing = document.createElement('div');
+  typing.className = 'msg ai'; typing.id = 'personal-typing';
+  typing.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  c.appendChild(typing); c.scrollTop = 99999;
+
+  const systemPrompt = `You are an expert talent acquisition specialist who writes highly personalized, compelling outreach messages for recruiters.
+Personalize based on candidate's specific background and experience. Lead with value to the candidate.
+For personal emails: 200-250 words, warm and human tone, clear subject line, compelling opening, role alignment paragraph, specific CTA.
+For follow-ups: progressively warmer or more direct based on context.
+Always provide subject line + body. Sound like a real human recruiter, not a template.`;
+
+  try {
+    let reply;
+    try {
+      reply = await callAI(systemPrompt, personalHistory, 1500);
+    } catch(e) { reply = '⚠️ ' + e.message; }
+    document.getElementById('personal-typing')?.remove();
+    personalHistory.push({role:'assistant', content:reply});
+    addPersonalMsg('ai', reply);
+  } catch(err) {
+    document.getElementById('personal-typing')?.remove();
+    addPersonalMsg('ai', '⚠️ Connection error: ' + err.message);
+  }
+  isLoading = false;
+  document.getElementById('personal-send-btn').disabled = !isKeyValid(document.getElementById('api-key').value.trim());
+}
+
+// =================== END OUTREACH ===================
+
+// Show battle on load
+showBattle();
+
+
+</script>
+</body>
+</html>
