@@ -329,6 +329,11 @@
       </select>
       <input type="password" id="api-key" placeholder="gsk_..." oninput="checkKey()"/>
       <p id="provider-hint">Free · <a href="https://console.groq.com" target="_blank" id="provider-link">Get key →</a></p>
+      <button onclick="testConnection()" id="test-conn-btn"
+        style="width:100%;margin-top:8px;background:white;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Outfit',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:6px;">
+        🔌 Test Connection
+      </button>
+      <div id="conn-status" style="display:none;margin-top:6px;border-radius:8px;padding:7px 10px;font-size:0.73rem;line-height:1.5;"></div>
     </div>
   </aside>
 
@@ -500,6 +505,13 @@
             <span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:0.72rem;color:#374151;">🎯 Talent & Skills Analysis</span>
           </div>
           <p style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">CSV · XLSX · PDF · DOCX · PPTX · JSON · TXT — single or multiple files</p>
+          <div style="margin-top:16px;padding-top:14px;border-top:1px dashed rgba(67,97,238,0.2);">
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;">— or try without uploading —</p>
+            <button onclick="loadDemoData()" style="background:linear-gradient(135deg,#f77f00,#f4a261);color:white;border:none;border-radius:10px;padding:9px 22px;font-family:inherit;font-size:0.83rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(247,127,0,0.3);">
+              🎯 Load Demo Dataset
+            </button>
+            <p style="font-size:0.69rem;color:var(--text-muted);margin-top:6px;">50 sample candidates · 8 pre-built charts · no API key needed</p>
+          </div>
         </div>
       </div>
 
@@ -1506,6 +1518,363 @@ DASHBOARD DESIGN STANDARDS:
 - Fully self-contained — all CSS inline, no external dependencies except Chart.js CDN
 - REAL extracted data only — never use placeholder or example numbers`;
 
+// ── DEMO MODE ──────────────────────────────────────────────────
+const DEMO_CSV = `id,candidate_name,role,department,source,applied_date,status,stage,days_to_hire,location,experience_years,skills,salary_offered,gender,interview_score
+1,Alice Johnson,Senior Engineer,Engineering,LinkedIn,2024-01-05,Hired,Offer,28,Bengaluru,7,"Python,Kubernetes,AWS",145000,Female,88
+2,Bob Smith,Product Manager,Product,Referral,2024-01-08,Hired,Offer,35,Mumbai,5,"Roadmapping,SQL,Agile",130000,Male,82
+3,Carol White,Data Scientist,Data,LinkedIn,2024-01-10,Rejected,Interview,18,Remote,4,"Python,ML,TensorFlow",0,Female,61
+4,David Lee,DevOps Engineer,Engineering,Indeed,2024-01-12,Hired,Offer,31,Hyderabad,6,"Docker,CI/CD,AWS",128000,Male,79
+5,Emma Brown,UX Designer,Design,Dribbble,2024-01-15,Hired,Offer,22,Bengaluru,3,"Figma,User Research",115000,Female,91
+6,Frank Miller,Backend Engineer,Engineering,GitHub,2024-01-18,Rejected,Phone Screen,8,Pune,2,"Java,Spring Boot",0,Male,55
+7,Grace Chen,ML Engineer,Data,LinkedIn,2024-01-20,Hired,Offer,40,Remote,8,"PyTorch,MLOps,Python",155000,Female,94
+8,Henry Davis,Sales Manager,Sales,LinkedIn,2024-01-22,Offer Extended,Offer,45,Delhi,9,"CRM,B2B,Salesforce",125000,Male,77
+9,Iris Kumar,Frontend Dev,Engineering,AngelList,2024-01-25,Hired,Offer,19,Bengaluru,4,"React,TypeScript,CSS",118000,Female,86
+10,James Wilson,Engineering Manager,Engineering,Referral,2024-02-01,Hired,Offer,29,Mumbai,11,"Leadership,Java,System Design",175000,Male,90
+11,Karen Singh,Data Analyst,Data,Naukri,2024-02-03,Hired,Offer,24,Hyderabad,3,"SQL,Tableau,Excel",98000,Female,83
+12,Liam Patel,Cloud Architect,Engineering,LinkedIn,2024-02-05,Rejected,Final Round,38,Remote,9,"AWS,Terraform,Kubernetes",0,Male,68
+13,Mia Zhang,QA Engineer,Engineering,Indeed,2024-02-08,Hired,Offer,27,Pune,5,"Selenium,JIRA,Python",105000,Female,80
+14,Noah Thomas,Growth PM,Product,LinkedIn,2024-02-10,Hired,Offer,33,Bengaluru,6,"Analytics,A/B Testing,SQL",135000,Male,85
+15,Olivia Scott,Recruiter,HR,LinkedIn,2024-02-12,Hired,Offer,21,Delhi,4,"ATS,Sourcing,Interviewing",88000,Female,87
+16,Peter Rodriguez,Security Engineer,Engineering,LinkedIn,2024-02-15,Rejected,Interview,22,Remote,7,"SIEM,Penetration Testing",0,Male,64
+17,Quinn Taylor,BI Developer,Data,Naukri,2024-02-18,Hired,Offer,30,Hyderabad,5,"Power BI,DAX,SQL",110000,Female,81
+18,Ryan Anderson,iOS Developer,Engineering,LinkedIn,2024-02-20,Hired,Offer,26,Bengaluru,4,"Swift,Xcode,UIKit",122000,Male,84
+19,Sophia Martin,Finance Analyst,Finance,Referral,2024-02-22,Hired,Offer,23,Mumbai,3,"Excel,Financial Modelling,SAP",95000,Female,89
+20,Tom Jackson,SRE,Engineering,GitHub,2024-03-01,Hired,Offer,32,Remote,6,"Linux,Prometheus,Python",138000,Male,86
+21,Uma Sharma,Content Writer,Marketing,LinkedIn,2024-03-03,Rejected,Screening,5,Delhi,2,"SEO,Copywriting",0,Female,52
+22,Victor Lee,Android Dev,Engineering,LinkedIn,2024-03-05,Hired,Offer,28,Pune,5,"Kotlin,Android SDK",120000,Male,82
+23,Wendy Adams,HR Business Partner,HR,LinkedIn,2024-03-08,Hired,Offer,25,Bengaluru,7,"HRBP,Employee Relations",105000,Female,88
+24,Xander Brown,Platform Engineer,Engineering,GitHub,2024-03-10,Offer Declined,Offer,41,Remote,8,"Kubernetes,Go,Terraform",0,Male,76
+25,Yara Hassan,Marketing Manager,Marketing,LinkedIn,2024-03-12,Hired,Offer,29,Mumbai,6,"Digital Marketing,SEO,Analytics",118000,Female,85
+26,Zoe Clark,Data Engineer,Data,LinkedIn,2024-03-15,Hired,Offer,31,Hyderabad,5,"Spark,Kafka,Python",132000,Female,87
+27,Aaron White,Engineering Lead,Engineering,Referral,2024-03-18,Hired,Offer,36,Bengaluru,10,"Architecture,Java,Leadership",168000,Male,92
+28,Bella Foster,UX Researcher,Design,LinkedIn,2024-03-20,Rejected,Interview,19,Delhi,3,"User Interviews,Figma",0,Female,67
+29,Carlos Diaz,Infra Engineer,Engineering,Indeed,2024-03-22,Hired,Offer,27,Remote,6,"AWS,Ansible,Python",130000,Male,83
+30,Diana Patel,Program Manager,Product,Referral,2024-03-25,Hired,Offer,24,Mumbai,8,"Agile,Risk Management,Stakeholders",128000,Female,90
+31,Ethan Kumar,ML Researcher,Data,LinkedIn,2024-04-01,Hired,Offer,45,Bengaluru,6,"Research,PyTorch,NLP",148000,Male,93
+32,Fiona Nguyen,Customer Success,Sales,LinkedIn,2024-04-03,Hired,Offer,22,Delhi,4,"CRM,Onboarding,Analytics",96000,Female,84
+33,George Hall,Backend Engineer,Engineering,AngelList,2024-04-05,Rejected,Final Round,35,Pune,3,"Node.js,MongoDB",0,Male,65
+34,Hannah Lewis,Compensation Analyst,HR,LinkedIn,2024-04-08,Hired,Offer,26,Mumbai,5,"Excel,Benchmarking,Analytics",102000,Female,86
+35,Ivan Chen,iOS Senior,Engineering,LinkedIn,2024-04-10,Hired,Offer,30,Bengaluru,7,"Swift,RxSwift,CoreData",135000,Male,88
+36,Julia Kim,Design Lead,Design,Dribbble,2024-04-12,Hired,Offer,28,Remote,8,"Leadership,Figma,Design Systems",145000,Female,92
+37,Kevin Walsh,SRE Senior,Engineering,GitHub,2024-04-15,Hired,Offer,33,Hyderabad,7,"SLOs,Python,Kubernetes",142000,Male,87
+38,Laura Martinez,Legal Counsel,Legal,LinkedIn,2024-04-18,Hired,Offer,42,Delhi,9,"Corporate Law,Contracts",160000,Female,89
+39,Marcus Johnson,Data Architect,Data,LinkedIn,2024-04-20,Rejected,Final Round,40,Remote,10,"Snowflake,dbt,Architecture",0,Male,71
+40,Nina Roberts,DevOps Lead,Engineering,Referral,2024-04-22,Hired,Offer,29,Bengaluru,8,"CI/CD,Terraform,Leadership",155000,Female,91
+41,Oscar Perez,Android Senior,Engineering,LinkedIn,2024-05-01,Hired,Offer,27,Pune,6,"Kotlin,MVVM,Jetpack",128000,Male,85
+42,Priya Sharma,Analytics Engineer,Data,LinkedIn,2024-05-03,Hired,Offer,31,Hyderabad,5,"dbt,SQL,Looker",122000,Female,88
+43,Qasim Ali,Security Lead,Engineering,LinkedIn,2024-05-05,Hired,Offer,38,Remote,9,"SOC,Cloud Security",158000,Male,87
+44,Rachel Green,Scrum Master,Product,Indeed,2024-05-08,Hired,Offer,23,Mumbai,5,"Agile,Jira,Facilitation",108000,Female,84
+45,Samuel Brooks,Full Stack Dev,Engineering,AngelList,2024-05-10,Rejected,Interview,16,Bengaluru,2,"React,Node.js",0,Male,59
+46,Tara Nair,People Analytics,HR,LinkedIn,2024-05-12,Hired,Offer,28,Delhi,6,"Python,SQL,Tableau",115000,Female,90
+47,Umar Khan,Cloud Engineer,Engineering,LinkedIn,2024-05-15,Hired,Offer,32,Remote,5,"GCP,Terraform,Python",130000,Male,83
+48,Vera Johansson,Content Lead,Marketing,LinkedIn,2024-05-18,Hired,Offer,25,Mumbai,7,"Content Strategy,SEO",112000,Female,86
+49,William Park,Backend Senior,Engineering,GitHub,2024-05-20,Hired,Offer,30,Bengaluru,8,"Golang,gRPC,PostgreSQL",148000,Male,91
+50,Xena Vasquez,Operations Lead,Operations,LinkedIn,2024-05-22,Hired,Offer,34,Hyderabad,7,"Process Improvement,Six Sigma",125000,Female,87`;
+
+function loadDemoData() {
+  // Create a fake file-like entry
+  const demoEntry = {
+    name: 'demo_recruiting_data.csv',
+    ext: 'csv',
+    raw: DEMO_CSV,
+    fileType: 'spreadsheet',
+    chipId: 'dash-chip-demo'
+  };
+
+  // Clear existing and add demo
+  dashFiles = [demoEntry];
+
+  // Add chip
+  const chips = document.getElementById('dash-file-chips');
+  chips.innerHTML = '';
+  const chip = document.createElement('span');
+  chip.className = 'dash-chip';
+  chip.id = 'dash-chip-demo';
+  const lines = DEMO_CSV.split('\n').length;
+  chip.innerHTML = `📊 demo_recruiting_data.csv <span style="color:#6b7280;font-size:0.68rem;">(${lines} candidates)</span> <span class="rm" onclick="removeDashFile('dash-chip-demo')">×</span>`;
+  chips.appendChild(chip);
+
+  // Show analysis bar
+  document.getElementById('dash-analysis-bar').style.display = 'flex';
+
+  // Show ready state
+  const content = document.getElementById('dash-content');
+  content.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(247,127,0,0.08),rgba(247,37,133,0.05));border:1.5px solid rgba(247,127,0,0.25);border-radius:14px;padding:20px 24px;">
+      <div style="font-size:1rem;font-weight:700;color:#f77f00;margin-bottom:8px;">🎯 Demo dataset loaded!</div>
+      <p style="font-size:0.85rem;color:var(--text);line-height:1.6;margin-bottom:12px;">
+        50 sample candidates across Engineering, Data, Product, Design, Sales and HR — with full hiring funnel data, sources, locations, skills, salaries and interview scores.
+      </p>
+      <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:14px;">
+        👆 Click any analysis button above to generate a dashboard. <strong>You still need an API key</strong> for AI generation — but you can also click the button below to see a pre-built static demo dashboard instantly, with no API key needed.
+      </p>
+      <button onclick="showStaticDemo()" style="background:linear-gradient(135deg,#4361ee,#7209b7);color:white;border:none;border-radius:10px;padding:9px 20px;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;">
+        ⚡ View Pre-built Demo Dashboard (No API Key)
+      </button>
+    </div>`;
+}
+
+function showStaticDemo() {
+  const content = document.getElementById('dash-content');
+  const demoHTML = buildStaticDemoHTML();
+  const blob = new Blob([demoHTML], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  content.innerHTML = `
+    <div style="background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1.5px solid var(--border);">
+        <div style="font-weight:700;font-size:0.9rem;">📊 Demo Dashboard — 50 Sample Candidates</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="document.getElementById('demo-iframe').requestFullscreen()" style="background:white;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;">⛶ Fullscreen</button>
+          <a href="${url}" download="demo-dashboard.html" style="background:rgba(67,97,238,0.08);border:1.5px solid rgba(67,97,238,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;color:var(--accent);text-decoration:none;font-weight:600;">⬇ Download</a>
+        </div>
+      </div>
+      <iframe id="demo-iframe" src="${url}" style="width:100%;height:1100px;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>`;
+}
+
+function buildStaticDemoHTML() {
+  // Parse DEMO_CSV
+  const lines = DEMO_CSV.trim().split('\n');
+  const headers = lines[0].split(',');
+  const rows = lines.slice(1).map(l => {
+    const vals = l.split(',');
+    const obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = (vals[i]||'').trim());
+    return obj;
+  });
+
+  const hired = rows.filter(r => r.status === 'Hired');
+  const rejected = rows.filter(r => r.status === 'Rejected');
+  const avgTTH = Math.round(hired.reduce((s,r) => s + parseInt(r.days_to_hire||0), 0) / hired.length);
+  const avgScore = Math.round(hired.reduce((s,r) => s + parseInt(r.interview_score||0), 0) / hired.length);
+  const offerRate = Math.round((hired.length / rows.length) * 100);
+
+  // Count by source
+  const sourceCounts = {};
+  rows.forEach(r => { sourceCounts[r.source] = (sourceCounts[r.source]||0) + 1; });
+  const topSources = Object.entries(sourceCounts).sort((a,b)=>b[1]-a[1]);
+
+  // Count by dept
+  const deptCounts = {};
+  hired.forEach(r => { deptCounts[r.department] = (deptCounts[r.department]||0) + 1; });
+  const depts = Object.entries(deptCounts).sort((a,b)=>b[1]-a[1]);
+
+  // TTH by dept
+  const deptTTH = {};
+  hired.forEach(r => {
+    if (!deptTTH[r.department]) deptTTH[r.department] = [];
+    deptTTH[r.department].push(parseInt(r.days_to_hire||0));
+  });
+  const deptTTHAvg = Object.entries(deptTTH).map(([d,vals]) => [d, Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)]).sort((a,b)=>b[1]-a[1]);
+
+  // Gender split
+  const genderCounts = {};
+  hired.forEach(r => { genderCounts[r.gender] = (genderCounts[r.gender]||0) + 1; });
+
+  // Locations
+  const locCounts = {};
+  hired.forEach(r => { locCounts[r.location] = (locCounts[r.location]||0) + 1; });
+  const topLocs = Object.entries(locCounts).sort((a,b)=>b[1]-a[1]);
+
+  // Monthly hiring trend
+  const monthHires = {};
+  hired.forEach(r => {
+    const m = r.applied_date ? r.applied_date.slice(0,7) : 'Unknown';
+    monthHires[m] = (monthHires[m]||0) + 1;
+  });
+  const months = Object.keys(monthHires).sort();
+  const monthVals = months.map(m => monthHires[m]);
+
+  // Skills
+  const skillCounts = {};
+  rows.forEach(r => {
+    (r.skills||'').split(',').forEach(s => {
+      s = s.trim().replace(/"/g,'');
+      if (s) skillCounts[s] = (skillCounts[s]||0) + 1;
+    });
+  });
+  const topSkills = Object.entries(skillCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:system-ui,sans-serif; background:#f0f4ff; padding:20px; }
+  h1 { font-size:1.4rem; font-weight:800; color:#1e293b; margin-bottom:4px; }
+  .sub { font-size:0.82rem; color:#6b7280; margin-bottom:20px; }
+  .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:20px; }
+  .kpi { background:white; border-radius:12px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .kpi .val { font-size:1.6rem; font-weight:800; color:#4361ee; line-height:1; margin-bottom:4px; }
+  .kpi .lbl { font-size:0.72rem; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+  .grid { display:grid; gap:16px; margin-bottom:16px; }
+  .g2 { grid-template-columns:1fr 1fr; }
+  .g3 { grid-template-columns:1fr 1fr 1fr; }
+  .card { background:white; border-radius:12px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .card h3 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#4361ee; border-bottom:2px solid #4361ee; padding-bottom:6px; margin-bottom:14px; }
+  .chart-wrap { position:relative; height:220px; }
+  .caption { font-size:12px; color:#6b7280; margin-top:8px; font-style:italic; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#f1f5f9; padding:8px 10px; font-size:11px; text-transform:uppercase; letter-spacing:.5px; text-align:left; font-weight:700; color:#374151; }
+  td { padding:8px 10px; border-bottom:1px solid #f1f5f9; }
+  .badge { display:inline-flex; align-items:center; border-radius:20px; padding:2px 8px; font-size:11px; font-weight:600; }
+  .green { background:#dcfce7; color:#16a34a; }
+  .amber { background:#fef9c3; color:#b45309; }
+  .red { background:#fee2e2; color:#dc2626; }
+  .bar-cell { display:flex; align-items:center; gap:8px; }
+  .bar { height:8px; border-radius:4px; background:#4361ee; min-width:4px; }
+  .strat { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .strat-card { border-radius:10px; padding:14px; }
+  .strat-card h4 { font-size:12px; font-weight:700; margin-bottom:8px; }
+  .strat-card li { font-size:12px; line-height:1.6; margin-left:14px; color:#374151; }
+  @media(max-width:700px){ .g2,.g3,.strat{grid-template-columns:1fr;} }
+</style>
+</head><body>
+<h1>📊 Recruiting Analytics Dashboard</h1>
+<p class="sub">Demo dataset · 50 candidates · Jan–May 2024 · Generated by RecruiterAI</p>
+
+<!-- KPI Strip -->
+<div class="kpi-row">
+  <div class="kpi"><div class="val">${rows.length}</div><div class="lbl">Total Candidates</div></div>
+  <div class="kpi"><div class="val">${hired.length}</div><div class="lbl">Total Hires</div></div>
+  <div class="kpi"><div class="val">${offerRate}%</div><div class="lbl">Hire Rate</div></div>
+  <div class="kpi"><div class="val">${avgTTH}d</div><div class="lbl">Avg Time-to-Hire</div></div>
+  <div class="kpi"><div class="val">${avgScore}</div><div class="lbl">Avg Interview Score</div></div>
+  <div class="kpi"><div class="val">${topSources[0][0]}</div><div class="lbl">Top Source</div></div>
+</div>
+
+<!-- Row 1: Monthly Trend + Source Mix -->
+<div class="grid g2">
+  <div class="card">
+    <h3>Monthly Hiring Trend</h3>
+    <div class="chart-wrap"><canvas id="c1"></canvas></div>
+    <p class="caption">Hiring ramped up consistently from Jan to May 2024, with Engineering leading volume.</p>
+  </div>
+  <div class="card">
+    <h3>Source Mix</h3>
+    <div class="chart-wrap"><canvas id="c2"></canvas></div>
+    <p class="caption">LinkedIn dominates sourcing at ${Math.round(sourceCounts['LinkedIn']/rows.length*100)}% of all applicants. Referrals show highest quality.</p>
+  </div>
+</div>
+
+<!-- Row 2: Dept Hires + TTH by Dept -->
+<div class="grid g2">
+  <div class="card">
+    <h3>Hires by Department</h3>
+    <div class="chart-wrap"><canvas id="c3"></canvas></div>
+    <p class="caption">Engineering accounts for the majority of hires, followed by Data and Product.</p>
+  </div>
+  <div class="card">
+    <h3>Avg Time-to-Hire by Department (days)</h3>
+    <div class="chart-wrap"><canvas id="c4"></canvas></div>
+    <p class="caption">Data and Engineering roles take longest. Legal and HR close fastest.</p>
+  </div>
+</div>
+
+<!-- Row 3: Top Skills + Geography -->
+<div class="grid g2">
+  <div class="card">
+    <h3>Top Skills in Demand</h3>
+    <div class="chart-wrap"><canvas id="c5"></canvas></div>
+    <p class="caption">Python, AWS and SQL are the most in-demand skills across all roles.</p>
+  </div>
+  <div class="card">
+    <h3>Candidate Locations</h3>
+    <div class="chart-wrap"><canvas id="c6"></canvas></div>
+    <p class="caption">Bengaluru leads talent supply. Remote candidates form a strong 2nd tier.</p>
+  </div>
+</div>
+
+<!-- Row 4: Gender + Interview Score Distribution -->
+<div class="grid g2">
+  <div class="card">
+    <h3>Gender Split (Hired)</h3>
+    <div class="chart-wrap"><canvas id="c7"></canvas></div>
+    <p class="caption">Female candidates represent ${Math.round((genderCounts['Female']||0)/hired.length*100)}% of hires, showing strong diversity outcomes.</p>
+  </div>
+  <div class="card">
+    <h3>Interview Score Distribution</h3>
+    <div class="chart-wrap"><canvas id="c8"></canvas></div>
+    <p class="caption">Most hired candidates scored 80-95, indicating consistent hiring bar.</p>
+  </div>
+</div>
+
+<!-- Candidates Table -->
+<div class="card" style="margin-bottom:16px;">
+  <h3>Top Hires — Full Detail</h3>
+  <div style="overflow-x:auto;">
+  <table>
+    <tr><th>#</th><th>Name</th><th>Role</th><th>Dept</th><th>Source</th><th>Location</th><th>TTH (days)</th><th>Salary</th><th>Score</th><th>Status</th></tr>
+    ${hired.slice(0,15).map((r,i) => `<tr>
+      <td>${i+1}</td><td><strong>${r.candidate_name}</strong></td><td>${r.role}</td><td>${r.department}</td>
+      <td>${r.source}</td><td>${r.location}</td>
+      <td><span class="badge ${parseInt(r.days_to_hire)>35?'red':parseInt(r.days_to_hire)>25?'amber':'green'}">${r.days_to_hire}d</span></td>
+      <td>₹${parseInt(r.salary_offered).toLocaleString()}</td>
+      <td><span class="badge ${parseInt(r.interview_score)>=85?'green':parseInt(r.interview_score)>=70?'amber':'red'}">${r.interview_score}</span></td>
+      <td><span class="badge green">✓ Hired</span></td>
+    </tr>`).join('')}
+  </table>
+  </div>
+</div>
+
+<!-- Strategic Callouts -->
+<div class="card">
+  <h3>Strategic Intelligence</h3>
+  <div class="strat">
+    <div class="strat-card" style="background:#fff7ed;border:1px solid #fed7aa;">
+      <h4 style="color:#c2410c;">⚠️ Risks</h4>
+      <ul>
+        <li>LinkedIn dependency (${Math.round(sourceCounts['LinkedIn']/rows.length*100)}%) — single-source risk</li>
+        <li>Data roles avg ${deptTTHAvg.find(d=>d[0]==='Data')?.[1]||'-'}d TTH — pipeline bottleneck</li>
+        <li>Offer decline rate indicates compensation gaps</li>
+        <li>Remote demand growing faster than remote offers</li>
+      </ul>
+    </div>
+    <div class="strat-card" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+      <h4 style="color:#166534;">🎯 Opportunities</h4>
+      <ul>
+        <li>Referrals produce highest quality — scale the program</li>
+        <li>GitHub sourcing for engineers showing strong results</li>
+        <li>Female candidates converting at parity or above</li>
+        <li>Bengaluru talent pool is deep — leverage for scale</li>
+      </ul>
+    </div>
+    <div class="strat-card" style="background:#eff6ff;border:1px solid #bfdbfe;">
+      <h4 style="color:#1d4ed8;">✅ Actions</h4>
+      <ul>
+        <li>Diversify sources: AngelList, Naukri, Dribbble budgets ↑</li>
+        <li>Create structured referral incentive programme</li>
+        <li>Reduce Data team TTH: add screening automation</li>
+        <li>Review Remote compensation bands — losing final-round candidates</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const pal = ['#4361ee','#f72585','#f77f00','#06b6d4','#0a9c5a','#7209b7','#e5383b','#ffd166','#06d6a0','#118ab2'];
+function mkChart(id, type, labels, datasets, opts) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, { type, data:{ labels, datasets }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{font:{size:11}} } }, ...opts } });
+}
+mkChart('c1','bar',${JSON.stringify(months)}, [{label:'Hires',data:${JSON.stringify(monthVals)},backgroundColor:'#4361ee',borderRadius:6}], {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}});
+mkChart('c2','doughnut',${JSON.stringify(topSources.map(s=>s[0]))}, [{data:${JSON.stringify(topSources.map(s=>s[1]))},backgroundColor:pal}]);
+mkChart('c3','bar',${JSON.stringify(depts.map(d=>d[0]))}, [{label:'Hires',data:${JSON.stringify(depts.map(d=>d[1]))},backgroundColor:pal}], {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:11}}}}});
+mkChart('c4','bar',${JSON.stringify(deptTTHAvg.map(d=>d[0]))}, [{label:'Avg Days',data:${JSON.stringify(deptTTHAvg.map(d=>d[1]))},backgroundColor:deptTTHAvg.map(d=>d[1]>35?'#e5383b':d[1]>28?'#f77f00':'#0a9c5a')}], {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:11}}}}});
+mkChart('c5','bar',${JSON.stringify(topSkills.map(s=>s[0]))}, [{label:'Count',data:${JSON.stringify(topSkills.map(s=>s[1]))},backgroundColor:'#06b6d4',borderRadius:4}], {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:11}}}}});
+mkChart('c6','bar',${JSON.stringify(topLocs.map(l=>l[0]))}, [{label:'Count',data:${JSON.stringify(topLocs.map(l=>l[1]))},backgroundColor:'#7209b7',borderRadius:4}], {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:11}}},y:{ticks:{font:{size:11}}}}});
+mkChart('c7','doughnut',${JSON.stringify(Object.keys(genderCounts))}, [{data:${JSON.stringify(Object.values(genderCounts))},backgroundColor:['#f72585','#4361ee','#06b6d4']}]);
+// Score distribution histogram
+const scores = ${JSON.stringify(hired.map(r=>parseInt(r.interview_score||0)))};
+const bins=['50-59','60-69','70-79','80-89','90-99'];
+const binVals=[0,0,0,0,0];
+scores.forEach(s=>{ if(s<60)binVals[0]++; else if(s<70)binVals[1]++; else if(s<80)binVals[2]++; else if(s<90)binVals[3]++; else binVals[4]++; });
+mkChart('c8','bar',bins,[{label:'Candidates',data:binVals,backgroundColor:['#e5383b','#f77f00','#ffd166','#0a9c5a','#4361ee'],borderRadius:6}],{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}});
+<\/script>
+</body></html>`;
+}
+// ── END DEMO MODE ──────────────────────────────────────────────
+
 function runDashAnalysis(type) {
   if (type === 'custom') {
     const ci = document.getElementById('dash-custom-input');
@@ -1520,212 +1889,478 @@ function runDashAnalysis(type) {
 
     overview: `${MASTER_SYSTEM}
 
-MODE: SMART OVERVIEW
-Generate a full Executive Dashboard with:
+MODE: SMART OVERVIEW — Executive Recruiting Dashboard
 
-1️⃣ KPI SNAPSHOT — Headline metrics, growth rates, median benchmarks, key ratios
-2️⃣ SUPPLY VS DEMAND — Talent pool indicators, hiring intensity, gap analysis  
-3️⃣ EMPLOYER LANDSCAPE — Competitive concentration, talent clustering, market positioning
-4️⃣ SKILLS HEATMAP — Core skills, emerging skills, high-growth capabilities
-5️⃣ GEOGRAPHY BREAKDOWN — Top hubs, regional concentration, remote indicators
-6️⃣ COMPENSATION SNAPSHOT (if available) — P25/P50/P75, variance patterns, market competitiveness
-7️⃣ HIRING TRENDS — Volume trends, velocity, growth signals
-8️⃣ STRATEGIC CALLOUTS — 5 Risks + 5 Opportunities + 5 Recommendations
+Extract EVERY metric, number, name, and trend from the uploaded data. Then build a complete executive dashboard.
 
-Then generate a complete, self-contained interactive HTML dashboard using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) with:
-- Top row: 4-5 KPI stat cards with headline numbers
-- Minimum 4 chart types (bar, line, pie/donut, scatter) using REAL extracted data
-- Professional styling: white background, #4361ee blue, #f72585 pink, #f77f00 orange, #06b6d4 teal, #0a9c5a green
-- Each chart has title + 1-line insight caption
-- "Strategic Callouts" section at bottom
+SECTION 1 — KPI STRIP (compact horizontal row of 6-8 pills):
+Show all available headline numbers as small pill tiles. Include: total candidates, open roles, avg TTH, offer acceptance rate, top source, active pipeline, any other key metrics found.
+
+SECTION 2 — HIRING VOLUME CHART (full width):
+Line or bar chart showing hiring volume over time (by month/quarter/year). If no dates: bar chart of volume by role/department/source. Title: "Hiring Volume Trend". Caption: key trend direction.
+
+SECTION 3 — PIPELINE FUNNEL (half width left):
+Horizontal funnel bars: Applied → Screened → Interviewed → Offered → Hired with conversion % at each stage. Color: green→amber→red as conversion drops.
+
+SECTION 4 — TOP SOURCES (half width right):
+Horizontal bar chart — top 8 sources by volume. Color-coded by quality tier if data allows.
+
+SECTION 5 — ROLES / DEPARTMENTS TABLE (full width):
+Table: Role | Open | Filled | TTH (days) | Source | Status. Sort by volume.
+
+SECTION 6 — SKILLS / REQUIREMENTS (half width left):
+Horizontal bar — top 10 required skills by frequency. Green for growing, grey for stable.
+
+SECTION 7 — GEOGRAPHY (half width right):
+Bar chart or table of top locations by candidate volume. Include remote% if available.
+
+SECTION 8 — STRATEGIC CALLOUTS (full width, 3-column):
+Column 1: ⚠️ 4 Risks | Column 2: 🎯 4 Opportunities | Column 3: ✅ 4 Actions
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[executive summary + KPI snapshot + strategic callouts — structured, concise]
+[3-paragraph executive summary: data overview, headline findings, 3 strategic recommendations]
 ===DASHBOARD_HTML===
-[complete self-contained HTML]
+[complete self-contained HTML — minimum 600 lines]
 ===END===`,
 
     charts: `${MASTER_SYSTEM}
 
-MODE: CHARTS & TRENDS
-Focus on visual storytelling:
-- 6+ relevant chart interpretations
-- Trend explanations with directional signals
-- Anomaly detection and flagging
-- Seasonality insights where applicable
+MODE: CHARTS & TRENDS — Visual Analytics Deep-Dive
 
-Generate a complete interactive HTML dashboard using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) with:
-- 6+ charts — each answering a specific business question
-- Mix of: bar (comparisons), line (trends), pie/donut (distributions), scatter (relationships)
-- Each chart: clear title + insight caption explaining the "so what"
-- Colors: #4361ee, #f72585, #f77f00, #06b6d4, #0a9c5a, #7209b7
-- REAL data values extracted from the uploaded file — no placeholders
-- Anomalies highlighted in red/amber
+Scan the entire file. Extract every number, date, category, name, count, rate, and percentage. Then build a rich multi-chart visual dashboard.
+
+BUILD EXACTLY THESE CHARTS (adapt to available data — skip gracefully if data absent):
+
+CHART 1 — Hiring Volume Over Time (LINE chart, full width):
+X-axis: time periods. Y-axis: count. Show actual trend + 3-period moving average as dashed line.
+If no time data: convert to bar chart by department/role.
+
+CHART 2 — Stage Conversion Funnel (HORIZONTAL BAR, half width):
+Each stage as a bar. % conversion label on each bar. Color: green>60%, amber 40-60%, red<40%.
+
+CHART 3 — Source Mix (DONUT chart, half width):
+Top 6 sources + "Others". Show % labels. Legend with exact counts.
+
+CHART 4 — Time-to-Hire by Role/Dept (HORIZONTAL BAR, full width):
+Sort descending. Benchmark line at median. Bars exceeding 2x median shown in red.
+
+CHART 5 — Skills Demand (HORIZONTAL BAR, full width):
+Top 12 skills by frequency. Color by trend: green=growing, blue=stable, red=declining.
+
+CHART 6 — Offer Acceptance Rate Trend (LINE, half width):
+Monthly offer vs acceptance. Dual Y-axis if needed.
+
+CHART 7 — Candidate Quality Score (BAR or SCATTER, half width):
+By source or role — quality proxy (interview rate, pass rate, or score if available).
+
+CHART 8 — Geographic Distribution (HORIZONTAL BAR, full width):
+Top 10 locations by candidate count. Include % of total.
+
+ADDITIONAL: If salary/compensation data exists → add box-plot style range chart.
+If experience data exists → add stacked bar by experience band.
+
+Each chart MUST have:
+- Clear title (14px bold)
+- One-line insight caption below (italic, grey, 12px) explaining the "so what"
+- Explicit container height (min 240px)
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[trend narrative — what the data is telling us, anomalies, key directional signals]
+[Trend narrative: 5-6 key visual findings with directional signals and anomalies called out]
 ===DASHBOARD_HTML===
-[complete self-contained HTML]
+[complete self-contained HTML with all 8 charts — minimum 700 lines]
 ===END===`,
 
     correlation: `${MASTER_SYSTEM}
 
-MODE: CORRELATIONS
-Identify relationships and business implications:
-1. CORRELATION MATRIX — Which variables move together (positive/negative/neutral)
-2. STRONGEST RELATIONSHIPS — Top 5 correlations with business meaning
-3. BUSINESS IMPLICATIONS — What these relationships mean for hiring strategy
-4. SPURIOUS CORRELATION WARNING — Flag where correlation ≠ causation
-5. ACTIONABLE FINDINGS — What leadership should do based on these patterns
+MODE: CORRELATIONS — Relationship & Pattern Analysis
 
-Generate HTML visualization with:
-- Correlation heatmap or scatter matrix using Chart.js
-- Strong correlations (>0.7 or <-0.7) highlighted in color
-- Coefficient table with plain-English interpretation per pair
+Identify which variables in the dataset move together and what that means for hiring strategy.
+
+SECTION 1 — CORRELATION HEATMAP (full width):
+Build an N×N grid (all numeric/categorical pairs) using Chart.js scatter or a CSS-rendered heatmap table.
+Color scale: dark blue = strong positive (>0.7), white = neutral (0), dark red = strong negative (<-0.7).
+Show coefficient values in each cell. Highlight cells with |r|>0.5.
+
+SECTION 2 — TOP 5 CORRELATIONS TABLE:
+Columns: Variable A | Variable B | Coefficient | Direction | Business Meaning
+Sort by absolute correlation strength. Plain English interpretation for each pair.
+
+SECTION 3 — SCATTER PLOTS (show top 3 strongest relationships):
+Each scatter plot: X = variable A, Y = variable B, dots colored by a 3rd dimension if available.
+Add trend line. Show R² value. Title = "Variable A vs Variable B (r=X.XX)".
+
+SECTION 4 — BUSINESS IMPLICATIONS PANEL:
+3-column cards: What correlates | What it means | What to do about it.
+
+SECTION 5 — WARNINGS:
+Flag any correlation that is likely spurious (correlation ≠ causation). Explain why.
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[correlation findings — insight-first, executive framing]
+[Correlation findings: top relationships, business meaning, confidence level]
 ===DASHBOARD_HTML===
-[complete self-contained HTML]
+[complete self-contained HTML with heatmap, scatter plots, tables]
 ===END===`,
 
     stats: `${MASTER_SYSTEM}
 
-MODE: STATISTICAL SUMMARY
-Switch to neutral analytical tone. For each field:
+MODE: STATISTICAL SUMMARY — Dataset Health & Descriptive Analytics
 
-NUMERIC FIELDS: Mean, Median, Std Dev, Min, Max, Q1, Q3, IQR, Outlier count, Missing %
-CATEGORICAL FIELDS: Unique values, Top 3 most common, Distribution %, Missing %
-DATASET HEALTH: Completeness score, Anomaly flags, Data quality rating
+Perform rigorous statistical analysis on every column in the dataset.
 
-Generate HTML report with:
-- Clean statistics table per column
-- Distribution histograms for key numeric fields using Chart.js
-- Outliers and anomalies highlighted in red
-- Data quality summary card at top
+SECTION 1 — DATASET HEALTH CARD (full width):
+Table: Total Rows | Total Columns | Complete Rows % | Duplicate Rows | Date Range (if applicable) | File Size estimate
+Overall data quality score (A/B/C/D) with colour badge.
+
+SECTION 2 — NUMERIC FIELDS TABLE:
+For EVERY numeric column: Field | Count | Mean | Median | Std Dev | Min | Q1 | Q3 | Max | Outliers | Missing%
+Outlier count = values beyond 1.5×IQR. Highlight outlier-heavy columns in amber.
+
+SECTION 3 — CATEGORICAL FIELDS TABLE:
+For EVERY categorical column: Field | Unique Values | Top Value | Top Value % | 2nd Value | 2nd Value % | Missing%
+
+SECTION 4 — DISTRIBUTION CHARTS (one per key numeric field):
+Histogram for each numeric field (bin into 8-10 buckets). Show normal curve overlay as dashed line.
+Label: mean (blue line) and ±1 std dev (grey shading).
+
+SECTION 5 — MISSING DATA VISUAL:
+Horizontal bar chart: each field as a row, bar = % missing. Red if >20% missing, amber if 5-20%.
+
+SECTION 6 — OUTLIER PANEL:
+List top 10 outlier records (rows) with field name, value, and z-score.
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[statistical findings — precise, structured, neutral tone]
+[Statistical findings: data quality rating, key distributions, outlier summary, data readiness assessment]
 ===DASHBOARD_HTML===
-[complete self-contained HTML stats report]
+[complete self-contained HTML — all tables and charts]
 ===END===`,
 
     funnel: `${MASTER_SYSTEM}
 
-MODE: HIRING FUNNEL
-Recruiter-actionable funnel intelligence:
-- Stage conversion rates (Applied → Screened → Interviewed → Offered → Hired)
-- Drop-off analysis at each stage — where are we losing candidates?
-- Bottleneck identification — which stage has the worst conversion?
-- Funnel optimization recommendations — specific, actionable
-- Comparison by role/department/source if data permits
+MODE: HIRING FUNNEL — Pipeline Conversion Intelligence
 
-Generate HTML dashboard with:
-- Funnel visualization (Chart.js horizontal bar or custom SVG funnel)
-- Stage conversion rate KPI cards
-- Drop-off % highlighted in amber/red
-- Bottleneck alert callout box
-- Comparison charts by segment if data available
+Map the full hiring funnel from first touch to hire. Identify every drop-off and bottleneck.
+
+SECTION 1 — FUNNEL OVERVIEW (full width, visual funnel):
+Create a visual funnel using Chart.js horizontal bars or SVG trapezoids:
+Applied → Screened/Reviewed → Phone Screen → Interview → Final Round → Offered → Hired
+Each stage: absolute number + conversion rate from previous stage + overall conversion from top.
+Color: green if conversion >60%, amber if 30-60%, red if <30%.
+
+SECTION 2 — FUNNEL KPI STRIP:
+Pills: Total Applied | Overall Conversion% | Avg TTH | Offer Rate | Acceptance Rate | Cost-per-Hire (if data)
+
+SECTION 3 — DROP-OFF ANALYSIS TABLE:
+Stage | In | Out | Drop-off # | Drop-off % | Avg Days at Stage | Bottleneck Flag
+Sort by drop-off %. Highlight worst stage with red badge "⚠️ Primary Bottleneck".
+
+SECTION 4 — FUNNEL BY SEGMENT (horizontal grouped bars):
+Compare funnel conversion across: Departments OR Job Levels OR Sources (whichever data is available).
+Show which segment has best/worst overall conversion.
+
+SECTION 5 — STAGE DURATION WATERFALL (bar chart):
+Each stage as a bar showing avg days spent. Total bar = TTH.
+Highlight stages consuming >30% of total TTH in orange.
+
+SECTION 6 — OPTIMIZATION RECOMMENDATIONS (3-column cards):
+Quick Wins (this week) | Medium-term (this quarter) | Strategic (this year)
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[funnel analysis — bottlenecks, drop-off patterns, optimization opportunities]
+[Funnel analysis: overall health, primary bottleneck, drop-off patterns, top 3 optimisations]
 ===DASHBOARD_HTML===
 [complete self-contained HTML funnel dashboard]
 ===END===`,
 
     diversity: `${MASTER_SYSTEM}
 
-MODE: DIVERSITY & INCLUSION
-Neutral, data-driven, legally compliant framing:
-- Distribution overview across available demographic dimensions
-- Representation ratios at each pipeline stage
-- Cohort comparisons — do groups convert equally through the funnel?
-- Bias signal detection — flag statistically significant gaps
-- Neutral, constructive recommendations — avoid legal positioning
+MODE: DIVERSITY & INCLUSION — Workforce Representation Analytics
 
-Generate HTML dashboard with:
-- Pie/donut charts for each demographic dimension available
-- Funnel parity chart — conversion rates by cohort
-- Representation trend line if time data available
-- Recommendations panel
+Neutral, data-driven framing. Legal compliance aware. Constructive throughout.
+
+SECTION 1 — REPRESENTATION OVERVIEW (donut charts row):
+One donut per available dimension: Gender | Ethnicity/Race | Age Band | Disability | Veteran Status | Other.
+Each donut: show %, legend with counts, title. Use accessible color palette.
+
+SECTION 2 — PIPELINE PARITY TABLE (full width):
+For each demographic group: Applied% | Screened% | Interviewed% | Offered% | Hired%
+Highlight where % drops significantly between stages (>10pp drop = amber flag).
+
+SECTION 3 — REPRESENTATION TREND (line chart, full width):
+If time data available: show representation % per cohort over time per dimension.
+Goal line at 50% for binary dimensions if applicable.
+
+SECTION 4 — INTERSECTIONALITY HEATMAP (if multiple dimensions available):
+Grid: rows = one dimension (e.g. gender), columns = another (e.g. level/dept). Values = headcount.
+Color by representation density.
+
+SECTION 5 — SOURCING CHANNEL D&I AUDIT (bar chart):
+Which sources bring most diverse candidates? Bar per source, stacked by demographic group.
+
+SECTION 6 — FINDINGS & RECOMMENDATIONS (3-column):
+Where representation is strong | Where gaps exist | Neutral, constructive actions
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[D&I findings — neutral tone, data-backed, constructive]
+[D&I findings: representation overview, pipeline parity gaps, sourcing observations — neutral tone, data-backed]
 ===DASHBOARD_HTML===
 [complete self-contained HTML D&I dashboard]
 ===END===`,
 
     time: `${MASTER_SYSTEM}
 
-MODE: TIME-TO-HIRE ANALYSIS
-Efficiency-focused output:
-- Median TTH overall + by role, department, level, source
-- Stage duration breakdown — where does time get consumed?
-- Acceleration opportunities — which stages could be compressed?
-- SLA breach identification — roles significantly above median
-- Efficiency insights — recruiter and process-level recommendations
+MODE: TIME-TO-HIRE ANALYSIS — Recruitment Velocity & Efficiency
 
-Generate HTML dashboard with:
-- Line/bar charts showing TTH trend over time
-- Stage duration waterfall or stacked bar
-- SLA compliance gauge or traffic-light cards
-- Fastest vs slowest segments comparison
+Every metric is about speed, efficiency, and where time is lost.
+
+SECTION 1 — TTH KPI STRIP:
+Pills: Median TTH (days) | Mean TTH | Fastest Hire | Slowest Hire | % Within SLA | % Breaching SLA | Roles Tracked
+
+SECTION 2 — TTH DISTRIBUTION (histogram, full width):
+Bin all TTH values into 10-day buckets (0-10, 11-20, etc.).
+Show median line (blue) and 90th percentile line (red). Shade SLA zone in green.
+
+SECTION 3 — TTH BY ROLE/DEPARTMENT (horizontal bar, full width):
+Sort descending. Add benchmark median line. Red bars = 2x above median. Green = fastest quartile.
+Show n= count next to each bar.
+
+SECTION 4 — STAGE DURATION BREAKDOWN (stacked bar, full width):
+Each role/dept as a row, bar segments = time at each stage.
+Colors per stage. Legend. Highlight longest stage per role.
+
+SECTION 5 — TTH TREND OVER TIME (line chart, full width):
+Monthly/quarterly median TTH. Add 3-period moving average (dashed).
+Annotate spikes with possible causes if inferable.
+
+SECTION 6 — SLA COMPLIANCE TABLE:
+Role | Target TTH | Actual Median | Variance | Breaches # | Breach % | Status (🟢🟡🔴)
+
+SECTION 7 — ACCELERATION OPPORTUNITIES (cards):
+Top 3 specific stages / roles where time reduction is most impactful. Each card: Stage | Current Avg | Target | Days Saved | Impact.
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[time analysis — efficiency gaps, acceleration opportunities, strategic implications]
+[Time analysis: overall velocity health, primary time sinks, SLA breach pattern, top 3 acceleration opportunities]
 ===DASHBOARD_HTML===
-[complete self-contained HTML time dashboard]
+[complete self-contained HTML TTH dashboard]
 ===END===`,
 
     source: `${MASTER_SYSTEM}
 
-MODE: SOURCE EFFECTIVENESS
-Channel ROI intelligence:
-- Volume by source (quantity)
-- Quality proxy: interview rate, offer rate, hire rate by source
-- Efficiency ranking: which sources produce the best candidates fastest
-- Cost-per-hire by source if data available
-- Reallocation strategy: where to invest more / less sourcing effort
+MODE: SOURCE EFFECTIVENESS — Channel ROI & Quality Intelligence
 
-Generate HTML dashboard with:
-- Source performance comparison bar charts (volume vs quality)
-- Quality vs quantity scatter plot
-- ROI ranking table with efficiency score
-- Trend: source mix over time if date data available
+Evaluate every sourcing channel on volume, quality, speed, and efficiency.
+
+SECTION 1 — SOURCE PERFORMANCE MATRIX (full width table):
+Columns: Source | Applicants | Screened | Interviewed | Offered | Hired | Conversion% | Avg TTH | Cost-per-Hire | Quality Score
+Sort by Hired descending. Color-code Quality Score: green>70%, amber 40-70%, red<40%.
+Quality Score = weighted avg of interview rate + offer rate + hire rate.
+
+SECTION 2 — VOLUME vs QUALITY SCATTER (full width):
+X = Volume (# applicants), Y = Quality (hire/apply ratio or interview rate).
+Each bubble = one source, bubble size = cost-per-hire (if available) or TTH.
+Quadrant labels: "Stars" (high vol + high quality), "Sleepers" (low vol + high quality), "Noisy" (high vol + low quality), "Cut" (low vol + low quality).
+
+SECTION 3 — SOURCE MIX DONUT (half width):
+Hired candidates by source. Top 6 + Others. Show %.
+
+SECTION 4 — TTH BY SOURCE (horizontal bar, half width):
+Avg days to hire per source. Sort ascending (fastest first). Green = fastest quartile.
+
+SECTION 5 — SOURCE TREND OVER TIME (line chart, full width):
+If date data available: volume per source per period. Show which sources are growing/declining.
+
+SECTION 6 — ROI RANKING TABLE:
+Source | Cost | Hires | CPH | Quality Score | Recommendation (Increase/Maintain/Reduce/Cut)
+Bold the top 3 recommended sources.
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[source intelligence — ROI findings, reallocation recommendations]
+[Source intelligence: top performing channels, underperforming channels, reallocation recommendation, budget optimisation opportunity]
 ===DASHBOARD_HTML===
 [complete self-contained HTML source dashboard]
 ===END===`,
 
     forecast: `${MASTER_SYSTEM}
 
-MODE: PREDICTIVE INTELLIGENCE
-Forward-looking analysis (if time-series data exists):
-- 3-6 period forecast with trend extrapolation
-- Confidence bands (optimistic / base / conservative scenarios)
-- Scenario projections with named assumptions
-- Risk factors that could alter the forecast
-- Strategic recommendations based on projected trajectory
+MODE: PREDICTIVE INSIGHTS — Forward-Looking Talent Analytics
 
-Generate HTML dashboard with:
-- Trend lines + forecast projections (dashed) using Chart.js
-- Confidence interval shading
-- Scenario comparison (best/base/worst) if data supports
-- Key assumption callout cards
+Build evidence-based forecasts and scenario models from historical patterns.
+
+SECTION 1 — FORECAST ASSUMPTIONS CARD:
+Show: Data period used | Trend method (linear/exponential/seasonal) | Confidence level | Key assumptions | Caveats
+
+SECTION 2 — HIRING VOLUME FORECAST (line chart, full width):
+Historical trend (solid line) + 3-6 period forecast (dashed line).
+Three scenarios: Optimistic (+15% growth) | Base (trend) | Conservative (-15%).
+Shade confidence interval in light blue. X-axis: time. Y-axis: hiring volume.
+
+SECTION 3 — SKILLS DEMAND FORECAST (horizontal bar chart, full width):
+Current top 10 skills vs projected demand in 6 months.
+Bars: current (blue) vs projected (dashed outline). Delta % badge on each bar.
+Flag skills projected to grow >20% in green, decline >20% in red.
+
+SECTION 4 — PIPELINE CAPACITY FORECAST (grouped bar, full width):
+Monthly projected: Applicants needed | Capacity to process | Gap/Surplus.
+Highlight months where capacity gap is critical.
+
+SECTION 5 — RISK SCENARIOS TABLE:
+Scenario | Trigger | Probability | Impact | Mitigation
+3-5 scenarios (e.g. "talent shortage in key skill", "high attrition quarter", "budget cut").
+
+SECTION 6 — PREDICTIVE RECOMMENDATIONS (3-column cards):
+Immediate (0-30 days) | Short-term (1-3 months) | Strategic (3-12 months)
+
+
+DESIGN SYSTEM (apply to all dashboards):
+- Page bg: #f0f4ff | Card bg: white | Font: system-ui,sans-serif
+- Colors: primary=#4361ee, pink=#f72585, orange=#f77f00, teal=#06b6d4, green=#0a9c5a, purple=#7209b7, red=#e5383b
+- Cards: border-radius:12px, box-shadow:0 2px 12px rgba(0,0,0,0.07), padding:20px, margin-bottom:20px
+- Section title: font-size:11px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom:2px solid #4361ee, padding-bottom:6px, margin-bottom:16px
+- Tables: width:100%, border-collapse:collapse. TH: bg=#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+- KPI pill: display:inline-flex, align-items:center, gap:6px, background:#f8fafc, border:1px solid #e2e8f0, border-radius:8px, padding:10px 16px, margin:4px
+- Chart canvas: ALWAYS set explicit height e.g. style="height:240px" on the canvas wrapper div — never leave height:auto
+- Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+- ALL charts: responsive:true, maintainAspectRatio:false
+- Insight caption below each chart: font-size:12px, color:#6b7280, margin-top:6px, font-style:italic
+- Output must be fully self-contained HTML (all CSS inline or in <style> block)
+- REAL data only — never invent or use placeholder numbers
+- If data for a section is missing: show a grey "No data available" placeholder card
 
 Return EXACTLY:
 ===ANALYSIS===
-[predictive narrative — methodology, key assumptions, strategic implications of the forecast]
+[Predictive narrative: methodology, key forecast findings, top 3 strategic implications, confidence level]
 ===DASHBOARD_HTML===
 [complete self-contained HTML forecast dashboard]
 ===END===`,
@@ -1733,33 +2368,98 @@ Return EXACTLY:
     talent_intelligence: `${MASTER_SYSTEM}
 
 MODE: TALENT INTELLIGENCE DASHBOARD
-You have received a talent insights report or dataset. Extract every data point, metric, and narrative insight — even figures embedded in text.
 
-Build a comprehensive executive talent intelligence dashboard covering ALL relevant sections:
+You are building a PREMIUM executive talent intelligence dashboard. Extract EVERY data point, number, metric, percentage, employer name, skill, location, title, and salary figure from the uploaded report — even if embedded inside paragraphs.
 
-📊 SUPPLY VS DEMAND — Talent pool size, supply/demand index, gap indicators
-💼 EMPLOYER LANDSCAPE — Top hiring companies ranked, talent flow, market concentration  
-🎓 SKILLS ANALYSIS — Top skills (bar chart), emerging vs declining skills, growth rates
-📍 GEOGRAPHY — Top talent hubs, regional concentration table, remote/hybrid split
-💰 COMPENSATION — P25/P50/P75/P90 salary bands, YoY movement, market competitiveness
-⏱️ HIRING TRENDS — Volume by period, velocity, demand growth rates
-🔮 STRATEGIC CALLOUTS — 5 Risks + 5 Opportunities + 5 Recruiter Recommendations
+═══════════════════════════════════════════
+DASHBOARD ARCHITECTURE (build ALL sections)
+═══════════════════════════════════════════
 
-TECHNICAL REQUIREMENTS:
-- Chart.js from CDN: https://cdn.jsdelivr.net/npm/chart.js
-- Executive design: white background, #4361ee, #f72585, #f77f00, #06b6d4, #0a9c5a
-- Top row: 5 headline KPI stat cards
-- Grid: 2-3 charts per row, each with title + insight caption
-- "Strategic Intelligence Summary" section at bottom with 3-column layout (Risks | Opportunities | Actions)
-- REAL extracted data only — never use placeholder numbers
-- Minimum 600 lines of HTML — richly detailed
-- Fully self-contained with all CSS inline
+SECTION 1 — METRIC SUMMARY STRIP (compact horizontal row)
+A tight row of 6-8 KPI pills — NOT large cards. Each pill shows:
+  [Icon] [Label] [Value] [Small trend indicator ▲/▼ if available]
+  Example: 👥 Total Talent Pool  12,450  ▲8% YoY
+  Pill style: small, inline, border, slightly colored background per category
+  Lay them out in a 3×2 or 4×2 compact grid, NOT giant hero cards.
 
-Return EXACTLY:
+SECTION 2 — TOP EMPLOYERS TABLE + DONUT (side by side, 50/50)
+LEFT: Ranked table with columns: Rank | Employer | Headcount | Share% | YoY Change
+  - Show top 10 employers minimum
+  - Color-code rank: gold/silver/bronze for top 3
+  - Progress bar in Share% column
+RIGHT: Donut chart — top 6 employers + "Others" slice using Chart.js
+  - Show legend with actual values
+  - Title: "Employer Market Share"
+
+SECTION 3 — SKILLS LANDSCAPE (full width)
+  LEFT (60%): Horizontal bar chart — top 15 skills by frequency/demand
+    - Bars colored by growth direction: green=growing, red=declining, blue=stable
+    - Each bar shows: skill name | count/% | small ▲▼ trend badge
+  RIGHT (40%): Two mini-tables side by side:
+    Table A — "Rising Skills" (top 5 with growth %)
+    Table B — "Declining Skills" (top 5 with decline %)
+    Style: compact, colored badges, pill tags for % change
+
+SECTION 4 — GEOGRAPHY (full width, 2-column layout)
+  LEFT: Ranked location table: Location | Talent Count | Share% | Remote %
+    - Progress bars in count column
+    - Flag emoji where applicable
+  RIGHT: If city data exists, horizontal bar chart of top 10 locations
+  NOTE: If geography data exists ANYWHERE in the report (even as text like "45% in Bangalore"), extract and show it.
+
+SECTION 5 — EXPERIENCE & SENIORITY (2-column)
+  LEFT: Horizontal stacked bar or grouped bar — experience bands:
+    0-2 yrs | 3-5 yrs | 6-10 yrs | 10+ yrs — with counts
+  RIGHT: Seniority/title distribution — donut or ranked list:
+    IC levels vs Manager levels vs Director+ if data available
+    OR: Top 10 job titles ranked by frequency
+
+SECTION 6 — COMPENSATION BANDS (if any salary data exists)
+  Compact table: Role/Level | P25 | Median | P75 | P90 | YoY Δ
+  - Color-code: green if above market, amber if at market, red if below
+  - If only ranges exist, show as range bars
+
+SECTION 7 — HIRING TRENDS (if time-series data exists)
+  Line chart — hiring volume by period (month/quarter/year)
+  If no time data: skip this section gracefully
+
+SECTION 8 — STRATEGIC INTELLIGENCE PANEL (bottom, full width)
+  3-column grid, compact cards:
+  ⚠️ RISKS (3-5 bullets)  |  🎯 OPPORTUNITIES (3-5 bullets)  |  ✅ ACTIONS (3-5 bullets)
+  Each bullet: one crisp sentence, data-backed where possible
+
+═══════════════════════════════
+DESIGN SYSTEM (strict)
+═══════════════════════════════
+Font: system-ui, -apple-system, sans-serif
+Background: #f8fafc (light grey-blue page), #ffffff cards
+Primary: #4361ee | Accent1: #f72585 | Accent2: #f77f00 | Teal: #06b6d4 | Green: #0a9c5a | Purple: #7209b7
+Card style: white, border-radius:12px, box-shadow: 0 2px 12px rgba(0,0,0,0.07), padding: 20px
+Section headers: 13px, font-weight:700, text-transform:uppercase, letter-spacing:1px, color:#4361ee, border-bottom 2px solid #4361ee, padding-bottom 6px, margin-bottom 14px
+Table style: width:100%, border-collapse:collapse. TH: background:#f1f5f9, font-size:11px, uppercase, padding:8px 10px. TD: padding:8px 10px, font-size:13px, border-bottom:1px solid #f1f5f9
+Progress bars: height:6px, border-radius:3px, background:#e2e8f0, fill with gradient
+Trend badges: inline-flex, border-radius:20px, padding:2px 8px, font-size:11px. Green bg for ▲, Red bg for ▼
+Chart.js CDN: https://cdn.jsdelivr.net/npm/chart.js
+ALL charts: responsive:true, maintainAspectRatio:false, legend position bottom or right
+Grid layout: CSS Grid, gap:20px, responsive breakpoints
+
+═══════════════════════════════
+CRITICAL DATA RULES
+═══════════════════════════════
+- Extract ALL numbers from the report — scan every sentence
+- If a metric appears in text ("Java has 157 mentions"), extract and display it
+- NEVER show placeholder or example numbers — only real extracted data
+- If a section has no data: show a clean "Data not available in this report" placeholder card
+- Do NOT use giant hero stat cards — use compact metric strips instead
+- Minimum dashboard output: 800 lines of HTML
+- All CSS must be inline or in a <style> block inside the HTML output
+- Chart canvas elements must have explicit height set (e.g. style="height:220px")
+
+Return EXACTLY this format:
 ===ANALYSIS===
-[2-3 paragraph executive summary: what the report contains, key themes, confidence level]
+[3-4 sentence executive summary: data source type, key talent themes, top 3 findings, confidence level]
 ===DASHBOARD_HTML===
-[complete, self-contained, richly detailed HTML dashboard]
+[complete, self-contained, production-quality HTML dashboard — all sections above]
 ===END===`
 
   };
@@ -1835,11 +2535,18 @@ async function renderDashboard(systemPrompt, type) {
   const userMsg = `Here is the recruiting data from file "${dashData.name}"${fileTypeHint}:\n\n${truncated}`;
 
   try {
-    const reply = await callAI(systemPrompt, [{ role:'user', content: userMsg }], 6000);
+    const reply = await callAI(systemPrompt, [{ role:'user', content: userMsg }], type === 'talent_intelligence' ? 8000 : 6000);
     parseDashResponse(reply, type, typeLabels[type] || type);
   } catch(e) {
-    content.innerHTML = `<div class="dash-result-box" style="border-color:rgba(229,56,59,0.3);background:rgba(229,56,59,0.05);">
-      <strong style="color:var(--danger);">⚠️ Error:</strong> ${e.message}
+    const _msg = e.message||'Unknown error';
+    let _hint='';
+    if(/fetch|network|failed|cors/i.test(_msg)) _hint='<br><br>Fix: "Failed to fetch" = CORS block when opening file:// locally. Host on GitHub Pages or run a local server. Or switch to Gemini which handles CORS better.';
+    else if(/401|invalid|unauthori/i.test(_msg)) _hint='<br><br>Fix: API key invalid. Check sidebar.';
+    else if(/429|quota|rate/i.test(_msg)) _hint='<br><br>Fix: Rate limit. Wait 30s and retry.';
+    content.innerHTML = `<div class="dash-result-box" style="border-color:rgba(229,56,59,0.3);background:rgba(229,56,59,0.05);padding:20px;">
+      <b style="color:var(--danger);font-size:0.95rem;">Error</b><br><br>
+      <code style="font-family:monospace;font-size:0.82rem;">${_msg}</code>
+      <div style="font-size:0.82rem;margin-top:8px;">${_hint}</div>
     </div>`;
   }
 }
@@ -1892,7 +2599,7 @@ function parseDashResponse(reply, type, label) {
               style="background:rgba(67,97,238,0.08);border:1.5px solid rgba(67,97,238,0.25);border-radius:6px;padding:4px 10px;font-size:0.72rem;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--accent);text-decoration:none;font-weight:600;">⬇ Download</a>
           </div>
         </div>
-        <iframe id="dash-iframe-${type}" src="${url}" style="width:100%;height:${type==='talent_intelligence'?'780':'520'}px;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+        <iframe id="dash-iframe-${type}" src="${url}" style="width:100%;height:${type==="talent_intelligence"?"1100":"640"}px;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
       </div>`;
   }
 
@@ -2463,6 +3170,34 @@ function checkKey() {
   }
 }
 
+async function testConnection() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  const statusEl = document.getElementById('conn-status');
+  const btn = document.getElementById('test-conn-btn');
+  if (!apiKey) {
+    statusEl.style.display='block'; statusEl.style.background='rgba(229,56,59,0.08)';
+    statusEl.style.border='1px solid rgba(229,56,59,0.3)'; statusEl.style.color='#c0392b';
+    statusEl.innerHTML='<b>Enter your API key first.</b>'; return;
+  }
+  btn.textContent='Testing...'; btn.disabled=true; statusEl.style.display='none';
+  try {
+    await callAI('Reply OK', [{role:'user',content:'ping'}], 5);
+    statusEl.style.display='block'; statusEl.style.background='rgba(10,156,90,0.08)';
+    statusEl.style.border='1px solid rgba(10,156,90,0.3)'; statusEl.style.color='#0a9c5a';
+    statusEl.innerHTML='<b>Connected!</b> AI is ready.';
+  } catch(e) {
+    const msg = e.message||'Unknown error';
+    let hint='';
+    if(/fetch|network|failed|cors/i.test(msg)) hint='<br><small>Fix: Open via GitHub Pages or a local server, not file:// directly.</small>';
+    else if(/401|invalid|unauthori/i.test(msg)) hint='<br><small>Fix: API key is wrong. Double-check it.</small>';
+    else if(/429|quota|rate/i.test(msg)) hint='<br><small>Fix: Rate limit hit. Wait 30s and retry.</small>';
+    statusEl.style.display='block'; statusEl.style.background='rgba(229,56,59,0.08)';
+    statusEl.style.border='1px solid rgba(229,56,59,0.3)'; statusEl.style.color='#c0392b';
+    statusEl.innerHTML='<b>Error:</b> '+msg+hint;
+  }
+  btn.textContent='Test Connection'; btn.disabled=false;
+}
+
 function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
 function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
 
@@ -2836,69 +3571,116 @@ async function callAISimple(prompt, maxTokens=2000, temperature=0.7) {
   return callAI('You are a helpful assistant.', [{ role:'user', content: prompt }], maxTokens);
 }
 
+// ── Shared proxy-aware fetch helper ──
+async function apiFetch(url, options, parseMode='openai') {
+  const proxies = [
+    null, // direct first
+    'https://corsproxy.io/?url=',
+    'https://api.allorigins.win/raw?url=',
+  ];
+  let lastErr = null;
+  for (const proxy of proxies) {
+    const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
+    try {
+      const r = await fetch(fetchUrl, options);
+      if (!r.ok) {
+        const errText = await r.text();
+        let errMsg = `HTTP ${r.status}`;
+        try { const j = JSON.parse(errText); errMsg = j.error?.message || j.message || errMsg; } catch(e) {}
+        throw new Error(errMsg);
+      }
+      const d = await r.json();
+      if (parseMode === 'openai') {
+        if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+        return d.choices[0].message.content;
+      } else if (parseMode === 'gemini') {
+        if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+        return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      } else if (parseMode === 'anthropic') {
+        if (d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+        return d.content[0].text;
+      }
+    } catch(e) {
+      lastErr = e;
+      // Only retry on network/CORS errors — not on auth or quota errors
+      const msg = (e.message || '').toLowerCase();
+      const isNetwork = msg.includes('fetch') || msg.includes('failed') || msg.includes('cors') || msg.includes('network') || msg.includes('load') || e instanceof TypeError;
+      const isAuth = msg.includes('401') || msg.includes('403') || msg.includes('invalid') || msg.includes('unauthorized') || msg.includes('api key') || msg.includes('key');
+      const isQuota = msg.includes('429') || msg.includes('quota') || msg.includes('rate');
+      if (isAuth || isQuota) throw e; // don't retry these
+      if (!isNetwork) throw e;
+      // network error — try next proxy
+    }
+  }
+  throw lastErr || new Error('Failed to reach API after trying all proxies. Check your network or try a different provider.');
+}
+
 // ── GROQ ──
 async function callGroq(apiKey, systemPrompt, messages, maxTokens=2000) {
-  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-  const body = JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] });
-  // Try direct first, then CORS proxies
-  const attempts = [
-    () => fetch(GROQ_URL, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
-    () => fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(GROQ_URL), { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
-    () => fetch('https://corsproxy.io/?url='+encodeURIComponent(GROQ_URL), { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey}, body }),
-  ];
-  for (const attempt of attempts) {
-    try { const r = await attempt(); const d = await r.json(); if(d.error) throw new Error(d.error.message); return d.choices[0].message.content; }
-    catch(e) { if(e.message && !e.message.match(/fetch|CORS|network/i)) throw e; }
-  }
-  throw new Error('Cannot reach Groq. Try a different provider or check your key.');
+  if (!apiKey) throw new Error('No API key. Add your Groq key in the sidebar (get one free at console.groq.com).');
+  return apiFetch(
+    'https://api.groq.com/openai/v1/chat/completions',
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body: JSON.stringify({ model:'llama-3.3-70b-versatile', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
+    },
+    'openai'
+  );
 }
 
 // ── GEMINI ──
 async function callGemini(apiKey, systemPrompt, messages, maxTokens=2000) {
+  if (!apiKey) throw new Error('No API key. Add your Gemini key in the sidebar (get one free at aistudio.google.com).');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
   const contents = messages.map(m => ({ role: m.role==='assistant'?'model':'user', parts:[{text:m.content}] }));
   const body = { systemInstruction:{parts:[{text:systemPrompt}]}, contents, generationConfig:{maxOutputTokens:maxTokens, temperature:0.7} };
-  const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.candidates[0].content.parts[0].text;
+  return apiFetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }, 'gemini');
 }
 
 // ── OPENAI ──
 async function callOpenAI(apiKey, systemPrompt, messages, maxTokens=2000) {
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-    body: JSON.stringify({ model:'gpt-4o', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
-  });
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.choices[0].message.content;
+  if (!apiKey) throw new Error('No API key. Add your OpenAI key in the sidebar.');
+  return apiFetch(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body: JSON.stringify({ model:'gpt-4o', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
+    },
+    'openai'
+  );
 }
 
 // ── ANTHROPIC ──
 async function callAnthropic(apiKey, systemPrompt, messages, maxTokens=2000) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body: JSON.stringify({ model:'claude-opus-4-5', max_tokens:maxTokens, system:systemPrompt, messages })
-  });
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.content[0].text;
+  if (!apiKey) throw new Error('No API key. Add your Anthropic key in the sidebar.');
+  return apiFetch(
+    'https://api.anthropic.com/v1/messages',
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model:'claude-opus-4-5', max_tokens:maxTokens, system:systemPrompt, messages })
+    },
+    'anthropic'
+  );
 }
 
 // ── MISTRAL ──
 async function callMistral(apiKey, systemPrompt, messages, maxTokens=2000) {
-  const r = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-    body: JSON.stringify({ model:'mistral-large-latest', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
-  });
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message);
-  return d.choices[0].message.content;
+  if (!apiKey) throw new Error('No API key. Add your Mistral key in the sidebar.');
+  return apiFetch(
+    'https://api.mistral.ai/v1/chat/completions',
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body: JSON.stringify({ model:'mistral-large-latest', max_tokens:maxTokens, messages:[{role:'system',content:systemPrompt},...messages] })
+    },
+    'openai'
+  );
 }
+
+
 // =================== OUTREACH PANEL ===================
 let olCTA = 'cv';
 let olFU = 1;
