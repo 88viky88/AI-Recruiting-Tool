@@ -47,6 +47,80 @@
   .mode-btn.active { background: linear-gradient(135deg, rgba(67,97,238,0.12), rgba(114,9,183,0.08)); border-color: rgba(67,97,238,0.3); color: var(--accent); font-weight: 600; }
   .mode-btn .icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
   .mode-btn.battle:hover { background: rgba(247,127,0,0.08); color: var(--gold); border-color: rgba(247,127,0,0.2); }
+  .mode-btn.pitch-btn:hover { background: rgba(247,37,133,0.08); color: #f72585; border-color: rgba(247,37,133,0.2); }
+  .mode-btn.pitch-btn.active { background: linear-gradient(135deg,rgba(114,9,183,0.10),rgba(247,37,133,0.08)); border-color: rgba(247,37,133,0.3); color: #f72585; font-weight:600; }
+  #pitch-panel { flex:1; display:none; flex-direction:column; overflow:hidden; }
+  #pitch-panel.visible { display:flex; }
+  .pb-header { padding:18px 28px 14px; border-bottom:1.5px solid var(--border); background:var(--surface); flex-shrink:0; }
+  .pb-header h2 { font-size:1.15rem; font-weight:800; color:var(--text); margin-bottom:2px; }
+  .pb-header p { font-size:0.8rem; color:var(--text-muted); }
+  .pb-body { flex:1; overflow-y:auto; padding:20px 28px 40px; }
+  .pb-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .pb-card { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:16px 18px; }
+  .pb-card-title { font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .pb-label { font-size:0.75rem; font-weight:600; color:var(--text-muted); margin-bottom:4px; margin-top:10px; }
+  .pb-label:first-child { margin-top:0; }
+  .pb-input { width:100%; background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; padding:8px 11px; font-family:"Outfit",sans-serif; font-size:0.82rem; color:var(--text); outline:none; box-sizing:border-box; transition:border-color .15s; }
+  .pb-input:focus { border-color:var(--accent); }
+  .pb-textarea { resize:vertical; min-height:70px; }
+  .pb-drop { border:2px dashed var(--border); border-radius:10px; padding:20px; text-align:center; cursor:pointer; transition:all .2s; background:var(--surface2); }
+  .pb-drop:hover, .pb-drop.drag-over { border-color:var(--accent); background:rgba(67,97,238,0.04); }
+  .pb-drop-icon { font-size:1.5rem; margin-bottom:4px; }
+  .pb-drop-text { font-size:0.8rem; font-weight:600; color:var(--text-muted); }
+  .pb-drop-sub { font-size:0.7rem; color:var(--text-muted); margin-top:2px; }
+  .pb-file-chip { display:inline-flex; align-items:center; gap:6px; background:rgba(67,97,238,0.08); border:1px solid rgba(67,97,238,0.2); border-radius:6px; padding:4px 10px; font-size:0.78rem; font-weight:600; color:var(--accent); margin-top:6px; }
+  .pb-file-chip .rm { cursor:pointer; color:var(--danger); margin-left:4px; font-size:0.85rem; }
+  .pb-priorities { display:flex; flex-wrap:wrap; gap:7px; margin-top:4px; }
+  .pb-prio { display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all .15s; color:var(--text-muted); user-select:none; }
+  .pb-prio input { display:none; }
+  .pb-prio.checked { background:rgba(67,97,238,0.1); border-color:rgba(67,97,238,0.4); color:var(--accent); }
+  .pb-gen-row { display:flex; gap:10px; margin-bottom:14px; }
+  .pb-btn { flex:1; border:none; border-radius:10px; padding:12px; font-family:"Outfit",sans-serif; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all .2s; }
+  .pb-btn-primary { background:linear-gradient(135deg,#7209b7,#f72585); color:white; box-shadow:0 2px 12px rgba(114,9,183,0.3); }
+  .pb-btn-primary:hover:not(:disabled) { opacity:.9; transform:translateY(-1px); }
+  .pb-btn-primary:disabled { opacity:.35; cursor:not-allowed; }
+  .pb-error { background:rgba(229,56,59,0.08); border:1px solid rgba(229,56,59,0.25); border-radius:8px; padding:10px 14px; font-size:0.8rem; color:var(--danger); margin-bottom:12px; display:none; }
+  .pb-results { display:none; margin-top:4px; }
+  .pb-section { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+  .pb-sec-hdr { padding:12px 16px; background:var(--surface2); border-bottom:1.5px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .pb-sec-hdr-title { font-weight:700; font-size:0.88rem; flex:1; }
+  .pb-sec-badge { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .pb-sec-body { padding:16px 18px; }
+  .pb-bullet { display:flex; gap:8px; margin-bottom:7px; font-size:0.84rem; line-height:1.6; }
+  .pb-bullet-dot { color:var(--accent); flex-shrink:0; margin-top:3px; font-size:0.7rem; }
+  .pb-snap-flag { display:inline-flex; align-items:center; gap:4px; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; margin-left:6px; }
+  .pb-compare-row { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:start; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.82rem; }
+  .pb-compare-row:last-child { border-bottom:none; }
+  .pb-compare-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:3px; }
+  .pb-compare-val { font-size:0.82rem; line-height:1.5; }
+  .pb-compare-mid { color:var(--text-muted); font-size:0.72rem; font-weight:700; text-align:center; padding-top:14px; }
+  .pb-pitch-text { font-size:0.88rem; line-height:1.85; color:var(--text); background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:16px 18px; white-space:pre-wrap; font-family:"Outfit",sans-serif; }
+  .pb-hook { background:linear-gradient(135deg,rgba(114,9,183,0.04),rgba(247,37,133,0.03)); border:1.5px solid rgba(114,9,183,0.15); border-radius:10px; padding:12px 14px; margin-bottom:8px; }
+  .pb-hook-num { font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#7209b7; margin-bottom:4px; }
+  .pb-hook-text { font-size:0.84rem; line-height:1.6; color:var(--text); }
+  .pb-objection { border:1.5px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:8px; }
+  .pb-obj-q { font-size:0.8rem; font-weight:700; color:var(--danger); margin-bottom:5px; display:flex; align-items:flex-start; gap:6px; }
+  .pb-obj-a { font-size:0.82rem; line-height:1.6; color:var(--text); padding-left:18px; }
+  .pb-question { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:0.84rem; line-height:1.5; }
+  .pb-question:last-child { border-bottom:none; }
+  .pb-q-num { width:22px; height:22px; border-radius:50%; background:var(--accent); color:white; font-size:0.68rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .pb-followup { background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:14px 16px; white-space:pre-wrap; font-size:0.84rem; line-height:1.75; font-family:"Outfit",sans-serif; }
+  .pb-copy-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+  .pb-copy-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:6px; border:1.5px solid var(--border); background:white; font-family:"Outfit",sans-serif; font-size:0.74rem; font-weight:600; cursor:pointer; color:var(--text-muted); transition:all .15s; }
+  .pb-copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .pb-fact-tag { display:inline-flex; align-items:center; gap:3px; font-size:0.65rem; font-weight:700; padding:1px 6px; border-radius:10px; margin-right:4px; }
+  .pb-fact { background:#dbeafe; color:#1d4ed8; }
+  .pb-inf { background:#fef9c3; color:#a16207; }
+  @media(max-width:700px){ .pb-grid { grid-template-columns:1fr; } }
+  .pb-stepper { display:flex; align-items:center; gap:0; margin-bottom:18px; }
+  .pb-step { display:flex; align-items:center; gap:7px; font-size:0.78rem; font-weight:600; color:var(--text-muted); }
+  .pb-step-num { width:26px; height:26px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; background:white; transition:all .25s; flex-shrink:0; }
+  .pb-step.active .pb-step-num { border-color:var(--accent); background:var(--accent); color:white; }
+  .pb-step.done .pb-step-num { border-color:var(--success); background:var(--success); color:white; }
+  .pb-step.active { color:var(--accent); }
+  .pb-step.done   { color:var(--success); }
+  .pb-step-line { flex:1; height:2px; background:var(--border); margin:0 8px; }
+  .pb-step-line.done { background:var(--success); }
   .mode-btn.battle.active { background: rgba(247,127,0,0.10); border-color: rgba(247,127,0,0.35); color: var(--gold); }
 
   .api-box { margin-top: auto; padding: 12px; background: linear-gradient(135deg, rgba(67,97,238,0.06), rgba(114,9,183,0.04)); border-radius: 12px; border: 1px solid rgba(67,97,238,0.2); }
@@ -313,6 +387,7 @@
     <button class="mode-btn" onclick="showOutreachPanel()" id="btn-outreach"><span class="icon">✉️</span><span>Candidate Outreach</span></button>
     <button class="mode-btn" onclick="setMode('search')" id="btn-search"><span class="icon">🔍</span><span>Search String Builder</span></button>
     <button class="mode-btn" onclick="setMode('interview')" id="btn-interview"><span class="icon">🎯</span><span>Interview Questions</span></button>
+    <button class="mode-btn pitch-btn" onclick="showPitchPanel()" id="btn-pitch"><span class="icon">🚀</span><span>Candidate Pitch Builder</span></button>
     <button class="mode-btn" onclick="setMode('jd')" id="btn-jd"><span class="icon">📝</span><span>Write Job Description</span></button>
     <button class="mode-btn" onclick="setMode('general')" id="btn-general"><span class="icon">💬</span><span>General Assistant</span></button>
 
@@ -714,6 +789,174 @@
         </div>
       </div>
     </div>
+
+
+    <!-- ===== CANDIDATE PITCH BUILDER PANEL ===== -->
+    <div id="pitch-panel">
+      <div class="pb-header">
+        <h2>🚀 Candidate Pitch Builder</h2>
+        <p>Upload a resume → extract profile signals → compare companies → generate a 60–90 sec screening pitch, 3 hooks, objection handling &amp; smart questions.</p>
+      </div>
+      <div class="pb-body">
+
+        <div class="pb-grid">
+
+          <!-- LEFT: Resume + Candidate Info -->
+          <div class="pb-card">
+            <div class="pb-card-title">📄 Candidate Resume</div>
+
+            <!-- Drop zone -->
+            <div class="pb-drop" id="pb-drop-zone"
+              onclick="document.getElementById('pb-file-input').click()"
+              ondragover="pbDzOver(event)" ondragleave="pbDzLeave()" ondrop="pbDzDrop(event)">
+              <div class="pb-drop-icon">📄</div>
+              <div class="pb-drop-text">Click or drag resume here</div>
+              <div class="pb-drop-sub">PDF · DOCX · TXT</div>
+            </div>
+            <input type="file" id="pb-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="pbHandleFile(this.files[0])"/>
+            <div id="pb-file-status" style="min-height:28px;"></div>
+
+            <div class="pb-label" style="margin-top:12px;">Or paste resume text</div>
+            <textarea id="pb-resume-paste" class="pb-input pb-textarea" rows="4" placeholder="Paste candidate's resume or LinkedIn profile text here..."></textarea>
+
+            <div class="pb-label" style="margin-top:12px;">🏢 Candidate's Current Company <span style="color:var(--text-muted);font-weight:400;">(auto-detected, editable)</span></div>
+            <input id="pb-candidate-company" class="pb-input" type="text" placeholder="e.g. Google, Stripe, Deutsche Bank…"/>
+
+            <div class="pb-label">📍 Candidate Location <span style="color:var(--text-muted);font-weight:400;">(auto-detected)</span></div>
+            <input id="pb-candidate-location" class="pb-input" type="text" placeholder="e.g. Bengaluru, London, Remote…"/>
+          </div>
+
+          <!-- RIGHT: Role + Priorities + Recruiter Info -->
+          <div class="pb-card">
+            <div class="pb-card-title">⚙️ Role &amp; Context</div>
+
+            <div class="pb-label">🏢 Your Company (Recruiter's Company)</div>
+            <input id="pb-our-company" class="pb-input" type="text" placeholder="e.g. Confluent" value=""/>
+
+            <div class="pb-label">🎯 Target Role / JD <span style="color:var(--text-muted);font-weight:400;">(optional)</span></div>
+            <textarea id="pb-jd" class="pb-input pb-textarea" rows="3" placeholder="Paste job description or role summary…"></textarea>
+
+            <div class="pb-label" style="margin-top:12px;">🎯 Candidate Priorities <span style="color:var(--text-muted);font-weight:400;">(select all that apply)</span></div>
+            <div class="pb-priorities" id="pb-priorities">
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Compensation">💰 Compensation</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Growth">📈 Growth</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Scope/Ownership">🏗️ Scope / Ownership</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Brand">🏆 Brand</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Work-life balance">⚖️ Work-life Balance</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Remote flexibility">🌍 Remote Flexibility</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Technical depth">🔬 Technical Depth</label>
+              <label class="pb-prio" onclick="pbTogglePrio(this)"><input type="checkbox" value="Leadership">👥 Leadership</label>
+            </div>
+
+            <div class="pb-label" style="margin-top:12px;">📝 Recruiter Notes <span style="color:var(--text-muted);font-weight:400;">(optional)</span></div>
+            <textarea id="pb-notes" class="pb-input pb-textarea" rows="2" placeholder="Anything from sourcing, prior conversations, known motivators…"></textarea>
+          </div>
+        </div>
+
+        <!-- Step progress indicator -->
+        <div class="pb-stepper" id="pb-stepper">
+          <div class="pb-step active" id="pb-step-1"><div class="pb-step-num">1</div><span>Parse Resume</span></div>
+          <div class="pb-step-line" id="pb-line-1"></div>
+          <div class="pb-step" id="pb-step-2"><div class="pb-step-num">2</div><span>Compare Companies</span></div>
+          <div class="pb-step-line" id="pb-line-2"></div>
+          <div class="pb-step" id="pb-step-3"><div class="pb-step-num">3</div><span>Generate Pitch</span></div>
+        </div>
+
+        <!-- Parsed preview (populated after Step 1) -->
+        <div id="pb-parsed-preview"></div>
+
+        <!-- Generate button -->
+        <div class="pb-gen-row">
+          <button class="pb-btn pb-btn-primary" id="pb-generate-btn" onclick="pbGenerate()">🚀 Build Candidate Pitch</button>
+        </div>
+        <div class="pb-error" id="pb-error"></div>
+
+        <!-- Results area -->
+        <div class="pb-results" id="pb-results">
+
+          <!-- 1. Candidate Snapshot -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>👤</span>
+              <span class="pb-sec-hdr-title">Candidate Snapshot</span>
+              <span class="pb-sec-badge" style="background:#e0f2fe;color:#0369a1;">5 signals</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-snap-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-snap-content"></div>
+          </div>
+
+          <!-- 2. Company Comparison -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>⚔️</span>
+              <span class="pb-sec-hdr-title">Company Comparison</span>
+              <span class="pb-sec-badge" style="background:#fef9c3;color:#a16207;">Facts + Inferences</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-compare-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-compare-content"></div>
+          </div>
+
+          <!-- 3. Screening Call Pitch -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>🎙️</span>
+              <span class="pb-sec-hdr-title">60–90 sec Screening Call Pitch</span>
+              <span class="pb-sec-badge" style="background:#dcfce7;color:#166534;">Read aloud</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-pitch-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-pitch-content"></div>
+          </div>
+
+          <!-- 4. Personalised Hooks -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>🪝</span>
+              <span class="pb-sec-hdr-title">3 Personalised Hooks</span>
+              <span class="pb-sec-badge" style="background:#f3e8ff;color:#7e22ce;">Resume-grounded</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-hooks-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-hooks-content"></div>
+          </div>
+
+          <!-- 5. Objections & Responses -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>🛡️</span>
+              <span class="pb-sec-hdr-title">Likely Objections &amp; Responses</span>
+              <span class="pb-sec-badge" style="background:#fee2e2;color:#dc2626;">3 pairs</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-obj-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-obj-content"></div>
+          </div>
+
+          <!-- 6. Smart Questions -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>❓</span>
+              <span class="pb-sec-hdr-title">Smart Questions to Ask</span>
+              <span class="pb-sec-badge" style="background:#e0f2fe;color:#0369a1;">5 questions</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-questions-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-questions-content"></div>
+          </div>
+
+          <!-- 7. Follow-up Message -->
+          <div class="pb-section">
+            <div class="pb-sec-hdr">
+              <span>✉️</span>
+              <span class="pb-sec-hdr-title">Follow-up InMail / Email Draft</span>
+              <span class="pb-sec-badge" style="background:#dcfce7;color:#166534;">Optional send</span>
+              <button class="pb-copy-btn" onclick="pbCopySection('pb-followup-content')">📋 Copy</button>
+            </div>
+            <div class="pb-sec-body" id="pb-followup-content"></div>
+          </div>
+
+          <!-- Reset -->
+          <button onclick="pbReset()" style="width:100%;padding:10px;border:1px solid var(--border);background:transparent;color:var(--text-muted);border-radius:10px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.83rem;margin-top:4px;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">↺ Start Over</button>
+
+        </div><!-- /pb-results -->
+      </div><!-- /pb-body -->
+    </div><!-- /pitch-panel -->
 
     <!-- ===== OUTREACH PANEL ===== -->
     <div id="outreach-panel" style="display:none;flex-direction:column;overflow:hidden;flex:1;">
@@ -1262,6 +1505,7 @@ function showDashboard() {
   document.getElementById('battle-panel').classList.remove('visible');
   const op = document.getElementById('outreach-panel');
   if (op) op.style.display = 'none';
+  const pp2=document.getElementById('pitch-panel'); if(pp2) pp2.classList.remove('visible');
   document.getElementById('dashboard-panel').classList.add('visible');
   // update sidebar active state
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -3626,6 +3870,7 @@ function showBattle() {
   document.getElementById('context-panel').classList.remove('visible');
   document.getElementById('battle-panel').classList.add('visible');
   document.getElementById('outreach-panel').style.display = 'none';
+  const pp=document.getElementById('pitch-panel'); if(pp)pp.classList.remove('visible');
   currentMode = null;
 }
 
@@ -3861,6 +4106,7 @@ function setMode(mode) {
   document.getElementById('welcome').style.display = 'none';
   document.getElementById('battle-panel').classList.remove('visible');
   document.getElementById('outreach-panel').style.display = 'none';
+  const ppM=document.getElementById('pitch-panel'); if(ppM) ppM.classList.remove('visible');
   document.getElementById('chat-container').style.display = 'flex';
   document.getElementById('input-area').style.display = 'block';
   // Clear chat history on mode switch for a clean slate
@@ -4125,6 +4371,442 @@ Keep each message under 120 words. Personal, warm, specific — not generic. Ref
   }
   container.scrollTop = container.scrollHeight;
 }
+
+
+// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// CANDIDATE PITCH BUILDER  (v2 — full spec implementation)
+// ══════════════════════════════════════════════════════
+let pbResumeText   = '';
+let pbExtracted    = null;   // parsed signals from Step 1
+
+function showPitchPanel() {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-pitch').classList.add('active');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('chat-container').style.display = 'none';
+  document.getElementById('input-area').style.display = 'none';
+  document.getElementById('context-panel').classList.remove('visible');
+  document.getElementById('battle-panel').classList.remove('visible');
+  document.getElementById('outreach-panel').style.display = 'none';
+  const dp = document.getElementById('dashboard-panel');
+  if (dp) dp.classList.remove('visible');
+  document.getElementById('pitch-panel').classList.add('visible');
+  currentMode = null;
+}
+
+// ── Drag-drop / file handling ──────────────────────────
+function pbDzOver(e) { e.preventDefault(); document.getElementById('pb-drop-zone').classList.add('drag-over'); }
+function pbDzLeave()  { document.getElementById('pb-drop-zone').classList.remove('drag-over'); }
+function pbDzDrop(e)  { e.preventDefault(); pbDzLeave(); if (e.dataTransfer.files[0]) pbHandleFile(e.dataTransfer.files[0]); }
+
+async function pbHandleFile(file) {
+  if (!file) return;
+  const status = document.getElementById('pb-file-status');
+  status.innerHTML = '<div class="pb-file-chip"><span class="ol-spinner"></span> Reading ' + file.name + '…</div>';
+  try {
+    const text = await extractFileText(file);
+    pbResumeText = text;
+    status.innerHTML = '<div class="pb-file-chip">✅ ' + file.name + ' <span class="rm" onclick="pbClearFile()">✕</span></div>';
+    pbAutoDetect(text);
+  } catch(e) {
+    status.innerHTML = '<div class="pb-file-chip" style="color:var(--danger);">❌ ' + e.message + '</div>';
+  }
+}
+
+function pbClearFile() {
+  pbResumeText = '';
+  pbExtracted  = null;
+  document.getElementById('pb-file-status').innerHTML = '';
+  document.getElementById('pb-file-input').value = '';
+}
+
+// Step 1 preview: auto-detect company + location from resume
+async function pbAutoDetect(text) {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey)) return;
+  try {
+    const raw = await callAISimple(
+      'From this resume text, extract ONLY these 2 fields as JSON (no markdown):\n{"company":"most recent employer name","location":"candidate city or country"}\nIf not found use empty string.\n\nResume:\n' + text.slice(0,3000),
+      80, 0
+    );
+    const clean = raw.replace(/```json|```/gi,'').trim();
+    const obj   = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1));
+    if (obj.company  && !document.getElementById('pb-candidate-company').value)
+      document.getElementById('pb-candidate-company').value = obj.company;
+    if (obj.location && !document.getElementById('pb-candidate-location').value)
+      document.getElementById('pb-candidate-location').value = obj.location;
+  } catch(e) { /* silent — user fills manually */ }
+}
+
+function pbTogglePrio(label) {
+  label.classList.toggle('checked');
+  label.querySelector('input').checked = label.classList.contains('checked');
+}
+
+function pbGetPriorities() {
+  const checked = [...document.querySelectorAll('#pb-priorities .pb-prio.checked')];
+  return checked.length
+    ? checked.map(l => l.querySelector('input').value).join(', ')
+    : 'Impact, Growth, Compensation';
+}
+
+function pbCopySection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).catch(() => {
+    const t = document.createElement('textarea'); t.value = text;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+  });
+}
+
+function pbSetStep(step) {
+  [1,2,3].forEach(n => {
+    const el = document.getElementById('pb-step-' + n);
+    if (!el) return;
+    el.className = 'pb-step' + (n < step ? ' done' : n === step ? ' active' : '');
+  });
+  [1,2].forEach(n => {
+    const line = document.getElementById('pb-line-' + n);
+    if (line) line.className = 'pb-step-line' + (n < step ? ' done' : '');
+  });
+}
+
+function pbReset() {
+  pbResumeText = '';
+  pbExtracted  = null;
+  ['pb-file-status','pb-parsed-preview'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.innerHTML = '';
+  });
+  document.getElementById('pb-file-input').value = '';
+  document.getElementById('pb-resume-paste').value = '';
+  document.getElementById('pb-candidate-company').value = '';
+  document.getElementById('pb-candidate-location').value = '';
+  document.getElementById('pb-jd').value = '';
+  document.getElementById('pb-notes').value = '';
+  document.getElementById('pb-our-company').value = '';
+  document.querySelectorAll('#pb-priorities .pb-prio').forEach(l => {
+    l.classList.remove('checked');
+    l.querySelector('input').checked = false;
+  });
+  document.getElementById('pb-results').style.display = 'none';
+  document.getElementById('pb-error').style.display = 'none';
+  pbSetStep(1);
+}
+
+// ══════════════════════════════════════════════════════
+// MAIN GENERATE — strict 4-step workflow per spec
+// ══════════════════════════════════════════════════════
+async function pbGenerate() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!isKeyValid(apiKey)) {
+    pbShowError('Please add a valid API key in the sidebar first.'); return;
+  }
+
+  const resumeText = pbResumeText || document.getElementById('pb-resume-paste').value.trim();
+  if (!resumeText) {
+    pbShowError('Please upload a resume or paste candidate text first.'); return;
+  }
+
+  const ourCompany       = document.getElementById('pb-our-company').value.trim()        || 'our company';
+  const candidateCompany = document.getElementById('pb-candidate-company').value.trim()  || 'their current company';
+  const location         = document.getElementById('pb-candidate-location').value.trim() || '';
+  const jd               = document.getElementById('pb-jd').value.trim();
+  const notes            = document.getElementById('pb-notes').value.trim();
+  const priorities       = pbGetPriorities();
+
+  document.getElementById('pb-error').style.display = 'none';
+  document.getElementById('pb-results').style.display = 'none';
+
+  const btn = document.getElementById('pb-generate-btn');
+  btn.disabled = true;
+
+  // ─────────────────────────────────────────────────────
+  // STEP 1: Parse resume signals
+  // ─────────────────────────────────────────────────────
+  pbSetStep(1);
+  btn.innerHTML = '<span class="ol-spinner"></span> Step 1/3 — Parsing resume signals…';
+
+  const parsePrompt =
+    'You are a senior recruiter. Parse this resume and return ONLY valid JSON (no markdown):\n' +
+    '{\n' +
+    '  "current_company": "string",\n' +
+    '  "current_title": "string",\n' +
+    '  "seniority": "IC | Manager | Director | VP | C-Suite",\n' +
+    '  "domain": "e.g. Distributed Systems / FinTech / ML Platform",\n' +
+    '  "tech_stack": ["tech1","tech2","tech3"],\n' +
+    '  "achievements": ["achievement with metric 1","achievement with metric 2","achievement with metric 3"],\n' +
+    '  "leadership_scope": "e.g. Managed 8-person team / IC contributor / Led cross-functional initiative",\n' +
+    '  "motivators_inferred": ["motivator1","motivator2"],\n' +
+    '  "risk_flags": ["flag1 or empty string if none"],\n' +
+    '  "snapshot": ["5-bullet human summary bullet 1","bullet 2","bullet 3","bullet 4","bullet 5"]\n' +
+    '}\n\n' +
+    'RESUME:\n---\n' + resumeText.slice(0, 4000) + '\n---\n' +
+    'Return ONLY the JSON object. No preamble. No explanation.';
+
+  let signals = null;
+  try {
+    let r1 = (await callAISimple(parsePrompt, 800, 0)).trim().replace(/```json|```/gi,'').trim();
+    signals = JSON.parse(r1.slice(r1.indexOf('{'), r1.lastIndexOf('}')+1));
+    pbExtracted = signals;
+
+    // Back-fill auto-detected fields if still empty
+    if (signals.current_company && !document.getElementById('pb-candidate-company').value)
+      document.getElementById('pb-candidate-company').value = signals.current_company;
+
+    // Show parsed preview
+    pbRenderParsedPreview(signals);
+
+  } catch(e) {
+    pbShowError('Resume parsing failed: ' + e.message + '. Please try again or paste text directly.');
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Build Candidate Pitch';
+    return;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // STEP 2: Check for missing essentials (auto-filled from Step 1)
+  // ─────────────────────────────────────────────────────
+  pbSetStep(2);
+  btn.innerHTML = '<span class="ol-spinner"></span> Step 2/3 — Building company comparison…';
+
+  const resolvedCompany  = document.getElementById('pb-candidate-company').value.trim()  || signals.current_company || 'their current company';
+  const resolvedLocation = document.getElementById('pb-candidate-location').value.trim() || location || 'unknown';
+  const resolvedTitle    = signals.current_title || 'their current role';
+
+  // ─────────────────────────────────────────────────────
+  // STEP 3 + 4: Company comparison + all recruiter outputs
+  // ─────────────────────────────────────────────────────
+  pbSetStep(3);
+  btn.innerHTML = '<span class="ol-spinner"></span> Step 3/3 — Generating pitch, hooks & questions…';
+
+  const SYSTEM =
+    'You are an expert recruiting strategist. Generate a tailored first-call pitch using the candidate resume signals ' +
+    'and a company comparison between ' + resolvedCompany + ' and ' + ourCompany + '. ' +
+    'GUARDRAILS (MANDATORY): Never fabricate company revenue or headcount. Use bands like "$1B+" or "50k+ employees" ' +
+    'only if you are confident from general knowledge. Write "Insufficient public data" if unknown. ' +
+    'Separate Facts vs Inferences. Never criticise or undermine the candidate\'s current employer. ' +
+    'Keep tone confident, respectful, and practical — not salesy. Output must be usable in a real screening call.';
+
+  const pitchTemplate =
+    'PITCH FORMULA — follow this EXACTLY:\n' +
+    '  Line 1 (Opener): Acknowledge the candidate\'s background in 1 sentence (reference title + company + a specific achievement).\n' +
+    '  Line 2 (Why Now): 1 sentence on market timing + why this role is relevant now.\n' +
+    '  Lines 3-4 (Why ' + ourCompany + '): 2 sentences on mission + team + tech stack at ' + ourCompany + '.\n' +
+    '  Lines 5-6 (Why You): Map 2–3 specific resume signals to role outcomes at ' + ourCompany + ' (2 sentences).\n' +
+    '  Lines 7-8 (Close): Ask 2 discovery questions AND suggest a next step (1–2 sentences).\n' +
+    'Total pitch: 60–90 seconds when read aloud (~130–160 words). Natural spoken language. No bullet points inside the pitch.';
+
+  const hooksTemplate =
+    'HOOKS FORMAT — each hook MUST follow: "Because you [specific verifiable resume signal]... [how that creates value / fits ' + ourCompany + ']"\n' +
+    'Hook must cite something concrete from the resume (a metric, a technology, a company, a title). No vague generalisations.';
+
+  const objTemplate =
+    'OBJECTIONS — write 3 realistic objections a candidate from ' + resolvedCompany + ' might raise when considering ' + ourCompany + '.\n' +
+    'Responses must be balanced and honest — not dismissive. Acknowledge the concern first, then reframe. Keep recruiter tone.';
+
+  const USER =
+    '=== EXTRACTED RESUME SIGNALS (from Step 1) ===\n' +
+    'Current Company: ' + resolvedCompany + '\n' +
+    'Current Title: ' + resolvedTitle + '\n' +
+    'Seniority: ' + (signals.seniority||'—') + '\n' +
+    'Domain: ' + (signals.domain||'—') + '\n' +
+    'Tech Stack: ' + (signals.tech_stack||[]).join(', ') + '\n' +
+    'Top Achievements:\n' + (signals.achievements||[]).map((a,i)=>'  '+(i+1)+'. '+a).join('\n') + '\n' +
+    'Leadership Scope: ' + (signals.leadership_scope||'—') + '\n' +
+    'Inferred Motivators: ' + (signals.motivators_inferred||[]).join(', ') + '\n' +
+    'Risk Flags: ' + (signals.risk_flags||[]).join(', ') + '\n\n' +
+    '=== CONTEXT ===\n' +
+    'Recruiter\'s Company: ' + ourCompany + '\n' +
+    'Candidate Location: ' + resolvedLocation + '\n' +
+    'Candidate Priorities (selected): ' + priorities + '\n' +
+    (jd   ? '=== TARGET ROLE / JD ===\n' + jd + '\n\n'    : '') +
+    (notes? '=== RECRUITER NOTES ===\n' + notes + '\n\n' : '') +
+    '\n' + pitchTemplate + '\n\n' +
+    hooksTemplate + '\n\n' +
+    objTemplate + '\n\n' +
+    '=== COMPANY COMPARISON RULES ===\n' +
+    'Compare ' + resolvedCompany + ' vs ' + ourCompany + ' on: Team Size/Scale, Growth Signals, Revenue Model, Financial Strength, Product Momentum, Hiring Signals.\n' +
+    'Max 6 rows. Each row: mark type as "fact" (publicly verifiable) or "inference" (reasoned from general knowledge).\n' +
+    'Use "Insufficient public data" if genuinely unknown. Never invent numbers.\n\n' +
+    'Return ONLY valid JSON — no markdown, no preamble, no trailing text:\n' +
+    '{\n' +
+    '  "comparison": [\n' +
+    '    {"dimension":"Team Size/Scale","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
+    '    {"dimension":"Growth Signals","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
+    '    {"dimension":"Revenue Model","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
+    '    {"dimension":"Financial Strength","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
+    '    {"dimension":"Product Momentum","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
+    '    {"dimension":"Hiring Signals","candidate_co":"value","our_co":"value","type":"fact or inference"}\n' +
+    '  ],\n' +
+    '  "pitch": "full 130-160 word spoken pitch paragraph following the formula above",\n' +
+    '  "hooks": [\n' +
+    '    {"num":1,"text":"Because you [specific resume evidence]... [relevance to ' + ourCompany + ']"},\n' +
+    '    {"num":2,"text":"Because you [specific resume evidence]... [relevance]"},\n' +
+    '    {"num":3,"text":"Because you [specific resume evidence]... [relevance]"}\n' +
+    '  ],\n' +
+    '  "objections": [\n' +
+    '    {"q":"Realistic objection from a ' + resolvedCompany + ' candidate","a":"Balanced recruiter response"},\n' +
+    '    {"q":"Second objection","a":"Response"},\n' +
+    '    {"q":"Third objection","a":"Response"}\n' +
+    '  ],\n' +
+    '  "questions": [\n' +
+    '    "Smart discovery question that reveals motivators",\n' +
+    '    "Question about career aspirations",\n' +
+    '    "Question probing risk flags if any",\n' +
+    '    "Question about what they are proud of in current role",\n' +
+    '    "Question to uncover timeline / urgency"\n' +
+    '  ],\n' +
+    '  "followup": "Hi [FirstName],\\\\n\\\\n[2-3 sentences: reference the call, 1 specific detail from their background, clear next step].\\\\n\\\\nBest regards,\\\\n[Recruiter Name]"\n' +
+    '}\n' +
+    'CRITICAL: Valid JSON only. No text outside the JSON object.';
+
+  try {
+    let raw = (await callAI(SYSTEM, [{ role:'user', content: USER }], 3500) || '').trim();
+    raw = raw.replace(/```json|```/gi,'').trim();
+    const si = raw.indexOf('{'), ei = raw.lastIndexOf('}');
+    if (si === -1 || ei === -1) throw new Error('No JSON found in response');
+    const r = JSON.parse(raw.slice(si, ei+1));
+
+    pbRenderResults(r, signals, ourCompany, resolvedCompany);
+    document.getElementById('pb-results').style.display = 'block';
+    document.getElementById('pb-results').scrollIntoView({ behavior:'smooth', block:'start' });
+    pbSetStep(3); // all done
+
+  } catch(err) {
+    pbShowError('Generation failed: ' + (err.message||'unknown error') + ' — please try again.');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🚀 Build Candidate Pitch';
+}
+
+function pbShowError(msg) {
+  const e = document.getElementById('pb-error');
+  e.innerHTML = '⚠️ ' + msg;
+  e.style.display = 'block';
+}
+
+// ── Render parsed preview (Step 1 output inline) ──────
+function pbRenderParsedPreview(s) {
+  const el = document.getElementById('pb-parsed-preview');
+  if (!el) return;
+  const flags = (s.risk_flags||[]).filter(f=>f&&f.trim());
+  el.innerHTML =
+    '<div style="background:rgba(67,97,238,0.05);border:1.5px solid rgba(67,97,238,0.15);border-radius:10px;padding:12px 14px;margin-top:10px;">' +
+    '<div style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);margin-bottom:8px;">✅ Resume Parsed — Signals Extracted</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:0.78rem;">' +
+    pbPI('Title',      s.current_title) +
+    pbPI('Company',    s.current_company) +
+    pbPI('Seniority',  s.seniority) +
+    pbPI('Domain',     s.domain) +
+    pbPI('Tech Stack', (s.tech_stack||[]).slice(0,5).join(', ')) +
+    pbPI('Leadership', s.leadership_scope) +
+    pbPI('Motivators', (s.motivators_inferred||[]).join(', ')) +
+    (flags.length ? '<div style="grid-column:1/-1;"><span style="font-size:0.68rem;font-weight:700;color:var(--danger);">⚠️ Risk flags: </span><span style="font-size:0.75rem;color:var(--danger);">' + flags.join(' · ') + '</span></div>' : '') +
+    '</div></div>';
+}
+function pbPI(label, val) {
+  if (!val) return '';
+  return '<div><span style="font-size:0.68rem;font-weight:700;color:var(--text-muted);">' + label + ': </span><span style="color:var(--text);">' + val + '</span></div>';
+}
+
+// ── Render all 7 output sections ──────────────────────
+function pbRenderResults(r, signals, ourCompany, candidateCompany) {
+
+  // 1. Candidate Snapshot (from Step 1 parse)
+  const snapBullets = (signals && signals.snapshot) ? signals.snapshot : (r.snapshot || []);
+  document.getElementById('pb-snap-content').innerHTML =
+    snapBullets.map(b =>
+      '<div class="pb-bullet"><span class="pb-bullet-dot">▸</span><span>' + b + '</span></div>'
+    ).join('');
+
+  // 2. Company Comparison
+  const cmpEl = document.getElementById('pb-compare-content');
+  const colA = candidateCompany || 'Current Company';
+  const colB = ourCompany || 'Our Company';
+  cmpEl.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 56px 1fr;gap:6px;padding:8px 0 10px;border-bottom:2px solid var(--border);margin-bottom:2px;">' +
+    '<div style="font-size:0.73rem;font-weight:800;color:var(--text-muted);">' + colA + '</div>' +
+    '<div></div>' +
+    '<div style="font-size:0.73rem;font-weight:800;color:var(--accent);">' + colB + '</div>' +
+    '</div>' +
+    (r.comparison||[]).map(row => {
+      const tag = row.type === 'fact'
+        ? '<span class="pb-fact-tag pb-fact">Fact</span>'
+        : '<span class="pb-fact-tag pb-inf">Inferred</span>';
+      return '<div class="pb-compare-row">' +
+        '<div><div class="pb-compare-label">' + row.dimension + ' ' + tag + '</div>' +
+        '<div class="pb-compare-val">' + (row.candidate_co||'Insufficient public data') + '</div></div>' +
+        '<div class="pb-compare-mid">vs</div>' +
+        '<div><div class="pb-compare-label" style="color:var(--accent);">' + row.dimension + '</div>' +
+        '<div class="pb-compare-val" style="font-weight:500;color:var(--text);">' + (row.our_co||'—') + '</div></div>' +
+        '</div>';
+    }).join('');
+
+  // 3. Pitch — with structure labels
+  const pitchText = (r.pitch||'');
+  document.getElementById('pb-pitch-content').innerHTML =
+    '<div style="background:rgba(5,118,66,0.04);border:1px solid rgba(5,118,66,0.15);border-radius:6px;padding:6px 10px;font-size:0.7rem;color:#057642;font-weight:600;margin-bottom:10px;">' +
+    '🎙️ Read this aloud — approx. 60–90 seconds &nbsp;·&nbsp; ' + pitchText.split(' ').length + ' words' +
+    '</div>' +
+    '<div class="pb-pitch-text">' + pitchText.replace(/\n/g,'<br>') + '</div>' +
+    '<div class="pb-copy-row"><button class="pb-copy-btn" onclick="pbCopySection(\'pb-pitch-content\')">📋 Copy pitch</button></div>';
+
+  // 4. Hooks
+  document.getElementById('pb-hooks-content').innerHTML =
+    (r.hooks||[]).map(h =>
+      '<div class="pb-hook">' +
+      '<div class="pb-hook-num">Hook ' + h.num + ' — grounded in resume evidence</div>' +
+      '<div class="pb-hook-text">' + h.text + '</div>' +
+      '</div>'
+    ).join('');
+
+  // 5. Objections
+  document.getElementById('pb-obj-content').innerHTML =
+    '<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:10px;">These are realistic objections a candidate moving from <strong>' + colA + '</strong> might raise.</div>' +
+    (r.objections||[]).map(o =>
+      '<div class="pb-objection">' +
+      '<div class="pb-obj-q">⚠️ ' + o.q + '</div>' +
+      '<div class="pb-obj-a">→ ' + o.a + '</div>' +
+      '</div>'
+    ).join('');
+
+  // 6. Questions
+  document.getElementById('pb-questions-content').innerHTML =
+    (r.questions||[]).map((q,i) =>
+      '<div class="pb-question">' +
+      '<div class="pb-q-num">' + (i+1) + '</div>' +
+      '<span>' + q + '</span>' +
+      '</div>'
+    ).join('');
+
+  // 7. Follow-up
+  const fu = (r.followup||'').replace(/\\n/g,'\n');
+  document.getElementById('pb-followup-content').innerHTML =
+    '<div class="pb-followup">' + fu.replace(/\n/g,'<br>') + '</div>' +
+    '<div class="pb-copy-row">' +
+    '<button class="pb-copy-btn" id="pb-fu-copy-btn" onclick="pbCopyFollowup()">📋 Copy message</button>' +
+    '</div>';
+  document.getElementById('pb-fu-copy-btn')._fuText = fu;
+}
+
+function pbCopyFollowup() {
+  const btn = document.getElementById('pb-fu-copy-btn');
+  const text = btn._fuText || '';
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!'; btn.style.color='var(--success)';
+    setTimeout(()=>{ btn.innerHTML=orig; btn.style.color=''; }, 2000);
+  }).catch(() => {
+    const t = document.createElement('textarea'); t.value=text;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+  });
+}
+// ══════════════════════════════════════════════════════
+// END CANDIDATE PITCH BUILDER  v2
+// ══════════════════════════════════════════════════════
 
 function checkKey() {
   const key  = document.getElementById('api-key').value.trim();
