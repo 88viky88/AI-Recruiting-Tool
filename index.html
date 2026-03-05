@@ -1907,6 +1907,139 @@ function loadDemoData() {
   });
 }
 
+const CECinj = `<style>
+.cec-wrap{position:relative;display:block;}
+.cec-bar{display:none;position:absolute;top:5px;right:5px;z-index:9999;
+  align-items:center;gap:4px;flex-wrap:wrap;background:rgba(255,255,255,0.97);
+  border:1.5px solid #e2e8f0;border-radius:9px;padding:5px 8px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.13);font-family:system-ui,sans-serif;max-width:340px;}
+.cec-wrap:hover .cec-bar{display:flex;}
+.cec-bar select{font-size:11px;padding:3px 5px;border:1px solid #d1d5db;
+  border-radius:5px;background:#fff;color:#1e293b;cursor:pointer;max-width:110px;}
+.cec-bar input[type=color]{width:20px;height:20px;border-radius:4px;
+  border:1.5px solid #d1d5db;cursor:pointer;padding:0;-webkit-appearance:none;}
+.cec-bar input[type=color]::-webkit-color-swatch-wrapper{padding:0;}
+.cec-bar input[type=color]::-webkit-color-swatch{border:none;border-radius:3px;}
+.cec-bar label{display:flex;align-items:center;gap:2px;font-size:10px;
+  color:#475569;cursor:pointer;white-space:nowrap;}
+.cec-bar label input[type=checkbox]{width:11px;height:11px;margin:0;}
+.cec-sep{width:1px;height:16px;background:#e2e8f0;margin:0 2px;flex-shrink:0;}
+.cec-lbl{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;}
+</style>
+<script>
+(function(){
+  var PAL=['#4361ee','#f72585','#06b6d4','#f77f00','#0a9c5a','#7209b7','#e5383b','#ffd60a'];
+  var store={};
+  function hex7(v){
+    if(typeof v==='string'&&/^#[0-9a-f]{3,8}$/i.test(v))return v.slice(0,7);
+    return null;
+  }
+  function applyChart(chart,type,cols,smooth,fill,legend){
+    if(!chart||!chart.config)return;
+    var cfg=chart.config;
+    if(type){
+      if(type==='hbar'){cfg.type='bar';cfg.options=cfg.options||{};cfg.options.indexAxis='y';}
+      else{cfg.type=type;cfg.options=cfg.options||{};delete cfg.options.indexAxis;}
+    }
+    var pie=['pie','doughnut','polarArea'].indexOf(cfg.type)>-1;
+    (cfg.data&&cfg.data.datasets||[]).forEach(function(ds,i){
+      var col=cols[i%cols.length];
+      if(pie){
+        ds.backgroundColor=(ds.data||[]).map(function(_,j){return cols[j%cols.length];});
+        ds.borderColor='#fff';
+      }else{
+        ds.borderColor=col;
+        ds.backgroundColor=cfg.type==='bar'?col+'cc':col+'33';
+        ds.pointBackgroundColor=col;
+        if(cfg.type==='line'){ds.tension=smooth?0.42:0;ds.fill=fill;}
+      }
+    });
+    cfg.options=cfg.options||{};
+    cfg.options.plugins=cfg.options.plugins||{};
+    cfg.options.plugins.legend=cfg.options.plugins.legend||{};
+    cfg.options.plugins.legend.display=!!legend;
+    try{chart.update('none');}catch(e){try{chart.update();}catch(e2){}}
+  }
+  function mkEl(tag,attrs,parent){
+    var e=document.createElement(tag);
+    Object.keys(attrs||{}).forEach(function(k){
+      if(k==='txt')e.textContent=attrs[k];
+      else e.setAttribute(k,attrs[k]);
+    });
+    if(parent)parent.appendChild(e);
+    return e;
+  }
+  function buildBar(chart){
+    var bar=document.createElement('div');
+    bar.className='cec-bar';
+    var ds=(chart.config&&chart.config.data&&chart.config.data.datasets)||[];
+    var seed=ds.slice(0,3).map(function(d,i){
+      return hex7(d.borderColor)||
+             hex7(Array.isArray(d.backgroundColor)?d.backgroundColor[0]:d.backgroundColor)||
+             PAL[i];
+    });
+    while(seed.length<3)seed.push(PAL[seed.length]);
+    var initType=(chart.config&&chart.config.type)||'bar';
+    mkEl('span',{class:'cec-lbl',txt:'Type'},bar);
+    var sel=mkEl('select',{},bar);
+    [['','keep'],['bar','Bar'],['hbar','H.Bar'],['line','Line'],
+     ['pie','Pie'],['doughnut','Doughnut'],['radar','Radar'],['polarArea','Polar']
+    ].forEach(function(o){
+      var opt=mkEl('option',{value:o[0],txt:o[1]},sel);
+      if(o[0]&&o[0]===initType)opt.selected=true;
+    });
+    mkEl('div',{class:'cec-sep'},bar);
+    mkEl('span',{class:'cec-lbl',txt:'Colour'},bar);
+    var p1=mkEl('input',{type:'color',value:seed[0],title:'C1'},bar);
+    var p2=mkEl('input',{type:'color',value:seed[1],title:'C2'},bar);
+    var p3=mkEl('input',{type:'color',value:seed[2],title:'C3'},bar);
+    mkEl('div',{class:'cec-sep'},bar);
+    var lbSm=mkEl('label',{title:'Smooth'},bar);
+    var cbSm=mkEl('input',{type:'checkbox'},lbSm);
+    lbSm.appendChild(document.createTextNode(' ~'));
+    var lbFi=mkEl('label',{title:'Fill'},bar);
+    var cbFi=mkEl('input',{type:'checkbox'},lbFi);
+    lbFi.appendChild(document.createTextNode(' Fill'));
+    var lbLg=mkEl('label',{title:'Legend'},bar);
+    var cbLg=mkEl('input',{type:'checkbox'},lbLg);
+    cbLg.checked=true;
+    lbLg.appendChild(document.createTextNode(' Lgd'));
+    function go(){
+      applyChart(chart,sel.value,
+        [p1.value,p2.value,p3.value,p1.value+'bb',p2.value+'99',p3.value+'99',p1.value+'88',p2.value+'66'],
+        cbSm.checked,cbFi.checked,cbLg.checked);
+    }
+    sel.onchange=go;p1.oninput=go;p2.oninput=go;p3.oninput=go;
+    cbSm.onchange=go;cbFi.onchange=go;cbLg.onchange=go;
+    return bar;
+  }
+  function wrapChart(canvas,chart){
+    var id=canvas.id||('cec'+Object.keys(store).length);
+    canvas.id=id;
+    if(store[id])return;
+    store[id]=true;
+    var parent=canvas.parentElement;
+    if(!parent||parent.classList.contains('cec-wrap'))return;
+    var wrap=document.createElement('div');
+    wrap.className='cec-wrap';
+    var ph=parent.style.height;
+    if(ph)wrap.style.height=ph;
+    parent.insertBefore(wrap,canvas);
+    wrap.appendChild(canvas);
+    wrap.appendChild(buildBar(chart));
+  }
+  function scan(){
+    if(!window.Chart||!window.Chart.instances)return;
+    Object.values(window.Chart.instances).forEach(function(ch){
+      if(ch&&ch.canvas)wrapChart(ch.canvas,ch);
+    });
+  }
+  [300,700,1400,2800].forEach(function(t){setTimeout(scan,t);});
+  window.addEventListener('load',function(){setTimeout(scan,150);});
+})();
+<\/script>
+`;
+
 function showDemoFor(mode) {
   const labels = {
     talent_intelligence:'🧠 Talent Intelligence', overview:'🔍 Smart Overview',
@@ -1927,8 +2060,9 @@ function showDemoFor(mode) {
     source: buildDemoSource,
     forecast: buildDemoForecast
   };
-  const html = builders[mode]();
-  const blob = new Blob([html], { type: 'text/html' });
+  let html = builders[mode]();
+  html = html.replace('</body>', CECinj + '</body>');
+  const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const container = document.getElementById('dash-content');
   container.innerHTML = `
@@ -3762,6 +3896,7 @@ function parseDashResponse(reply, type, label) {
       'tr:hover td{background:#f8fafc;}' +
       '</style>';
     dashHtml = dashHtml.replace('</head>', tableFixCss + '</head>');
+    dashHtml = dashHtml.replace('</body>', CECinj + '</body>');
     storeDashHtml(type, dashHtml);
     const blob = new Blob([dashHtml], { type: 'text/html; charset=utf-8' });
     const url = URL.createObjectURL(blob);
