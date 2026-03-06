@@ -4500,6 +4500,11 @@ function useChip(text) {
   }
   input.value = text;
   autoResize(input);
+  // Auto-send screening chip immediately
+  if (currentMode === 'screen' && text === 'Screen & assess fit') {
+    sendMessage();
+    return;
+  }
 }
 
 async function generateBatchOutreachInline() {
@@ -4571,7 +4576,8 @@ ${recruiterName}
 Keep each message under 120 words. Personal, warm, specific — not generic. Reference actual skills or experience from their CV.`;
 
   try {
-    const reply = await callAI(MODES.screen.systemPrompt, [{ role: 'user', content: msgContent }], 2500);
+    const outreachSysPrompt = 'You are an expert recruiter. Write personalised LinkedIn/email outreach messages for candidates who fit the role. For each candidate: greet by first name, reference 1-2 specific skills or achievements from their CV that match the JD, mention the role and company, end with a soft CTA (15-min chat, no pressure). Keep each message under 120 words. Warm, specific, not generic. Format: ---\n**✉️ Outreach — [Name]**\n**Fit Level:** [level]\n**Subject:** [subject]\n\n[message body]\n---';
+    const reply = await callAI(outreachSysPrompt, [{ role: 'user', content: msgContent }], 2500);
     document.getElementById('typing-outreach')?.remove();
     chatHistory.push({ role: 'assistant', content: reply });
     addMessage('ai', reply);
@@ -6167,7 +6173,7 @@ async function olGenerateEnriched() {
 
   const callDur  = olGetCallDuration();
   const ctaInstr = ctaNow==='cv'
-    ? 'End by asking them to share their updated CV.'
+    ? 'Line 10 MUST be a direct CV request. Write: "Would you be open to sharing your updated CV? I\'d love to put you forward for consideration." or similar. DO NOT use interest/call language.'
     : 'End by asking if they are open to this and suggesting a casual '+callDur+' intro call.';
 
   let fuSchema='';
@@ -6175,9 +6181,15 @@ async function olGenerateEnriched() {
   if (fuNow>=3) fuSchema+=',"followUp3":{"subject":"string","body":"string"}';
 
   let fuInstr='';
-  if (fuNow===1) fuInstr='"followUp": 55-70 words. Start: Hi {firstName}, — Warm, references first message, adds ONE new angle. Include job URL. Sign-off MUST be on separate lines: \\n\\nBest Regards,\\n'+name+'';
-  else if (fuNow===2) fuInstr='"followUp" (55-70w) and "followUp2" (45-60w more direct). Both start with Hi {firstName}, include job URL. Sign-off each: \\n\\nBest Regards,\\n'+name+'';
-  else fuInstr='"followUp" (55-70w), "followUp2" (45-60w), "followUp3" (35-50w). All start with Hi {firstName}, include job URL. Sign-off each: \\n\\nBest Regards,\\n'+name+'.';
+  const eCTA = ctaNow==='cv'
+    ? 'End by asking them to share their updated CV. Example: "Would you be open to sending me your CV so I can put you forward?"'
+    : 'End by asking if they would be open to a quick '+callDur+' intro call.';
+  const eCTA2 = ctaNow==='cv'
+    ? 'Close with a direct CV ask: "Would you be happy to share your CV with me?"'
+    : 'Close by asking if they have 15 minutes for a brief call this week.';
+  if (fuNow===1) fuInstr='"followUp": 80-100 words. MUST start: Hi {firstName}, (first line). 3-4 sentences: (1) warm reference to first message, (2) ONE new compelling angle about the role not mentioned before, (3) include job URL, (4) '+eCTA+' Sign-off MUST be on separate lines: \\n\\nBest Regards,\\n'+name+'';
+  else if (fuNow===2) fuInstr='"followUp" (80-100w) and "followUp2" (70-90w more direct). Both MUST start: Hi {firstName}, (first line). followUp: warm callback + new angle + job URL + '+eCTA+' followUp2: direct callback + different new angle + job URL + '+eCTA2+' Sign-off each: \\n\\nBest Regards,\\n'+name+'';
+  else fuInstr='"followUp" (80-100w), "followUp2" (70-90w), "followUp3" (60-80w final). All MUST start: Hi {firstName}, (first line). Each adds a different new angle. Include job URL. '+eCTA+' Sign-off each: \\n\\nBest Regards,\\n'+name+'.';
 
   const sampleBlock = sample ? 'STYLE REFERENCE (match this tone exactly):\n"""\n'+sample+'\n"""\n' : '';
 
@@ -6203,20 +6215,18 @@ async function olGenerateEnriched() {
     +'Variant C = GROWTH HOOK: frame the career trajectory and doors this role unlocks — mission ('+teamMission+')]\n\n'
     +'We are looking for a '+roleTitle+' with deep expertise in '+keySkills+'.\n\n'
     +'Role details: '+url+' - '+contractType+'\n\n'
-    +'[CTA: '+ctaInstr+']\n\n'
+    +'[CTA — FOLLOW EXACTLY: '+ctaInstr+'\nIMPORTANT: If this says to ask for CV, you MUST ask for the CV here. '+'Do NOT write "Let me know if this sounds interesting" in CV mode.]\n\n'
     +'Best Regards,\n'+name+'\n\n'
     +'CRITICAL: Every variant body MUST end with \\n\\nBest Regards,\\n'+name+'\n\n';
   const p7 = 'RULES:\n'
+    +'- Every message MUST start with: Hi {firstName}, on the very first line — MANDATORY\n'
     +'- Body: 100-130 words total\n'
     +'- BANNED: exciting opportunity, I came across your profile, hope this finds you well, passionate, fast-paced, dynamic, hit the ground running, unique opportunity\n'
     +'- Use \\n\\n between paragraphs\n'
     +'- Tone: peer-to-peer, intelligent, direct\n\n';
   const p8 = 'FOLLOW-UPS:\n'+fuInstr+'\n'
-    +'Follow-up body MUST follow this EXACT structure:\n'+
-    'Hi {firstName},\n\n'+
-'[1 sentence referencing previous message] + [ONE new angle not in first message] + [job URL] + [soft CTA]\n\n'+
-'Best Regards,\n'+name+'\n\n'+
-'CRITICAL: Best Regards and recruiter name MUST be on separate lines — never on the same line.';
+    +'CRITICAL: Best Regards and recruiter name MUST be on separate lines — never on the same line.\n'
+    +'CRITICAL: Every follow-up MUST start with Hi {firstName}, on the very first line.';
   const p9 = 'Return ONLY valid JSON, no markdown:\n'
     +'{"subjectLines":["s1","s2","s3","s4"],"outreachVariants":[{"label":"Tech Hook","subject":"string","body":"string"},{"label":"Impact Hook","subject":"string","body":"string"},{"label":"Growth Hook","subject":"string","body":"string"}],"followUp":{"subject":"string","body":"string"}'+fuSchema+'}';
 
@@ -6324,7 +6334,7 @@ async function olGenerate() {
   // Build prompt
   const callDur = olGetCallDuration();
   const ctaInstr = ctaNow === 'cv'
-    ? 'End asking the candidate to share their updated CV.'
+    ? 'Line 10 MUST directly ask for their CV. Example: "Would you be open to sharing your updated CV? I\'d love to put you forward." — DO NOT use interest/call language.'
     : `End by asking if open to this opportunity and suggest a ${callDur} intro call.`;
 
   let fuSchema = '';
@@ -6332,9 +6342,15 @@ async function olGenerate() {
   if (fuNow >= 3) fuSchema += ',"followUp3":{"subject":"string","body":"string"}';
 
   let fuInstr = '';
-  if (fuNow===1) fuInstr = '"followUp": 60-80 words. Start Hi {firstName}, — warm, references first outreach, adds ONE new angle, includes job URL. Sign-off MUST be on 2 separate lines: \\n\\nBest Regards,\\n'+name+'';
-  else if (fuNow===2) fuInstr = '"followUp" (60-80w warm) and "followUp2" (50-70w more direct). Both start Hi {firstName},, include job URL. Sign-off each: \\n\\nBest Regards,\\n'+name+'';
-  else fuInstr = '"followUp" (60-80w), "followUp2" (50-70w), "followUp3" (40-60w final nudge). All start Hi {firstName},, include job URL. Sign-off each: \\n\\nBest Regards,\\n'+name+'.';
+  const fuCTA = ctaNow === 'cv'
+    ? 'End this follow-up by directly asking them to share their updated CV. Example: "Would you be open to sending over your CV so I can put you forward?"'
+    : 'End this follow-up by asking if they are open to a quick '+callDur+' call to learn more.';
+  const fuCTA2 = ctaNow === 'cv'
+    ? 'Close by asking again for their CV — be warm but direct: "Would you be happy to share your CV with me?"'
+    : 'Close by asking if they\'d be up for a brief '+callDur+' call.';
+  if (fuNow===1) fuInstr = '"followUp": 80-100 words. MUST start: Hi {firstName}, (first line). 3-4 sentences: (1) warm callback to first message, (2) add ONE new compelling angle about the role or company not mentioned before, (3) include job URL, (4) '+fuCTA+' Sign-off MUST be on 2 separate lines: \\n\\nBest Regards,\\n'+name+'';
+  else if (fuNow===2) fuInstr = '"followUp" (80-100w) and "followUp2" (70-90w more direct). Both MUST start: Hi {firstName}, (first line). followUp: (1) warm callback, (2) new angle, (3) job URL, (4) '+fuCTA+' followUp2: (1) direct callback, (2) a different new angle, (3) job URL, (4) '+fuCTA2+' Sign-off each: \\n\\nBest Regards,\\n'+name+'';
+  else fuInstr = '"followUp" (80-100w), "followUp2" (70-90w), "followUp3" (60-80w final nudge). All MUST start: Hi {firstName}, (first line). Each adds a new angle not used before. Include job URL. '+fuCTA+' Sign-off each: \\n\\nBest Regards,\\n'+name+'.';
 
   const sampleBlock = sample
     ? 'Style reference:\n"""\n'+sample+'\n"""\n'
@@ -6379,19 +6395,24 @@ Line 6:  [1 sentence: "We're looking for a [Exact Role Title] with strong expert
 Line 7:  (blank)
 Line 8:  📌 Role details: [Job URL] — [contract type from JD e.g. Full-time permanent role (no B2B) / Contract / Part-time]
 Line 9:  (blank)
-Line 10: [CTA sentence — soft, no pressure. Example: "Let me know if this sounds interesting to you — I'd be happy to connect and share more details."]
+Line 10: ${ctaNow === 'cv'
+  ? 'Ask the candidate to send you their CV. Use wording like: "Could you send over your updated CV so I can put you forward?" or "Would you be happy to share your CV?" — this line MUST be a CV request, nothing else.'
+  : 'Soft interest check. Example: "Let me know if this sounds interesting — I\'d be happy to connect and share more details."'
+}
 Line 11: (blank)
 Line 12: Best Regards,
 Line 13: [name] (recruiter's name only — NOT 'Recruiter', use the actual name value)
 
 RULES:
 - Total body length: 80–120 words. SHORT and direct.
+- IF CTA mode is CV: Line 10 MUST ask the candidate to share their CV — phrases like "Let me know if this sounds interesting" are FORBIDDEN in CV mode
 - NO filler phrases: "exciting opportunity", "hope this finds you well", "I came across your profile", "passionate about", "fast-paced", "dynamic", "hit the ground running", "unique opportunity"
 - Extract the EXACT role title, specific technologies/skills, and what the team is building from the JD
 - The contract type line (📌) MUST include the job URL and contract type
 - Subject line MUST include company name + exact role title + location
 - Tone: warm, professional, peer-to-peer — like a message from a real person, not a template
 - Use \\n\\n between paragraphs in the body
+- Every message body MUST start with: Hi {firstName}, on its own line — MANDATORY
 - The body MUST end with: \\n\\nBest Regards,\\n[name] — this is MANDATORY on every variant, every time
 
 GENERATE EXACTLY 3 VARIANTS — same structure, different angle in lines 5–6:
@@ -6405,13 +6426,7 @@ Vary the location or add a specific angle in brackets. Max 12 words each.
 
 FOLLOW-UP RULES:
 ${fuInstr}
-- Start: Hi {firstName},
-- Reference that you reached out before + add ONE new angle not in the first message
-- Keep it short: 50–70 words
-- Include job URL: ${url}
-- Sign-off MUST be on separate lines exactly like this:
-  \n\nBest Regards,\n${name}
-- NEVER write "Best Regards, ${name}" on a single line
+- NEVER write "Best Regards, ${name}" on a single line — sign-off MUST always be on 2 separate lines
 
 Return ONLY raw valid JSON — no markdown, no preamble:
 {"subjectLines":["s1","s2","s3","s4"],"outreachVariants":[{"label":"Product & Scale Focus","subject":"string","body":"string"},{"label":"Technical Challenge Focus","subject":"string","body":"string"},{"label":"Mission & Impact Focus","subject":"string","body":"string"}],"followUp":{"subject":"string","body":"string"}${fuSchema}}
