@@ -928,7 +928,7 @@ battle-config { grid-template-columns: 1fr; }
         </div>
         <div class="bc-field half">
           <div class="bc-label">⚔️ Competitors (comma-separated)</div>
-          <input class="bc-input" id="bc-competitors" placeholder="e.g. AWS, Google, Microsoft, Databricks, Uber" type="text"/>
+          <input class="bc-input" id="bc-competitors" placeholder="e.g. AWS, Google, Microsoft, Uber" type="text"/>
         </div>
         <div class="bc-field">
           <div class="bc-label">👨‍💻 Target Role Family</div>
@@ -4661,9 +4661,9 @@ function bcDownloadTXT() {
 
 // =================== BATTLE CARDS ===================
 function showBattle() {
-  // Auto-fill bc-core from recruiter profile company (only if field is empty)
+  // Always sync bc-core from recruiter profile (overwrite stale values)
   var coreEl = document.getElementById('bc-core');
-  if (coreEl && !coreEl.value.trim()) {
+  if (coreEl) {
     var profCompany = rpGet().company || '';
     if (profCompany) coreEl.value = profCompany;
   }
@@ -7147,6 +7147,9 @@ function rpApplyToUI() {
   var set = function(id, v) { var el = document.getElementById(id); if (el && v) el.value = v; };
   if (p.name)    set('ol-name',    p.name);
   if (p.company) set('ol-company', p.company);
+  // Always overwrite bc-core so it stays in sync with profile
+  if (p.company) set('bc-core', p.company);
+  if (p.company) set('pb-our-company', p.company);
   // Sidebar indicator
   var si = document.getElementById('sidebar-profile-label');
   if (si) si.textContent = p.name ? p.name + ' · ' + (p.company || '') : '';
