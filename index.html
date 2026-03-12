@@ -948,11 +948,11 @@ battle-config { grid-template-columns: 1fr; }
         </div>
         <div class="bc-field full">
           <div class="bc-label">🏅 Your Organisation's Unique Selling Points (optional but recommended)</div>
-          <textarea class="bc-input" id="bc-usps" placeholder="e.g. Real-time data streaming, strong equity upside, fully remote, mission-driven culture, strong Indian engineering leadership, Series D with clear IPO path..."></textarea>
+          <textarea class="bc-input" id="bc-usps" placeholder=""></textarea>
         </div>
         <div class="bc-field full">
           <div class="bc-label">⚠️ Areas to Navigate / Objections You Face (optional)</div>
-          <textarea class="bc-input" id="bc-weaknesses" placeholder="e.g. Less brand recognition than FAANG, smaller team, niche product domain, salary not FAANG-level..."></textarea>
+          <textarea class="bc-input" id="bc-weaknesses" placeholder=""></textarea>
         </div>
         <!-- bc-output hidden; Output Mode selector controls deliverables (v21) -->
         <input type="hidden" id="bc-output" value="All sections (A+B+C+D)"/>
@@ -4704,7 +4704,148 @@ function parseDashResponse(reply, type, label) {
 
     // Inject chart editor toolbar into iframe
     var _ceScript = '<scr'+'ipt>\n' + '(function(){\nif(window.__CE_INIT__)return; window.__CE_INIT__=true;\nvar PAL={Default:["#4361ee","#f72585","#f77f00","#06b6d4","#0a9c5a","#7209b7","#e5383b","#ffd166","#06d6a0","#118ab2"],Ocean:["#0077b6","#00b4d8","#90e0ef","#023e8a","#0096c7","#48cae4","#ade8f4","#3a86ff","#1a759f","#168aad"],Sunset:["#ff6b6b","#ffa07a","#ffd700","#ff8c00","#dc143c","#ff4500","#ff6347","#ff7f50","#ff69b4","#db7093"],Forest:["#2d6a4f","#40916c","#52b788","#74c69d","#95d5b2","#1b4332","#52796f","#84a98c","#cad2c5","#354f52"],Mono:["#1a1a2e","#16213e","#0f3460","#533483","#e94560","#8d99ae","#2b2d42","#ef233c","#d90429","#edf2f4"],Pastel:["#ffd6e0","#ffb3c1","#ff85a1","#c9b1ff","#a8dadc","#b5ead7","#ffdac1","#e2f0cb","#c7ceea","#ffc8dd"],Bold:["#e63946","#2a9d8f","#e9c46a","#264653","#f4a261","#457b9d","#1d3557","#a8dadc","#f1faee","#e76f51"]};\nvar R={};\nvar _uid=0;\n\nfunction mkTb(id,inst){\n  if(R[id])return; R[id]={inst:inst,pal:"Default"};\n  var cv=document.getElementById(id); if(!cv)return;\n  var wrap=cv.parentElement; if(!wrap)return;\n  if(wrap.querySelector(".ce-tb"))return;\n  /* ensure wrap has height so chart renders */\n  if(!wrap.style.height&&!wrap.style.minHeight){wrap.style.minHeight="200px";}\n  wrap.style.display="flex"; wrap.style.flexDirection="column";\n  var tb=document.createElement("div"); tb.className="ce-tb";\n  tb.style.cssText="display:flex;align-items:center;gap:5px;padding:5px 9px;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-shrink:0;font-family:system-ui,sans-serif;";\n  /* Type */\n  var tl=document.createElement("span"); tl.textContent="📊 Type:"; tl.style.cssText="font-size:10px;color:#64748b;font-weight:700;white-space:nowrap;";\n  var ts=document.createElement("select"); ts.style.cssText="font-size:11px;padding:2px 6px;border:1.5px solid #cbd5e1;border-radius:5px;background:#fff;color:#1e293b;cursor:pointer;";\n  var types=[["bar","Bar"],["horizontalBar","H-Bar"],["line","Line"],["doughnut","Donut"],["pie","Pie"],["radar","Radar"],["polarArea","Polar"]];\n  var cur=inst.config.type||"bar"; if(cur==="bar"&&inst.config.options&&inst.config.options.indexAxis==="y")cur="horizontalBar";\n  types.forEach(function(t){var o=document.createElement("option");o.value=t[0];o.textContent=t[1];if(t[0]===cur)o.selected=true;ts.appendChild(o);});\n  ts.addEventListener("change",function(){chType(id,ts.value);});\n  /* Palette */\n  var pl=document.createElement("span"); pl.textContent="🎨"; pl.style.cssText="font-size:12px;margin-left:4px;";\n  var ps=document.createElement("select"); ps.style.cssText="font-size:11px;padding:2px 6px;border:1.5px solid #cbd5e1;border-radius:5px;background:#fff;color:#1e293b;cursor:pointer;";\n  Object.keys(PAL).forEach(function(nm){var o=document.createElement("option");o.value=nm;o.textContent=nm;if(nm==="Default")o.selected=true;ps.appendChild(o);});\n  ps.addEventListener("change",function(){applyPal(id,ps.value);});\n  tb.appendChild(tl);tb.appendChild(ts);tb.appendChild(pl);tb.appendChild(ps);\n  wrap.insertBefore(tb,cv);\n}\n\nfunction applyPal(id,nm){\n  var r=R[id];if(!r)return; var pal=PAL[nm]||PAL.Default; r.pal=nm;\n  r.inst.data.datasets.forEach(function(ds,i){\n    var isArr=Array.isArray(ds.backgroundColor)&&ds.backgroundColor.length>1;\n    ds.backgroundColor=isArr?pal.slice(0,ds.backgroundColor.length):pal[i%pal.length];\n    if(ds.borderColor&&ds.borderColor!=="transparent"&&!/^rgba\\(0,0,0,0\\)$/.test(ds.borderColor))\n      ds.borderColor=isArr?pal.slice(0,ds.backgroundColor.length):pal[i%pal.length];\n  }); r.inst.update();\n}\n\nfunction chType(id,nt){\n  var r=R[id];if(!r)return;\n  var inst=r.inst; var cv=inst.canvas;\n  var lbl=inst.data.labels; var ds=inst.data.datasets;\n  var flat=nt==="doughnut"||nt==="pie"||nt==="radar"||nt==="polarArea";\n  inst.destroy(); delete R[id];\n  var at=nt==="horizontalBar"?"bar":nt;\n  var o={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12}}},scales:flat?{}:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{font:{size:10}}}}};\n  if(nt==="horizontalBar")o.indexAxis="y";\n  var ni=new _OrigChart(cv.getContext("2d"),{type:at,data:{labels:lbl,datasets:ds},options:o});\n  R[id]={inst:ni,pal:r.pal}; if(r.pal&&r.pal!=="Default")applyPal(id,r.pal);\n}\n\nfunction registerInst(inst){\n  var cv=inst.canvas; if(!cv)return;\n  if(!cv.id)cv.id="ce-"+(_uid++);\n  mkTb(cv.id,inst);\n}\n\nfunction scanAll(){\n  if(!window.Chart||!Chart.instances)return;\n  Object.keys(Chart.instances).forEach(function(k){try{registerInst(Chart.instances[k]);}catch(e){}});\n}\n\n/* Store original Chart before hooking */\nvar _OrigChart=window.Chart;\n\n/* Hook Chart constructor */\nif(!window.Chart.__ce__){\n  var _Orig=window.Chart;\n  function _Hooked(ctx,cfg){\n    var inst=new _Orig(ctx,cfg);\n    var canvas=ctx instanceof HTMLCanvasElement?ctx:(ctx&&ctx.canvas?ctx.canvas:null);\n    if(canvas){if(!canvas.id)canvas.id="ce-"+(_uid++); mkTb(canvas.id,inst);}\n    return inst;\n  }\n  _Hooked.prototype=_Orig.prototype;\n  Object.keys(_Orig).forEach(function(k){try{_Hooked[k]=_Orig[k];}catch(e){}});\n  _Hooked.__ce__=true; _Hooked.instances=_Orig.instances;\n  window.Chart=_Hooked; _OrigChart=_Orig;\n}\n\n/* Wrap C() helper if present */\nif(window.C&&!window.C.__ce__){\n  var _oC=window.C;\n  window.C=function(id,type,labels,datasets,opts){\n    _oC(id,type,labels,datasets,opts);\n    setTimeout(function(){\n      var cv=document.getElementById(id); if(!cv)return;\n      var inst=null;\n      if(Chart.getChart)inst=Chart.getChart(cv);\n      if(!inst)Object.keys(Chart.instances||{}).forEach(function(k){if(Chart.instances[k].canvas===cv)inst=Chart.instances[k];});\n      if(inst)mkTb(id,inst);\n    },30);\n  };\n  window.C.__ce__=true;\n}\n\n/* Scan existing charts (created before this script ran) */\nscanAll();\n\n/* MutationObserver: pick up canvases added after initial load */\nif(window.MutationObserver){\n  var mo=new MutationObserver(function(){scanAll();});\n  mo.observe(document.body,{childList:true,subtree:true});\n}\n\n/* Fallback polls */\nvar _pt=0;\nfunction poll(){scanAll();_pt++;if(_pt<30)setTimeout(poll,300);else if(_pt<60)setTimeout(poll,800);}\nsetTimeout(poll,100);\n})();\n' + '<\/scr'+'ipt>';;
-    dashHtml = dashHtml.replace('</body>', _ceScript + '</body>').replace('</html>', _ceScript + '</html>');
+
+    // ── Layout controller script — injected into dashboard iframe ────
+    var _dlInjectScript = '<scr'+'ipt>(function(){' +
+      'if(window.__DL_INIT__)return;window.__DL_INIT__=true;' +
+
+      // CSS for section controls
+      'var st=document.createElement("style");' +
+      'st.textContent=' +
+        '".dl-sec{position:relative!important;transition:outline .1s;}"' +
+        '+" .dl-sec:hover>.dl-bar{opacity:1!important;pointer-events:auto!important;}"' +
+        '+" .dl-bar{position:absolute;top:6px;right:8px;z-index:99999;display:flex;gap:3px;align-items:center;"' +
+        '+"background:rgba(255,255,255,0.97);border:1.5px solid #c7d2fe;border-radius:8px;"' +
+        '+"padding:3px 7px;box-shadow:0 2px 12px rgba(67,97,238,.25);"' +
+        '+"font-family:system-ui,sans-serif;opacity:0;pointer-events:none;transition:opacity .15s;}"' +
+        '+" .dl-bar.on{opacity:1!important;pointer-events:auto!important;}"' +
+        '+" .dl-lbl{font-size:9px;font-weight:600;color:#64748b;max-width:90px;"' +
+        '+"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:2px;}"' +
+        '+" .dl-drag{cursor:grab;font-size:13px;color:#94a3b8;user-select:none;padding:0 2px;}"' +
+        '+" .dl-btn{border:none;cursor:pointer;font-size:12px;font-weight:700;"' +
+        '+"padding:2px 6px;border-radius:4px;line-height:1;}"' +
+        '+" .dl-up{background:#eff6ff;color:#4361ee;}"' +
+        '+" .dl-up:hover{background:#dbeafe;}"' +
+        '+" .dl-dn{background:#eff6ff;color:#4361ee;}"' +
+        '+" .dl-dn:hover{background:#dbeafe;}"' +
+        '+" .dl-del{background:#fef2f2;color:#dc2626;}"' +
+        '+" .dl-del:hover{background:#fee2e2;}"' +
+        '+" .dl-sec.drag-over{outline:2px solid #4361ee!important;}"' +
+      ';document.head.appendChild(st);' +
+
+      // Helper: send message to parent
+      'function pm(d){try{window.parent.postMessage(JSON.stringify(d),"*");}catch(e){}}' +
+
+      // Helper: resize all Chart.js instances
+      'function resizeCharts(){try{if(window.Chart&&Chart.instances)' +
+        'Object.keys(Chart.instances).forEach(function(k){try{Chart.instances[k].resize();}catch(e){}});}catch(e){}}' +
+
+      // Build the control bar for one section
+      'function addBar(sec,i){' +
+        'if(sec.querySelector(".dl-bar"))return;' +
+        'var id=sec.dataset.secId||("s"+i);' +
+        'var title=sec.dataset.secTitle||id;' +
+        'sec.classList.add("dl-sec");' +
+        'var bar=document.createElement("div");bar.className="dl-bar";' +
+
+        // Drag handle
+        'var dh=document.createElement("span");dh.className="dl-drag";dh.textContent="⠿";dh.title="Drag to reorder";bar.appendChild(dh);' +
+
+        // Label
+        'var lb=document.createElement("span");lb.className="dl-lbl";lb.textContent=title;bar.appendChild(lb);' +
+
+        // Up
+        'var up=document.createElement("button");up.className="dl-btn dl-up";up.textContent="↑";up.title="Move up";' +
+        'up.onclick=function(e){e.stopPropagation();moveSec(sec,-1);};bar.appendChild(up);' +
+
+        // Down
+        'var dn=document.createElement("button");dn.className="dl-btn dl-dn";dn.textContent="↓";dn.title="Move down";' +
+        'dn.onclick=function(e){e.stopPropagation();moveSec(sec,1);};bar.appendChild(dn);' +
+
+        // Delete / hide
+        'var dl=document.createElement("button");dl.className="dl-btn dl-del";dl.textContent="🗑";dl.title="Hide section";' +
+        'dl.onclick=function(e){e.stopPropagation();sec.style.display="none";sendSnapshot();};bar.appendChild(dl);' +
+
+        'sec.appendChild(bar);' +
+
+        // Drag-and-drop events
+        'sec.setAttribute("draggable","true");' +
+        'sec.addEventListener("dragstart",function(e){window.__dlSrc=sec;e.dataTransfer.effectAllowed="move";setTimeout(function(){sec.style.opacity="0.45";},0);});' +
+        'sec.addEventListener("dragend",function(){sec.style.opacity="";document.querySelectorAll(".dl-sec").forEach(function(s){s.classList.remove("drag-over");});});' +
+        'sec.addEventListener("dragover",function(e){e.preventDefault();sec.classList.add("drag-over");});' +
+        'sec.addEventListener("dragleave",function(){sec.classList.remove("drag-over");});' +
+        'sec.addEventListener("drop",function(e){e.preventDefault();sec.classList.remove("drag-over");' +
+          'if(window.__dlSrc&&window.__dlSrc!==sec){sec.parentNode.insertBefore(window.__dlSrc,sec);resizeCharts();sendSnapshot();}' +
+        '});' +
+      '}' +
+
+      // Move a section up or down in the DOM
+      'function moveSec(sec,dir){' +
+        'var all=Array.from(document.querySelectorAll("section.dash-sec"));' +
+        'var i=all.indexOf(sec);var t=i+dir;' +
+        'if(t<0||t>=all.length)return;' +
+        'if(dir===-1)sec.parentNode.insertBefore(sec,all[t]);' +
+        'else sec.parentNode.insertBefore(sec,all[t].nextSibling);' +
+        'resizeCharts();sendSnapshot();' +
+      '}' +
+
+      // Send current section state to parent
+      'function sendSnapshot(){' +
+        'var secs=Array.from(document.querySelectorAll("section.dash-sec"));' +
+        'var data=secs.map(function(s){return{id:s.dataset.secId||"",title:s.dataset.secTitle||s.dataset.secId||"",hidden:s.style.display==="none"};});' +
+        'pm({action:"snapshot",sections:data});' +
+      '}' +
+
+      // Toggle always-visible controls (edit mode)
+      'window.__dlEdit=function(on){document.querySelectorAll(".dl-bar").forEach(function(b){if(on)b.classList.add("on");else b.classList.remove("on");});};' +
+
+      // Apply order+hidden from parent (on load restore)
+      'window.__dlApply=function(order,hidden){' +
+        'var map={};document.querySelectorAll("section.dash-sec").forEach(function(s){map[s.dataset.secId]=s;});' +
+        'var sorted=[];' +
+        '(order||[]).forEach(function(id){if(map[id])sorted.push(map[id]);});' +
+        'Object.keys(map).forEach(function(id){if(sorted.indexOf(map[id])===-1)sorted.push(map[id]);});' +
+        'sorted.forEach(function(s){document.body.appendChild(s);});' +
+        'document.querySelectorAll("section.dash-sec").forEach(function(s){' +
+          's.style.display=(hidden&&hidden.indexOf(s.dataset.secId)!==-1)?"none":"";' +
+        '});' +
+        'resizeCharts();' +
+      '};' +
+
+      // Restore a hidden section by id
+      'window.__dlRestore=function(id){' +
+        'var s=document.querySelector("section.dash-sec[data-sec-id=\\""+id+"\\"]");' +
+        'if(s){s.style.display="";sendSnapshot();}' +
+      '};' +
+
+      // Listen for commands from parent
+      'window.addEventListener("message",function(e){' +
+        'try{var d=JSON.parse(e.data);' +
+          'if(d.cmd==="edit")window.__dlEdit(d.on);' +
+          'if(d.cmd==="apply")window.__dlApply(d.order,d.hidden);' +
+          'if(d.cmd==="restore")window.__dlRestore(d.id);' +
+          'if(d.cmd==="snapshot")sendSnapshot();' +
+        '}catch(ex){}' +
+      '});' +
+
+      // Init: add bars to all sections, then tell parent we are ready
+      'function init(){' +
+        'var secs=document.querySelectorAll("section.dash-sec");' +
+        'if(!secs.length)return false;' +
+        'secs.forEach(function(s,i){addBar(s,i);});' +
+        'sendSnapshot();' + 
+        'pm({action:"ready"});' +
+        'return true;' +
+      '}' +
+
+      // Poll until sections exist (AI renders async in some dashboards)
+      'var _att=0;' +
+      'function tryInit(){_att++;if(init())return;if(_att<20)setTimeout(tryInit,300);}' +
+      'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(tryInit,100);});' +
+      'else setTimeout(tryInit,100);' +
+
+    '})()<\/scr'+'ipt>';
+    dashHtml = dashHtml.replace('</body>', _ceScript + _dlInjectScript + '</body>').replace('</html>', _ceScript + _dlInjectScript + '</html>');
 
         storeDashHtml(type, dashHtml);
     const blob = new Blob([dashHtml], { type: 'text/html; charset=utf-8' });
@@ -9487,197 +9628,151 @@ function ptDeleteTemplate(i) {
 
 
 // ═══════════════════════════════════════════════════════════════════
-// DASHBOARD LAYOUT EDITOR (v1) — Section hide / reorder / persist
-// Key: ra_dash_layout_v1::{type}  →  { order: [...ids], hidden: [...ids] }
+// DASHBOARD LAYOUT EDITOR v2 — postMessage architecture
+// Controls are injected INTO the iframe (_dlInjectScript).
+// Parent listens for postMessage from iframe to update layout bar.
 // ═══════════════════════════════════════════════════════════════════
 
 var _dashLayoutEditMode = false;
+var _dlActiveType = null;
+var _dlSnapshot = {};   // type → [{id,title,hidden}]
 
-function _dlKey(type) { return 'ra_dash_layout_v1::' + type; }
+// ── Persist ──────────────────────────────────────────────────────
+function _dlKey(type)  { return 'ra_dash_layout_v1::' + type; }
+function _dlLoad(type) { try { return JSON.parse(localStorage.getItem(_dlKey(type))) || null; } catch(e) { return null; } }
+function _dlSave(type, layout) { try { localStorage.setItem(_dlKey(type), JSON.stringify(layout)); } catch(e) {} }
+function _dlReset(type){ try { localStorage.removeItem(_dlKey(type)); } catch(e) {} }
 
-function _dlLoad(type) {
-  try { return JSON.parse(localStorage.getItem(_dlKey(type))) || null; } catch(e) { return null; }
-}
-
-function _dlSave(type, layout) {
-  try { localStorage.setItem(_dlKey(type), JSON.stringify(layout)); } catch(e) {}
-}
-
-function _dlReset(type) {
-  try { localStorage.removeItem(_dlKey(type)); } catch(e) {}
-}
-
-// Get all .dash-sec elements from inside the iframe (preferred) or outer doc
-function _dlGetSections(type) {
-  var iframe = document.getElementById('dash-iframe-' + type);
-  if (iframe) {
-    try {
-      var iDoc = iframe.contentDocument || iframe.contentWindow.document;
-      if (iDoc) return Array.from(iDoc.querySelectorAll('.dash-sec'));
-    } catch(e) {}
+// ── Send command to iframe ────────────────────────────────────────
+function _dlSend(type, data) {
+  var ifr = document.getElementById('dash-iframe-' + type);
+  if (ifr && ifr.contentWindow) {
+    try { ifr.contentWindow.postMessage(JSON.stringify(data), '*'); } catch(e) {}
   }
-  // Fallback: sections injected directly into dash-content
-  var content = document.getElementById('dash-content');
-  if (content) return Array.from(content.querySelectorAll('.dash-sec'));
-  return [];
 }
 
-// Apply saved layout (order + hidden) after dashboard renders
-function dashApplyLayout(type) {
-  var layout = _dlLoad(type);
-  if (!layout) return;
-
-  // Wait for iframe to fully load before applying
-  var iframe = document.getElementById('dash-iframe-' + type);
-  if (iframe) {
-    var doApply = function() {
-      var secs = _dlGetSections(type);
-      if (!secs.length) return;
-      _dlApplyToSections(secs, layout);
-    };
-    // Try immediately + on load event
-    setTimeout(doApply, 300);
-    iframe.addEventListener('load', function() { setTimeout(doApply, 100); });
-    return;
-  }
-  // No iframe — apply directly
-  var secs = _dlGetSections(type);
-  if (secs.length) _dlApplyToSections(secs, layout);
-}
-
-function _dlApplyToSections(secs, layout) {
-  var parent = secs[0] && secs[0].parentNode;
-  if (!parent) return;
-
-  var order   = layout.order  || [];
-  var hidden  = layout.hidden || [];
-
-  // Build map id → element
-  var map = {};
-  secs.forEach(function(s) { map[s.dataset.secId] = s; });
-
-  // Reorder: move known ids first, append unknown at end
-  var reordered = [];
-  order.forEach(function(id) { if (map[id]) reordered.push(map[id]); });
-  secs.forEach(function(s) { if (reordered.indexOf(s) === -1) reordered.push(s); });
-
-  reordered.forEach(function(s) { parent.appendChild(s); });
-
-  // Apply visibility
-  reordered.forEach(function(s) {
-    var isHidden = hidden.indexOf(s.dataset.secId) !== -1;
-    s.style.display = isHidden ? 'none' : '';
-  });
-
-  // Resize all Chart.js charts in iframe after reorder
-  _dlResizeCharts(secs[0]);
-}
-
-function _dlResizeCharts(anySection) {
+// ── Listen for messages from iframe ──────────────────────────────
+window.addEventListener('message', function(e) {
   try {
-    var win = null;
-    var iframe = document.querySelector('iframe[id^="dash-iframe-"]');
-    if (iframe) win = iframe.contentWindow;
-    if (!win) win = window;
-    var C = win.Chart;
-    if (!C || !C.instances) return;
-    Object.keys(C.instances).forEach(function(k) {
-      try { C.instances[k].resize(); } catch(e) {}
-    });
-  } catch(e) {}
+    var d = JSON.parse(e.data);
+    var type = _dlActiveType;
+    if (!type) return;
+
+    if (d.action === 'ready') {
+      // iframe is ready — apply saved layout and set edit mode
+      var saved = _dlLoad(type);
+      if (saved && (saved.order.length || saved.hidden.length)) {
+        _dlSend(type, { cmd: 'apply', order: saved.order, hidden: saved.hidden });
+      }
+      if (_dashLayoutEditMode) _dlSend(type, { cmd: 'edit', on: true });
+      // Request snapshot so we can render restore buttons
+      _dlSend(type, { cmd: 'snapshot' });
+    }
+
+    if (d.action === 'snapshot' && d.sections) {
+      _dlSnapshot[type] = d.sections;
+      dashRenderLayoutBar(type);
+    }
+  } catch(ex) {}
+});
+
+// ── Called after parseDashResponse ───────────────────────────────
+function dashApplyLayout(type) {
+  _dlActiveType = type;
+  // Actual apply happens when iframe sends 'ready' message
 }
 
-// Build current layout state from live DOM
-function _dlCurrentLayout(type) {
-  var secs = _dlGetSections(type);
-  var order  = secs.map(function(s) { return s.dataset.secId; });
-  var hidden = secs.filter(function(s) { return s.style.display === 'none'; })
-                   .map(function(s) { return s.dataset.secId; });
-  return { order: order, hidden: hidden };
-}
-
-// ── Layout Control Bar ────────────────────────────────────────────
+// ── Layout bar (lives in parent DOM, above the iframe) ───────────
 function dashRenderLayoutBar(type) {
+  _dlActiveType = type;
   var content = document.getElementById('dash-content');
   if (!content) return;
 
-  // Remove any existing layout bar
   var old = document.getElementById('dash-layout-bar');
   if (old) old.parentNode.removeChild(old);
 
-  // Only show bar if there are dash-sec sections (after iframe loads)
   var bar = document.createElement('div');
   bar.id = 'dash-layout-bar';
-  bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 14px;background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;margin-bottom:12px;flex-wrap:wrap;font-family:Outfit,sans-serif;font-size:0.75rem;';
+  bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 14px;' +
+    'background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:10px;' +
+    'margin-bottom:12px;flex-wrap:wrap;font-family:Outfit,sans-serif;font-size:0.75rem;';
 
-  var label = document.createElement('span');
-  label.style.cssText = 'font-weight:700;color:#4361ee;font-size:0.72rem;letter-spacing:.5px;text-transform:uppercase;margin-right:4px;';
-  label.textContent = '⚙️ Layout';
-  bar.appendChild(label);
+  // Label
+  var lbl = document.createElement('span');
+  lbl.style.cssText = 'font-weight:700;color:#4361ee;font-size:0.72rem;letter-spacing:.5px;text-transform:uppercase;';
+  lbl.textContent = '⚙️ Layout';
+  bar.appendChild(lbl);
 
   // Edit toggle
   var editBtn = document.createElement('button');
-  editBtn.id = 'dash-layout-edit-btn';
-  editBtn.style.cssText = 'padding:4px 12px;border-radius:7px;border:1.5px solid #4361ee;background:' + (_dashLayoutEditMode ? '#4361ee' : 'white') + ';color:' + (_dashLayoutEditMode ? 'white' : '#4361ee') + ';font-family:Outfit,sans-serif;font-size:0.73rem;font-weight:600;cursor:pointer;transition:all .15s;';
+  editBtn.style.cssText = 'padding:4px 12px;border-radius:7px;border:1.5px solid #4361ee;cursor:pointer;' +
+    'background:' + (_dashLayoutEditMode ? '#4361ee' : 'white') + ';' +
+    'color:' + (_dashLayoutEditMode ? 'white' : '#4361ee') + ';' +
+    'font-family:Outfit,sans-serif;font-size:0.73rem;font-weight:600;';
   editBtn.textContent = _dashLayoutEditMode ? '✏️ Editing ON' : '✏️ Edit Layout';
+  editBtn.title = _dashLayoutEditMode
+    ? 'Controls visible on sections — click to exit'
+    : 'Show ↑ ↓ 🗑 controls on each section (hover to see)';
   editBtn.onclick = function() {
     _dashLayoutEditMode = !_dashLayoutEditMode;
+    _dlSend(type, { cmd: 'edit', on: _dashLayoutEditMode });
     dashRenderLayoutBar(type);
-    _dlToggleEditOverlays(type, _dashLayoutEditMode);
   };
   bar.appendChild(editBtn);
 
-  // Save Layout
+  // Save
   var saveBtn = document.createElement('button');
   saveBtn.style.cssText = 'padding:4px 12px;border-radius:7px;border:1.5px solid #0a9c5a;background:white;color:#0a9c5a;font-family:Outfit,sans-serif;font-size:0.73rem;font-weight:600;cursor:pointer;';
   saveBtn.textContent = '💾 Save Layout';
   saveBtn.onclick = function() {
-    var layout = _dlCurrentLayout(type);
-    _dlSave(type, layout);
+    var snap = _dlSnapshot[type] || [];
+    if (!snap.length) {
+      saveBtn.textContent = '⚠️ Nothing to save yet';
+      setTimeout(function(){ saveBtn.textContent = '💾 Save Layout'; }, 2000);
+      return;
+    }
+    var order  = snap.map(function(s) { return s.id; });
+    var hidden = snap.filter(function(s) { return s.hidden; }).map(function(s) { return s.id; });
+    _dlSave(type, { order: order, hidden: hidden });
     saveBtn.textContent = '✅ Saved!';
-    setTimeout(function() { saveBtn.textContent = '💾 Save Layout'; }, 1800);
+    setTimeout(function(){ saveBtn.textContent = '💾 Save Layout'; }, 1800);
   };
   bar.appendChild(saveBtn);
 
-  // Reset Layout
+  // Reset
   var resetBtn = document.createElement('button');
   resetBtn.style.cssText = 'padding:4px 12px;border-radius:7px;border:1.5px solid #e5383b;background:white;color:#e5383b;font-family:Outfit,sans-serif;font-size:0.73rem;font-weight:600;cursor:pointer;';
   resetBtn.textContent = '↺ Reset';
   resetBtn.onclick = function() {
     _dlReset(type);
     _dashLayoutEditMode = false;
-    // Re-show all sections, restore original order
-    var secs = _dlGetSections(type);
-    secs.forEach(function(s) { s.style.display = ''; s.removeAttribute('draggable'); });
-    _dlToggleEditOverlays(type, false);
+    _dlSnapshot[type] = [];
+    _dlSend(type, { cmd: 'apply', order: [], hidden: [] });
+    _dlSend(type, { cmd: 'edit', on: false });
     dashRenderLayoutBar(type);
-    var st = document.getElementById('status-text');
-    if (st) { st.textContent = '↺ Layout reset to default'; setTimeout(function(){ st.textContent=''; }, 2000); }
   };
   bar.appendChild(resetBtn);
 
-  // Restore hidden sections dropdown (only in edit mode)
+  // Restore hidden sections (only when edit mode on and sections are hidden)
   if (_dashLayoutEditMode) {
-    var secs = _dlGetSections(type);
-    var hiddenSecs = secs.filter(function(s) { return s.style.display === 'none'; });
-    if (hiddenSecs.length > 0) {
+    var snap = _dlSnapshot[type] || [];
+    var hidden = snap.filter(function(s) { return s.hidden; });
+    if (hidden.length) {
       var sep = document.createElement('span');
       sep.style.cssText = 'color:#94a3b8;margin:0 2px;';
       sep.textContent = '|';
       bar.appendChild(sep);
-
-      var restoreLbl = document.createElement('span');
-      restoreLbl.style.cssText = 'color:#64748b;font-size:0.7rem;';
-      restoreLbl.textContent = 'Restore:';
-      bar.appendChild(restoreLbl);
-
-      hiddenSecs.forEach(function(s) {
+      var rlbl = document.createElement('span');
+      rlbl.style.cssText = 'color:#64748b;font-size:0.7rem;font-weight:600;';
+      rlbl.textContent = 'Restore:';
+      bar.appendChild(rlbl);
+      hidden.forEach(function(s) {
         var rb = document.createElement('button');
         rb.style.cssText = 'padding:3px 9px;border-radius:6px;border:1.5px solid #94a3b8;background:#f8fafc;color:#475569;font-family:Outfit,sans-serif;font-size:0.7rem;cursor:pointer;';
-        rb.textContent = '👁 ' + (s.dataset.secTitle || s.dataset.secId);
+        rb.textContent = '👁 ' + (s.title || s.id);
         rb.onclick = function() {
-          s.style.display = '';
-          _dlAddSectionControls(s, type);
+          _dlSend(type, { cmd: 'restore', id: s.id });
+          s.hidden = false;
           dashRenderLayoutBar(type);
         };
         bar.appendChild(rb);
@@ -9685,171 +9780,8 @@ function dashRenderLayoutBar(type) {
     }
   }
 
-  // Insert bar BEFORE the first child of content (so it sits above everything)
   content.insertBefore(bar, content.firstChild);
 }
-
-// ── Section edit overlays ─────────────────────────────────────────
-function _dlToggleEditOverlays(type, on) {
-  var iframe = document.getElementById('dash-iframe-' + type);
-  var doIt = function() {
-    var secs = _dlGetSections(type);
-    if (!secs.length) {
-      // iframe may not have loaded yet — wait
-      if (iframe) { iframe.addEventListener('load', function() { setTimeout(function(){ _dlToggleEditOverlays(type, on); }, 150); }); }
-      return;
-    }
-    secs.forEach(function(s) {
-      if (on) {
-        _dlAddSectionControls(s, type);
-        s.setAttribute('draggable', 'true');
-      } else {
-        _dlRemoveSectionControls(s);
-        s.removeAttribute('draggable');
-      }
-    });
-    if (on) _dlInitDragDrop(type);
-  };
-  if (iframe) { setTimeout(doIt, 200); } else { doIt(); }
-}
-
-function _dlAddSectionControls(sec, type) {
-  // Don't double-add
-  if (sec.querySelector('.__dl-ctrl')) return;
-
-  var title = sec.dataset.secTitle || sec.dataset.secId || 'Section';
-
-  // Inject position:relative on section so the controls anchor correctly
-  if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
-
-  var ctrl = document.createElement('div');
-  ctrl.className = '__dl-ctrl';
-  ctrl.style.cssText = 'position:absolute;top:6px;right:8px;z-index:9999;display:flex;gap:4px;align-items:center;background:rgba(255,255,255,0.95);border:1.5px solid #e2e8f0;border-radius:8px;padding:3px 6px;box-shadow:0 2px 8px rgba(0,0,0,.12);font-family:system-ui,sans-serif;';
-
-  var drag = document.createElement('span');
-  drag.textContent = '⠿';
-  drag.title = 'Drag to reorder';
-  drag.style.cssText = 'cursor:grab;font-size:14px;color:#94a3b8;line-height:1;user-select:none;';
-  ctrl.appendChild(drag);
-
-  var up = document.createElement('button');
-  up.textContent = '↑';
-  up.title = 'Move up';
-  up.style.cssText = 'border:none;background:none;cursor:pointer;font-size:13px;color:#4361ee;padding:0 2px;line-height:1;font-weight:700;';
-  up.onclick = function(e) { e.stopPropagation(); _dlMoveSection(sec, type, -1); };
-  ctrl.appendChild(up);
-
-  var dn = document.createElement('button');
-  dn.textContent = '↓';
-  dn.title = 'Move down';
-  dn.style.cssText = 'border:none;background:none;cursor:pointer;font-size:13px;color:#4361ee;padding:0 2px;line-height:1;font-weight:700;';
-  dn.onclick = function(e) { e.stopPropagation(); _dlMoveSection(sec, type, 1); };
-  ctrl.appendChild(dn);
-
-  var hide = document.createElement('button');
-  hide.textContent = '🗑';
-  hide.title = 'Hide section';
-  hide.style.cssText = 'border:none;background:none;cursor:pointer;font-size:12px;padding:0 2px;line-height:1;';
-  hide.onclick = function(e) {
-    e.stopPropagation();
-    sec.style.display = 'none';
-    dashRenderLayoutBar(type);
-  };
-  ctrl.appendChild(hide);
-
-  sec.appendChild(ctrl);
-
-  // Edit-mode outline
-  sec.style.outline = '2px dashed #c7d2fe';
-  sec.style.outlineOffset = '3px';
-}
-
-function _dlRemoveSectionControls(sec) {
-  var ctrl = sec.querySelector('.__dl-ctrl');
-  if (ctrl) ctrl.parentNode.removeChild(ctrl);
-  sec.style.outline = '';
-  sec.style.outlineOffset = '';
-}
-
-function _dlMoveSection(sec, type, dir) {
-  var parent = sec.parentNode;
-  if (!parent) return;
-  var secs = Array.from(parent.querySelectorAll('.dash-sec'));
-  var idx = secs.indexOf(sec);
-  var target = dir === -1 ? idx - 1 : idx + 1;
-  if (target < 0 || target >= secs.length) return;
-  var ref = secs[target];
-  if (dir === -1) {
-    parent.insertBefore(sec, ref);
-  } else {
-    parent.insertBefore(sec, ref.nextSibling);
-  }
-  _dlResizeCharts(sec);
-  dashRenderLayoutBar(type);
-}
-
-// ── HTML5 Drag-and-Drop ───────────────────────────────────────────
-var _dlDragSrc = null;
-
-function _dlInitDragDrop(type) {
-  var secs = _dlGetSections(type);
-  secs.forEach(function(s) {
-    s.removeEventListener('dragstart', s.__dlDragStart);
-    s.removeEventListener('dragover',  s.__dlDragOver);
-    s.removeEventListener('dragleave', s.__dlDragLeave);
-    s.removeEventListener('drop',      s.__dlDrop);
-    s.removeEventListener('dragend',   s.__dlDragEnd);
-
-    s.__dlDragStart = function(e) {
-      _dlDragSrc = s;
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', s.dataset.secId);
-      setTimeout(function() { s.style.opacity = '0.4'; }, 0);
-    };
-    s.__dlDragOver = function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      s.style.boxShadow = '0 0 0 2px #4361ee';
-    };
-    s.__dlDragLeave = function() {
-      s.style.boxShadow = '';
-    };
-    s.__dlDrop = function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      s.style.boxShadow = '';
-      if (_dlDragSrc && _dlDragSrc !== s) {
-        var parent = s.parentNode;
-        // Insert _dlDragSrc before s
-        parent.insertBefore(_dlDragSrc, s);
-        _dlResizeCharts(s);
-        dashRenderLayoutBar(type);
-      }
-      return false;
-    };
-    s.__dlDragEnd = function() {
-      s.style.opacity = '';
-      _dlGetSections(type).forEach(function(x) { x.style.boxShadow = ''; });
-      _dlDragSrc = null;
-    };
-
-    s.addEventListener('dragstart', s.__dlDragStart);
-    s.addEventListener('dragover',  s.__dlDragOver);
-    s.addEventListener('dragleave', s.__dlDragLeave);
-    s.addEventListener('drop',      s.__dlDrop);
-    s.addEventListener('dragend',   s.__dlDragEnd);
-  });
-}
-
-// ── Also expose dash-sec detection inside parseDashResponse ──────
-// When the iframe loads, auto-wire drag-drop if layout edit mode is on
-(function() {
-  var _origPDR = window.parseDashResponse;
-  // Observe iframe load to trigger overlay re-init if edit mode was on
-  document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {}, true);
-  });
-})();
 
 
 function dashRenderActionBar(type, label, analysisText, dashHtml) {
