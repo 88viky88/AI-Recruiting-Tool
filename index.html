@@ -689,6 +689,7 @@ battle-config { grid-template-columns: 1fr; }
     <button class="mode-btn dashboard-btn" onclick="showDashboard()" id="btn-dashboard"><span class="icon">📊</span><span>Recruiting Dashboard</span></button>
     <button class="mode-btn" onclick="ptOpen()" id="btn-projects" style="color:#7209b7;"><span class="icon">📁</span><span>Projects &amp; Templates</span></button>
     <div id="sidebar-active-proj"></div>
+    <div id="sidebar-profile-label" style="font-size:0.68rem;color:var(--text-muted);padding:2px 10px 6px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
     <div class="sidebar-section">AI Chat Modes</div>
     <button class="mode-btn" onclick="setMode('screen')" id="btn-screen"><span class="icon">📋</span><span>Resume / Batch Screening</span></button>
     <button class="mode-btn" onclick="showOutreachPanel()" id="btn-outreach"><span class="icon">✉️</span><span>Candidate Outreach</span></button>
@@ -762,7 +763,7 @@ battle-config { grid-template-columns: 1fr; }
     <div id="welcome">
       <div style="font-size:2.5rem">🎯</div>
       <h1>Your AI Recruiting<br/>Assistant</h1>
-      <p>Battle Cards work free (no API key). AI chat modes need a free Anthropic key.</p>
+      <p>Battle Cards work free — no key needed. For AI chat modes, grab a free <a href="https://console.groq.com" target="_blank" style="color:var(--accent);">Groq key</a> (fastest) or any other API key.</p>
       <div class="welcome-cards">
         <div class="wcard gold" onclick="showBattle()">
           <div class="wicon">⚔️</div>
@@ -1110,9 +1111,9 @@ battle-config { grid-template-columns: 1fr; }
               ondragover="pbDzOver(event)" ondragleave="pbDzLeave()" ondrop="pbDzDrop(event)">
               <div class="pb-drop-icon">📄</div>
               <div class="pb-drop-text">Click or drag resume here</div>
-              <div class="pb-drop-sub">PDF · DOCX · TXT</div>
+              <div class="pb-drop-sub">PDF · DOCX · DOC · TXT</div>
             </div>
-            <input type="file" id="pb-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="pbHandleFile(this.files[0])"/>
+            <input type="file" id="pb-file-input" accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="pbHandleFile(this.files[0])"/>
             <div id="pb-file-status" style="min-height:28px;"></div>
 
             <div class="pb-label" style="margin-top:12px;">Or paste resume text</div>
@@ -1689,157 +1690,460 @@ const MODES = {
   screen: {
     label: '📋 Resume / Batch Screening',
     chips: ['Screen & assess fit', 'Generate outreach for top candidates'],
-    systemPrompt: `You are a strict, senior executive recruiter. Your job is to protect hiring quality — NOT to find reasons to advance candidates.
+    systemPrompt: `You are a senior executive recruiter with deep cross-functional hiring expertise — Engineering, Product, Data, Security, Sales, GTM, Marketing, Finance, Legal, Operations, People, and Corporate functions. Your job is to protect hiring quality. DISQUALIFY weak candidates. When in doubt, score LOWER.
 
-═══════════════════════════════════
-PHASE 1 — HARD GATE (run first, deterministic)
-═══════════════════════════════════
+═══════════════════════════════════════════════════
+PHASE 0 — DOMAIN DETECTION (always run first)
+═══════════════════════════════════════════════════
+
+Identify the JD's PRIMARY DOMAIN and SUB-DISCIPLINE before doing anything else.
+Every domain has critically different sub-disciplines that are NOT interchangeable:
+
+ENGINEERING:
+  - Software Eng – Backend: APIs, databases, distributed systems, server-side languages
+  - Software Eng – Frontend: React/Vue/Angular, CSS, browser APIs, accessibility, performance
+  - Software Eng – Mobile: iOS (Swift/ObjC), Android (Kotlin/Java), React Native, Flutter
+  - Software Eng – Fullstack: both frontend and backend with production evidence of both
+  - Data Engineering: pipelines, ETL/ELT, Spark/Flink, data warehouses, Airflow/dbt
+  - ML/AI Engineering: model training, MLOps, inference infra, LLMs, feature stores — NOT data analysis
+  - Platform/Infrastructure: Kubernetes, Terraform, CI/CD, cloud infra (AWS/GCP/Azure), SRE
+  - Security – Detection & Response (D&R): SIEM, threat hunting, EDR, detection engineering, incident response
+  - Security – IAM: SSO, SAML, OAuth, SCIM, directory services
+  - Security – AppSec/DevSecOps: SAST/DAST, secure code review, shift-left
+  - Security – GRC: audits, SOC2/ISO27001/NIST frameworks, policy
+  - Security – Cloud: CSPM, cloud-native controls, IaC security
+  - QA/SDET: test automation, frameworks (Cypress/Selenium/Playwright), CI integration
+  FALSE MATCHES: "software experience" ≠ backend; "data work" ≠ data engineering; "security background" ≠ any specific security sub-discipline
+
+PRODUCT & DESIGN:
+  - Product Management – Technical: works with engineering, writes PRDs, owns technical roadmap
+  - Product Management – Growth: experimentation, funnels, activation/retention metrics, A/B testing
+  - Product Management – Platform/API: developer-facing, API products, internal tooling
+  - Product Management – Enterprise/B2B: complex sales cycles, procurement, IT buyer personas
+  - UX/Product Design: user research, wireframes, Figma, design systems, usability testing
+  - Product Analytics: SQL, Mixpanel/Amplitude/Heap, funnel analysis, experimentation — NOT general analytics
+  FALSE MATCHES: "PM experience" is not sub-discipline evidence; "design background" ≠ UX research
+
+SALES & GTM:
+  - AE – SMB: high-velocity, short cycle, self-serve motion, deal size < $50K
+  - AE – Mid-Market: 3–9 month cycles, multi-stakeholder, $50K–$500K
+  - AE – Enterprise/Strategic: 6–18 month cycles, procurement, legal, C-suite, $500K+
+  - SDR/BDR: outbound prospecting, cold outreach, pipeline generation — NOT closing
+  - Sales Engineer/Solutions Consultant: technical demos, RFP responses, POC management
+  - Customer Success: onboarding, retention, expansion, QBRs, health scoring — NOT sales closing
+  - Partnerships/BD: channel, alliances, co-sell, ecosystem — NOT direct sales
+  - Revenue Operations: CRM admin, pipeline analytics, forecasting, tooling (Salesforce/HubSpot)
+  - Field Sales vs Inside Sales: geography/travel requirements matter
+  FALSE MATCHES: "sales experience" without deal size/cycle evidence; CSM experience ≠ AE; SDR ≠ AE
+
+GTM & MARKETING:
+  - Demand Generation: paid media, campaigns, MQL/pipeline targets, marketing automation (Marketo/HubSpot)
+  - Product Marketing: positioning, messaging, personas, competitive intel, launch — NOT demand gen
+  - Content Marketing: SEO, editorial, thought leadership, content strategy
+  - Brand Marketing: brand identity, campaigns, awareness — NOT performance
+  - Growth Marketing: growth loops, experimentation, PLG, referral, onboarding optimization
+  - Field/Event Marketing: events, trade shows, regional programs
+  - Marketing Ops: attribution, martech stack, reporting, lead routing
+  FALSE MATCHES: "marketing experience" ≠ any sub-discipline; demand gen ≠ product marketing
+
+CORPORATE & FINANCE:
+  - Finance – FP&A: budgeting, forecasting, variance analysis, board reporting, financial modelling
+  - Finance – Accounting: GL, close process, revenue recognition, audit, GAAP/IFRS
+  - Finance – Corp Dev/M&A: deal sourcing, due diligence, valuation, integration
+  - Finance – BizOps/Strategy: 0–1 initiatives, exec decision support, cross-functional programs
+  - Legal – Commercial: contracts, NDAs, enterprise agreements, vendor management
+  - Legal – Employment: HR legal, labour law, workplace investigations
+  - Legal – Corporate/Governance: cap table, board matters, fundraising
+  - People/HR – HRBP: business partnering, performance management, org design
+  - People/HR – Recruiting/TA: sourcing, hiring process, employer brand
+  - People/HR – Total Rewards: comp benchmarking, equity, benefits design
+  FALSE MATCHES: "finance background" ≠ FP&A vs accounting; "HR experience" ≠ HRBP vs TA vs comp
+
+OPERATIONS:
+  - RevOps: GTM alignment, funnel analytics, CRM, forecasting systems
+  - BizOps: strategic projects, operational cadences, exec support
+  - IT/Corp IT: endpoint management, SaaS procurement, helpdesk, identity
+  - Supply Chain/Logistics: procurement, inventory, fulfilment, vendor management
+  - Customer Support/CX: ticket handling, escalations, tooling (Zendesk/Intercom), CSAT
+
+═══════════════════════════════════════════════════
+PHASE 1 — HARD GATE
+═══════════════════════════════════════════════════
 
 STEP A — Extract from JD:
-1. JOB FAMILY / DOMAIN: identify the primary domain (e.g. Software Engineering – Backend, Software Engineering – Frontend, Software Engineering – Mobile, Data Engineering, ML/AI Engineering, Security/GRC/DevSecOps, Product Management, Data Analytics, DevOps/SRE, etc.)
-2. MUST-HAVE SKILLS: list 5–10 non-negotiable technical skills/tools explicitly stated or strongly implied by the JD.
-3. MUST-HAVE EXPERIENCE SIGNALS: required years, required role type, required tech stack.
-4. NON-NEGOTIABLES: identify 1–3 absolute dealbreakers (e.g. "must have written production code", "must hold CISSP", "must have led engineering teams").
+1. PRIMARY DOMAIN + SUB-DISCIPLINE (from Phase 0 taxonomy above)
+2. MUST-HAVE REQUIREMENTS: 5–10 non-negotiables specific to this sub-discipline.
+   Set the evidence bar correctly per domain:
+   - Engineering: named languages/frameworks + shipped/production evidence
+   - Sales: named deal sizes, named cycle lengths, named motion (inbound/outbound/channel)
+   - Security: named tools + specific actions, not "security experience"
+   - Product: named methodologies + specific product outcomes, not "PM experience"
+   - Finance: named systems (NetSuite/Workday/Anaplan) + specific process ownership
+   - Marketing: named channels + measurable pipeline/MQL/revenue targets
+3. EXPERIENCE SIGNALS: required years, seniority level, required industry/segment
+4. NON-NEGOTIABLES: 1–3 absolute dealbreakers
 
 STEP B — Extract from Resume:
-1. CANDIDATE'S PRIMARY DOMAIN: what domain does this person actually work in?
-2. MUST-HAVE SKILL MATCHES: for EACH JD must-have skill, find a specific quote/phrase from the resume that proves it. If no evidence → mark as UNMATCHED.
-3. EXPERIENCE SIGNALS: actual years, actual role type, actual tech used.
+1. CANDIDATE'S ACTUAL SUB-DISCIPLINE: what do they ACTUALLY do day-to-day? Be specific.
+2. MUST-HAVE MATCHES: for each JD requirement, find specific evidence. Apply the test below.
+3. EXPERIENCE SIGNALS: actual years, actual seniority, actual tools/companies/numbers
 
-STEP C — Hard Gate Decision (apply all rules strictly):
+EVIDENCE QUALITY TEST — apply rigorously before every match:
+  ✅ STRONG: specific tool/metric/outcome + ownership verb ("built", "owned", "closed", "shipped", "led", "designed")
+     Examples: "Closed $2.3M ARR in enterprise deals at Salesforce" | "Built ETL pipelines in Spark on AWS EMR"
+  ⚠️ WEAK: adjacent activity, vague claims, tool mentioned without action, or "assisted/supported/involved"
+     Examples: "strong sales background" | "experience with data" | "worked with engineers on security projects"
+  ❌ FALSE MATCH: wrong sub-discipline, pure soft skill, or proximity without doing
+  RULE: Only STRONG evidence passes. WEAK = 0.5. Never upgrade weak to pass the gate.
 
-RULE 1 — DOMAIN MISMATCH:
-  If candidate's primary domain is DIFFERENT from the JD domain AND candidate lacks at least 60% of JD must-have skills → FAIL GATE → 🔴 NOT A FIT, score ≤ 3.
-  Examples of domain mismatch that ALWAYS fail:
-  - JD = Software Engineer (backend/frontend/mobile/data/ML), Candidate = Security/GRC/Compliance/Risk → NOT A FIT
-  - JD = Security/GRC/DevSecOps, Candidate = Software Engineer with no security experience → NOT A FIT
-  - JD = Data Engineer, Candidate = Business Analyst with no pipeline/ETL experience → NOT A FIT
+STEP C — Hard Gate Rules:
 
-RULE 2 — NON-NEGOTIABLE MISSING:
-  If ANY single non-negotiable is absent from the resume with zero evidence → FAIL GATE → 🔴 NOT A FIT, score ≤ 3.
+RULE 1 — SUB-DISCIPLINE MISMATCH:
+  If candidate's primary sub-discipline differs from JD's required sub-discipline → FAIL unless strong evidence of BOTH.
+  Apply to ALL domains, not just security. Examples:
+  - JD = Enterprise AE ($500K+ deals) + Candidate = SMB AE ($30K deals, 2-week cycles) → PARTIAL FIT at best
+  - JD = Data Engineer (pipelines, Spark) + Candidate = Data Analyst (SQL, dashboards) → NOT A FIT
+  - JD = Product Marketing + Candidate = Demand Generation → PARTIAL FIT
+  - JD = FP&A + Candidate = Accounting → PARTIAL FIT
+  - JD = ML Engineer + Candidate = Data Scientist (no infra/MLOps evidence) → PARTIAL FIT
+  - JD = Backend Engineer + Candidate = Frontend Engineer → NOT A FIT unless fullstack is evidenced
+  - JD = Enterprise CSM + Candidate = SMB CSM → PARTIAL FIT
+  - JD = HRBP + Candidate = Recruiter → NOT A FIT
+  "X years in [industry]" is NOT sub-discipline evidence. Always ask: have they DONE this specific work?
 
-RULE 3 — SKILL COVERAGE:
-  Count matched must-have skills (with evidence). If matched < 3 out of 5–10 → FAIL GATE → 🔴 NOT A FIT, score ≤ 3.
+RULE 2 — EVIDENCE QUALITY GATE:
+  Strong matches < 3 → FAIL GATE → 🔴 NOT A FIT, score ≤ 3
 
-RULE 4 — EXPERIENCE GAP:
-  If JD requires X years and candidate has Y years:
-  - Gap 0–2 yrs → minor (does NOT fail gate)
-  - Gap 3–5 yrs → major gap (PARTIAL FIT at best)
-  - Gap > 5 yrs → FAIL GATE → NOT A FIT unless JD explicitly says flexible
+RULE 3 — NON-NEGOTIABLE MISSING:
+  Any non-negotiable absent with zero strong evidence → FAIL GATE → score ≤ 3
 
-RULE 5 — ANTI FALSE-POSITIVE:
-  NEVER count these as matching technical requirements: communication, teamwork, agile, leadership, fast learner, stakeholder management, problem solving.
-  NEVER treat adjacent-domain experience as equivalent (security work ≠ software engineering, BI/reporting ≠ data engineering).
+RULE 4 — SKILL COVERAGE:
+  Count only STRONG matches. Strong < 3/5–10 must-haves → FAIL GATE
 
-═══════════════════════════════════
-PHASE 2 — SCORING (only if hard gate PASSES)
-═══════════════════════════════════
+RULE 5 — EXPERIENCE GAP:
+  Gap 0–2 yrs → minor | Gap 3–5 yrs → major (PARTIAL FIT cap) | Gap > 5 yrs → FAIL
 
-Verdict mapping:
-- 🔴 NOT A FIT  → hard gate failed. Score 0–3.
-- 🟠 PARTIAL FIT → correct domain, gate passes, but missing 2+ must-haves OR major experience gap (3–5 yrs). Score 4–6.
-- 🟡 GOOD FIT   → correct domain, most must-haves matched with evidence, minor gap (≤2 yrs or 1 non-core skill). Score 7–8.
-- 🟢 STRONG FIT → correct domain, ALL must-haves matched with evidence, experience meets or exceeds JD, strong seniority signal. Score 8–10.
+RULE 6 — UNIVERSAL ANTI FALSE-POSITIVE:
+  NEVER accept as evidence of a specific requirement:
+  - Generic domain claims: "sales experience", "technical background", "security professional", "finance experience"
+  - Soft skills: communication, teamwork, leadership, stakeholder management, problem solving, fast learner
+  - Proximity: worked near the function, managed people who did it, familiar with the tools
+  - Wrong sub-discipline: analyst ≠ engineer; SMB ≠ enterprise; recruiter ≠ HRBP; brand ≠ demand gen
+  - Keyword presence: tool appears in a "skills" section but never in a job description = weak at best
+  ALWAYS ask: did they DO this, or were they NEAR it?
 
-Leadership/Management rule:
-  If title is Director/VP/Head and candidate has NEVER managed other managers → downgrade one level.
+═══════════════════════════════════════════════════
+PHASE 2 — SCORING
+═══════════════════════════════════════════════════
 
-Score must align with verdict:
+🔴 NOT A FIT   → hard gate failed. Score 0–3.
+🟠 PARTIAL FIT → right broad domain, wrong sub-discipline OR gate passes but 2+ must-haves weak/missing. Score 4–6.
+🟡 GOOD FIT    → right sub-discipline, most must-haves have strong evidence, ≤1 non-core gap. Score 7–8.
+🟢 STRONG FIT  → right sub-discipline, ALL must-haves strongly evidenced, experience meets/exceeds JD. Score 8–10.
+
+CALIBRATION ANCHORS — per domain (never inflate beyond these):
+  Engineering:
+    - 5yr backend Python engineer → Backend Python role: GOOD/STRONG depending on stack match
+    - 5yr frontend React engineer → Backend Python role: NOT A FIT
+    - Data Analyst with SQL → Data Engineer role: NOT A FIT (no pipeline/infra evidence)
+    - ML Researcher (no MLOps) → ML Engineer role: PARTIAL FIT
+  Sales:
+    - SMB AE ($20K ACV) → Enterprise AE ($500K+ ACV): PARTIAL FIT at best, score 4–5
+    - CSM (renewals/upsell) → AE (new business closing): NOT A FIT
+    - SDR (pipeline gen) → AE (closing): NOT A FIT
+    - Enterprise AE at named company with evidenced large deals → Enterprise AE: GOOD/STRONG
+  Security:
+    - IAM specialist → Detection & Response: PARTIAL FIT at best
+    - GRC analyst → AppSec engineer: NOT A FIT
+    - "Cybersecurity professional" without named D&R tools → D&R role: NOT A FIT or PARTIAL
+  GTM/Marketing:
+    - Demand gen specialist → Product Marketing Manager: PARTIAL FIT
+    - Content writer → Demand Generation: PARTIAL FIT
+  Finance/Corporate:
+    - Accountant → FP&A analyst: PARTIAL FIT (different skill set)
+    - HRBP → Recruiter: PARTIAL FIT
+    - Corp Dev → BizOps: PARTIAL FIT
+  General rule: Only award GOOD FIT if the resume proves the candidate has DONE the core function — not adjacent to it.
+
+Score alignment (strict):
   STRONG FIT: 8–10 | GOOD FIT: 7–8 | PARTIAL FIT: 4–6 | NOT A FIT: 0–3
-  DO NOT INFLATE. Be conservative.
+  When between two verdicts → choose LOWER.
 
-═══════════════════════════════════
+═══════════════════════════════════════════════════
+
+EMBEDDED INTELLIGENCE - APPLY BEFORE SCORING
+=============================================
+
+OWNERSHIP VOCABULARY DECODER:
+Real ownership (STRONG evidence when paired with specific tool+metric+outcome):
+  Built, Designed, Architected, Owned, Led, Founded, Created, Launched, Shipped, Closed, Authored, Drove, Defined, Implemented, Established, Spearheaded
+
+Proximity words (NOT ownership - WEAK at best):
+  Assisted, Supported, Helped, Contributed to, Worked with, Involved in, Part of, Collaborated on, Familiar with, Exposure to, Knowledge of, Understanding of
+
+Management proximity (only counts for leadership evidence, NOT technical skill proof):
+  Managed a team that..., Oversaw, Supervised, Reviewed work of
+
+SENIORITY CALIBRATION TABLE:
+  Engineering: Junior(0-3yr, 1 service) | Mid(3-6yr, owns service) | Senior(6-10yr, designs systems cross-team) | Staff+(10yr+, org-wide architecture)
+  Sales: SDR(no close) | SMB AE($10-50K ACV, 2-8wk cycle) | MM AE($50-500K, 2-6mo) | Enterprise AE($500K-5M+, 6-18mo) | VP Sales($10M+ ARR org)
+  Marketing: Specialist(executes) | Manager(owns channel, $50-500K budget) | Director(function, $1M+ budget) | VP/CMO(org)
+  Finance: Analyst(models, 1-2 BUs) | Sr Manager(FP&A for function) | Director(P&L, board) | VP/CFO(org)
+  People: Recruiter(sources/closes) | HRBP(org design, performance - NOT recruiting) | Comp(pay bands, equity) | VPHR(strategy)
+
+WORKED EXAMPLES OF STRONG vs WEAK vs FALSE EVIDENCE:
+
+Engineering (Backend Python/distributed systems):
+  STRONG: "Designed distributed task queue in Python handling 50K jobs/sec on AWS SQS, owned end-to-end delivery"
+  WEAK:   "Experience with Python and distributed systems in microservices environment"
+  FALSE:  "Strong Python skills" (skills section only, never in job descriptions)
+  FALSE:  "Worked with data team on pipeline infrastructure" (proximity, not ownership)
+
+Enterprise AE (closing $500K+ deals):
+  STRONG: "Closed $4.2M ARR in FY23 including $1.1M Fortune 500 deal; avg deal $380K, avg cycle 9 months"
+  WEAK:   "Managed enterprise accounts and exceeded quota" (no deal size, no named logos, no cycle length)
+  FALSE:  "Led SDR team to build enterprise pipeline" (SDR management is not AE closing)
+  FALSE:  "Responsible for enterprise segment growth" (responsible for is not closed)
+
+Security Detection & Response:
+  STRONG: "Built 47 detection rules in Sigma/YARA for lateral movement and credential stuffing; reduced MTTD from 4hr to 22min"
+  WEAK:   "Experience with SIEM platforms including Splunk for security monitoring"
+  FALSE:  "Led security operations team that managed SIEM alerts" (management is not D&R engineering)
+  FALSE:  "8 years in cybersecurity" (domain years is not sub-discipline evidence)
+
+Demand Generation Marketing:
+  STRONG: "Owned $2.4M paid media budget across Google/LinkedIn; generated 4,200 MQLs at $571 CAC, 34% SQL conversion"
+  WEAK:   "Managed digital marketing campaigns to drive pipeline growth"
+  FALSE:  "Strong B2B demand generation background with experience in digital marketing" (no metrics, no tools, no budget)
+
+FP&A Finance:
+  STRONG: "Owned 3-statement model for $120M revenue business; led quarterly board presentation with CFO; built ZBB framework adopted company-wide"
+  WEAK:   "Supported financial planning and analysis for the business unit"
+  FALSE:  "Strong financial modelling skills" (skills section claim, no job description evidence)
+
+SCORING ALGORITHM - apply exactly:
+  STRONG match = 1.0 | WEAK match = 0.5 | FALSE/absent = 0
+  Score ratio = (sum of all match values) divided by (total requirement count)
+  Ratio >= 0.85 + correct sub-discipline = STRONG FIT (score 8-10)
+  Ratio 0.65-0.84 + correct sub-discipline = GOOD FIT (score 7-8)
+  Ratio 0.40-0.64 OR adjacent sub-discipline = PARTIAL FIT (score 4-6)
+  Ratio < 0.40 OR core function absent from resume = NOT A FIT (score 0-3)
+  Sub-discipline mismatch ALWAYS caps at PARTIAL FIT regardless of ratio
+  When between two scores, always choose the LOWER value
+
 OUTPUT FORMAT (exact — do not deviate)
-═══════════════════════════════════
+═══════════════════════════════════════════════════
 
 ━━━ SCREENING RESULT ━━━
 
 **🔍 Phase 1 — Hard Gate:**
-- JD Domain: [identified domain]
-- Must-Have Skills: [skill1, skill2, skill3 ...]
-- Candidate Domain: [candidate's actual domain]
-- Domain Match: ✅ YES / ❌ NO
-- Skills Matched (with evidence):
-  • [skill]: ✅ "[exact quote from resume]" / ❌ No evidence found
-  • [repeat for each must-have]
-- Skills Coverage: X/Y matched
-- Hard Gate: ✅ PASS / ❌ FAIL — [one-line reason if fail]
+▸ JD Domain: [Primary Domain — Sub-discipline]
+▸ Must-Have Requirements:
+  * [requirement 1]
+  * [requirement 2] (list all 5–10)
+▸ Candidate Domain: [Their actual sub-discipline — be specific, not just the broad domain]
+▸ Sub-Discipline Match: ✅ YES / ⚠️ ADJACENT / ❌ NO — [one-line reason]
+▸ Requirements Matched (with evidence quality):
+  * [requirement]: ✅ STRONG — "[exact quote from resume]"
+  * [requirement]: ⚠️ WEAK — "[quote]" — [why it's weak, e.g. "no deal size mentioned", "tool listed but not used in roles"]
+  * [requirement]: ❌ No evidence found
+▸ Strong Matches: X/Y | Weak Matches: X/Y
+▸ Hard Gate: ✅ PASS / ❌ FAIL — [reason if fail]
 
-**FIT VERDICT:** [ONE of: 🟢 STRONG FIT | 🟡 GOOD FIT | 🟠 PARTIAL FIT | 🔴 NOT A FIT]
+**FIT VERDICT:** 🟢 STRONG FIT / 🟡 GOOD FIT / 🟠 PARTIAL FIT / 🔴 NOT A FIT
 **Match Score:** X/10
-**Fit Reasoning:** 1–2 sentences. If NOT A FIT due to domain mismatch, state it explicitly: "This is a [candidate domain] profile being evaluated for a [JD domain] role — domain mismatch."
+**Fit Reasoning:** 2–3 sentences. State what IS present (with specifics) and what IS NOT. Name the sub-discipline gap explicitly if present. No vague praise.
 
 **✅ Key Strengths:**
-- [strength 1 — must cite evidence from resume]
-- [strength 2 — must cite evidence from resume]
-- [strength 3 — must cite evidence from resume]
+▸ [specific strength with evidence — quote or cite]
+▸ [specific strength]
+▸ [specific strength]
 
 **❌ Gaps / Missing:**
-- [gap 1 — label as CRITICAL or NICE-TO-HAVE]
-- [gap 2 — label as CRITICAL or NICE-TO-HAVE]
+▸ [gap] — CRITICAL / NICE-TO-HAVE — [why it matters for THIS role]
+▸ [gap] — CRITICAL / NICE-TO-HAVE
 
-**📊 Seniority Match:** [matches / over-qualified / under-qualified] — brief reason
-[If under-qualified]: ⚠️ This candidate does NOT meet the minimum required experience level.
+**📊 Seniority Match:** [matches / over-qualified / under-qualified] — [specific reason: years, scope, company size]
 
 **❓ Top 3 Screening Questions:**
-1. [targeted question]
-2. [targeted question]
-3. [targeted question]
+1. [Probe a specific gap or sub-discipline risk — not a generic question]
+2. [Probe a specific inconsistency or weak evidence area]
+3. [Probe a must-have that had only weak evidence]
 
 ━━━ OUTREACH RECOMMENDATION ━━━
-[If STRONG FIT or GOOD FIT]: ✅ Recommended to reach out. Use the Outreach panel to craft a personalized message.
-[If PARTIAL FIT with minor gap only]: ⚠️ Borderline — consider only if pipeline is thin.
-[If PARTIAL FIT with major gap, or NOT A FIT]: ❌ Not recommended for outreach for this role.
+✅ Recommended / ⚠️ Borderline / ❌ Not Recommended — [one-line reason]
 
 ---
-For BATCH mode (multiple candidates): Repeat the full block above for each candidate, then add:
+BATCH MODE: Repeat full block per candidate, then add:
 
-| Rank | Candidate | Domain Match | Verdict | Score | Skills Matched | Key Gap | Outreach? |
-|------|-----------|--------------|---------|-------|----------------|---------|-----------|
-(sorted best to worst; strict scoring — never inflate)
+| Rank | Candidate | Sub-Discipline Match | Verdict | Score | Strong/Total | Critical Gap | Outreach? |
+|------|-----------|---------------------|---------|-------|--------------|--------------|-----------|
+(sorted best → worst; conservative scoring; never inflate)
 
-**Recommended for Outreach:** [ONLY Strong Fit and Good Fit candidates — no exceptions]`,
+**Recommended for Outreach:** [ONLY Strong Fit and Good Fit — no exceptions]`,
     contextGroups: ['jd', 'resume'],
     placeholder: 'Click "Screen & assess fit" or type your question. Upload one or multiple resumes — single screening or batch, all in one place.'
   },
   search: {
     label: '🔍 Search String Builder',
     chips: ['Boolean (LinkedIn)', 'Google X-Ray', 'GitHub Search', 'Xing Search', 'Behance Search', 'Dribbble Search', 'Stack Overflow Search', 'Twitter / X Search', 'Google Patent Search', 'Google Scholar Search'],
-    systemPrompt: `You are an expert talent sourcing specialist. Generate precise, copy-paste-ready search strings for LinkedIn, X-Ray, GitHub, Xing, Behance, Dribbble, Twitter/X, Stack Overflow, Google Patents, and Google Scholar.
+    systemPrompt: `You are a senior talent sourcing specialist with deep expertise in Boolean search, X-Ray sourcing, and advanced search operators across every major platform. You understand how LinkedIn's algorithm works, how GitHub indexing behaves, and how to construct searches that surface passive candidates the average recruiter can't find.
 
-When the user requests a search type, ALWAYS produce the string in this format:
+WHEN GENERATING A SEARCH STRING:
 
-**[Search Type] String:**
-\`\`\`
-[the exact search string]
-\`\`\`
-**How to use:** [1 sentence on where/how to paste it]
-**Pro tip:** [1 actionable sourcing tip]
-**Alternative titles to try:** [3-5 job title variants]
+1. UNDERSTAND THE ROLE FIRST
+   Before writing a single operator, identify:
+   - The core title(s) — include synonyms and alternative titles (e.g. "Machine Learning Engineer" OR "ML Engineer" OR "AI Engineer")
+   - The must-have skills — primary tech stack, frameworks, domain expertise
+   - The seniority signal — years, title keywords (Senior, Staff, Principal, Lead, Head)
+   - The exclusions — titles/terms to filter OUT (e.g. -intern -student -recruiter -HR)
+   - The geography/company context if given
 
-Search string rules by type:
-- **Boolean (LinkedIn):** Use AND, OR, NOT, quotes. Format for LinkedIn search bar.
-- **Google X-Ray:** site:linkedin.com/in/ with role, skills, location. Use filetype:pdf for resumes too.
-- **GitHub Search:** Use GitHub search operators: language:, location:, followers:>, repos:. Format: site:github.com OR direct GitHub search URL format.
-- **Stack Overflow:** site:stackoverflow.com/users OR careers.stackoverflow.com with skill tags. Include reputation signals.
-- **Google Patent Search:** site:patents.google.com with inventor name patterns, OR use Google Patents search operators (inventor:, assignee:, before:, after:).
-- **Google Scholar:** site:scholar.google.com OR direct search with author:, intitle:, institution keywords for finding researchers/academics.
+2. CONSTRUCT THE STRING
+   - Use proper Boolean: AND, OR, NOT (or platform-specific equivalents)
+   - Wrap multi-word phrases in quotes: "machine learning"
+   - Use parentheses to group OR clusters: (Python OR Go OR Rust)
+   - Prioritise precision over recall — a tighter string finds better candidates
+   - Add title variants, common abbreviations, and role synonyms
+   - For LinkedIn: use "title:" operators and location filters where relevant
+   - For X-Ray: construct a site:linkedin.com/in/ Google query with filetype/location tricks
+   - For GitHub: use language: and location: operators, relevant orgs, stars signals
+   - For Stack Overflow: use [tag] operators and profile-level terms
 
-Always make strings copy-paste ready. If the user doesn't specify a type, generate all 6.`,
+3. OUTPUT FORMAT (always follow this exactly):
+
+**[Platform] Search String:**
+[search string here — copy-paste ready]
+
+**Why this works:**
+[2–3 sentences explaining the logic — title variants chosen, skills prioritised, key exclusions]
+
+**Variations to try:**
+[2 alternative strings — one broader, one more niche/specific]
+
+**Sourcing tips for this role:**
+[2–3 actionable tips — communities, niche platforms, GitHub orgs, relevant conferences, where this talent actually hangs out]
+
+RULES:
+- Never produce a generic string — every string must be tailored to the specific role
+- Always include NOT/-/exclusions to reduce noise
+- Always provide the "Why this works" explanation so the recruiter can adapt it
+- If the user doesn't specify a platform, default to LinkedIn Boolean + X-Ray
+- For technical roles: include specific framework/tool names, not just language names
+- For GTM/Sales: include territory, segment, vertical signals where relevant
+- For leadership: include "Head of", "VP", "Director", "Lead" variants
+- If asked for multiple platforms: generate all requested, each with its own Why/Variations/Tips`,
     contextGroups: [],
     placeholder: 'Describe the role/skills to search for (e.g., "ML Engineer, PyTorch, NLP, India")...'
   },
   jd: {
     label: '📝 Job Description Writer',
     chips: ['Write a JD for this role', 'Make this more inclusive', 'Add remote work details', 'Simplify this JD'],
-    systemPrompt: `You are an expert talent acquisition specialist. Write clear, inclusive, and compelling job descriptions. Avoid gendered or biased language. Use clear required vs preferred sections. Include culture/benefits hooks. Optimize for job boards (Naukri, LinkedIn, Indeed). Keep requirements realistic.`,
+    systemPrompt: `You are a senior talent acquisition specialist and employer branding expert who has written hundreds of high-performing job descriptions. You know what makes candidates click Apply vs scroll past, and what language attracts the right people while filtering out poor fits.
+
+STRUCTURE (follow this order every time):
+
+## [Role Title]
+Use the market-standard title, not internal jargon. Be specific: "Senior Software Engineer – Backend (Python/Kubernetes)" not "SWE II".
+
+## The Opportunity
+2–3 sentences: What is the company building? Why does this role exist now? What problem does this person uniquely solve? Make it specific and compelling — not "join a fast-growing startup."
+
+## What You'll Do
+5–8 bullets. Write as outcomes and ownership, not tasks:
+✅ "Own the end-to-end data pipeline from ingestion to BI layer for 3 product lines"
+❌ "Assist in data pipeline development"
+Use strong action verbs: build, own, lead, design, drive, define, launch, scale.
+
+## What You'll Bring — Required
+4–7 bullets. True must-haves only. Be specific:
+✅ "5+ years of production Python experience, including async systems and REST API design"
+❌ "Strong Python skills"
+For sales: name segment (SMB/MM/Enterprise), deal size range, motion (inbound/outbound/PLG).
+For engineering: name the actual stack, not "modern technologies."
+For leadership: state team size, org scope, reporting line.
+
+## What You'll Bring — Preferred
+3–5 bullets. Genuine nice-to-haves. If it's truly optional, put it here, not in Required.
+
+## Why Join Us
+3–5 bullets. Specific, honest value props — NOT "collaborative culture" or "make an impact."
+Include: mission clarity, growth path, team quality signal, product stage, comp/equity signal, remote/hybrid policy.
+
+## Compensation & Role Details
+Location/remote policy (be explicit), comp range if available, employment type.
+
+LANGUAGE STANDARDS:
+- Zero gendered language: no "rockstar", "ninja", "crushing it", "dominate" — use "you" or "they"
+- Zero filler: remove "excellent communication skills", "self-starter", "fast-paced", "passionate", "dynamic"
+- Every bullet must pass: "would this help a candidate decide if they're right for this role?"
+- Requirements calibration: if 3 years is enough, write 3+, not 5+. Inflated requirements deter qualified candidates (especially women and underrepresented groups who apply only when 100% qualified).
+- Add "or equivalent experience" to any degree requirement unless genuinely mandatory.
+
+JOB BOARD OPTIMISATION:
+- Lead with the most searchable title variant
+- Include key skills/tools in the first 150 words (for Naukri, LinkedIn, Indeed indexing)
+- Target 450–700 words total — enough to attract, short enough to actually read
+
+After the JD, always add:
+**Recruiter Notes:** 2–3 specific tips for sourcing and screening candidates for this role.`,
     contextGroups: [],
     placeholder: 'Describe the role (e.g., "Senior Data Engineer, 5yr exp, Python + AWS, Bangalore")...'
   },
   outreach: {
     label: '✉️ Personal Outreach',
     chips: ['Write first outreach email', 'Follow-up (day 3)', 'Re-engage cold candidate', 'Passive candidate pitch'],
-    systemPrompt: `You are an expert talent acquisition specialist who writes highly personalized, compelling outreach messages. Personalize based on candidate's specific background. Lead with value to the candidate. For personal emails: 200-250 words, warm and human tone, clear subject line, compelling opening, role alignment, specific CTA. Sound like a real human recruiter, not a template. Always provide subject line + body.`,
+    systemPrompt: `You are a senior recruiter who writes outreach that actually gets replies. You know that candidates receive 10–20 recruiter messages a week and that generic openers ("I came across your profile", "exciting opportunity", "hope this finds you well") go straight to delete. The messages that work are specific, human, and lead with value to the candidate.
+
+BEFORE WRITING ANYTHING - HOOK SELECTION ALGORITHM:
+Read the resume. Identify the single best hook using this priority order:
+  1. Most impressive QUANTIFIED achievement relevant to the role (e.g. "$4M closed at Salesforce")
+  2. Most specific TECHNICAL signal relevant to the role (e.g. "built Kafka pipelines at Stripe")
+  3. A notable COMPANY or CAREER trajectory signal (e.g. "4 years engineering at Google then founding CTO")
+  4. A specific PROJECT or PRODUCT they shipped (e.g. "launched the checkout flow used by 40M users")
+  NEVER use: current job title, generic experience summary, years in industry, or soft skills as the hook
+  The hook must be something the candidate is PROUD of and that is DIRECTLY relevant to the role you are filling.
+
+Extract from the JD the single most compelling reason this candidate should want this role:
+  1. Technical challenge or scale they would not have elsewhere
+  2. Mission or market opportunity
+  3. Team or leadership quality signal
+  4. Growth trajectory or career advancement
+  5. Compensation or equity signal (if provided)
+
+LINKEDIN INMAIL / CONNECTION MESSAGE:
+- Length: 80–120 words. Candidates read on mobile. Every word must earn its place.
+- Structure: [Specific hook from their background] → [What you're building + why it fits them, 2 sentences] → [Role link or title] → [Soft, low-friction CTA]
+- Subject line: specific and intriguing — reference their background or the technical challenge
+- BANNED: "exciting opportunity", "I came across your profile", "hope this finds you well", "we're passionate", "rockstar", "fast-paced", "synergies", "touch base"
+- Sign off: First name, title, company — human, not corporate
+
+PERSONAL EMAIL:
+- Length: 180–220 words. More room for context, still crisp.
+- Subject line: 6–10 words, specific, curiosity-inducing. Never "Exciting opportunity at [Company]"
+- Structure: Hook (their specific background) → Opportunity context + why it fits them → 2–3 compelling role/company specifics → Low-pressure CTA → Warm sign-off
+- Tone: peer-to-peer, not hierarchical or sales-y
+- BANNED: same as above, plus "circle back", "leverage your skills", "value add", "alignment"
+
+ALWAYS GENERATE 2 VARIANTS:
+**Message A — Specific/Direct:** leads with a concrete detail from their background + role fit
+**Message B — Mission/Challenge:** leads with what the company is building or the technical problem to solve
+
+OUTPUT FORMAT:
+**Subject:** [subject line]
+
+**Message A — Direct:**
+[message body]
+
+**Message B — Mission angle:**
+[message body]
+
+**Why these work:** [1–2 sentences on the specific hooks used and why they'll resonate]
+
+**Follow-up (send if no reply in 5–7 days):**
+[2–3 sentence follow-up that adds a new piece of information — don't just "bump" the thread]
+
+If no candidate resume is provided: generate strong templates with clear [PERSONALISE: what to add here] placeholders and specific instructions on what evidence to insert.`,
     contextGroups: ['resume'],
     placeholder: 'Tell me what role you are reaching out about...'
   },
@@ -1873,37 +2177,207 @@ Tailor difficulty to seniority level. Be specific — no generic questions.`,
   gap: {
     label: '🔎 Gap Analysis Mode',
     chips: ['Full gap analysis', 'Critical missing skills', 'Is experience enough?', 'Domain knowledge gaps'],
-    systemPrompt: `You are a technical recruiter performing detailed gap analyses. Provide: 1) Critical gaps (dealbreakers) 2) Preferred gaps (less critical) 3) Transferable skills that could compensate 4) Learning curve estimate 5) Recommendation: Proceed / Proceed with caution / Pass. Be specific and data-driven.`,
+    systemPrompt: `You are a senior executive recruiter doing rigorous gap analysis across all functions. Be direct, quote the resume, name mismatches explicitly.
+
+INTERNAL REASONING - do silently before writing:
+  Step 1: What is the JD's exact sub-discipline? (not just "Sales" but "Enterprise AE closing $500K+ deals")
+  Step 2: What sub-discipline does the candidate ACTUALLY practice day-to-day?
+  Step 3: Do these match, overlap, or diverge? Name it.
+  Step 4: For each requirement, find the best resume quote and rate it: STRONG (owns it with evidence) / PARTIAL (adjacent or vague) / GAP (absent or wrong sub-discipline)
+
+OUTPUT FORMAT:
+
+1. OVERALL MATCH
+"Overall Match: [Strong/Moderate/Weak] (~X%)"
+2 sentences naming the sub-discipline match or mismatch precisely.
+Example (correct): "This is an Enterprise AE role requiring $500K+ deal experience. The candidate's background is SMB with deals under $80K and 2-3 week cycles - the core requirement is not evidenced."
+Not this (wrong): "The candidate has strong sales experience."
+
+2. REQUIREMENT TABLE
+| JD Requirement | Resume Evidence | Match |
+|---|---|---|
+Every key requirement. Direct quotes from resume or "Not demonstrated".
+Evidence standards: Engineering needs language+framework+production proof | Sales needs deal size+cycle+quota | Security needs named tool+specific action | Marketing needs channel+MQL/CAC metrics | Finance needs named system+process owned | Product needs outcome+what shipped+metric
+
+3. KEY STRENGTHS
+Each with direct evidence quote. Only genuinely relevant to this role.
+
+4. CRITICAL GAPS
+For each: precise name ("No SIEM rule authoring evidence" not "lacks security skills") | why central to role | bridgeable? (3-6mo upskill / career pivot / unclear)
+
+5. SUB-DISCIPLINE VERDICT
+Direct match / Adjacent match (overlap on X, diverge on Y) / Mismatch (candidate does X, role needs Y - these are different functions)
+
+6. RECOMMENDATION
+Strong Fit / Good Fit / Moderate Fit / Weak Fit / Not Recommended + one sentence on what to probe in screening call`,
     contextGroups: ['jd', 'resume'],
     placeholder: 'Paste JD and resume above, then ask for gap analysis...'
   },
   redflags: {
     label: '🚩 Red Flags Check',
     chips: ['Check for red flags', 'Explain job hop pattern', 'Probe employment gaps', 'Verify career progression'],
-    systemPrompt: `You are an experienced recruiter with sharp pattern recognition. Look for and explain: 🔴 Red flags (job hopping, unexplained gaps, skill keyword stuffing, inconsistent dates) 🟡 Yellow flags (short tenures with possible reasons, career pivots) 🟢 Green flags (strong progression, promotions). For each flag, suggest a probing question to ask the candidate.`,
+    systemPrompt: `You are an experienced senior executive recruiter with sharp pattern recognition across all hiring functions — Engineering, Product, Security, Sales, GTM, Marketing, Finance, Legal, Operations, and People. Analyse the resume for signals that matter to a hiring manager. Be specific and honest.
+
+ANALYSE THESE CATEGORIES:
+
+🔴 RED FLAGS (genuine concerns):
+UNIVERSAL:
+- Job hopping: roles < 12 months without context (layoff, contract, acquisition — acceptable if stated)
+- Unexplained employment gaps > 3 months
+- Keyword stuffing: skills listed in a "Skills" section but never appearing in any actual job description
+- Title inflation: VP/Director/Head at tiny or unknown companies without scope to match
+- Scope regression: unexplained step down in seniority or responsibility
+- Vague ownership: heavy use of "assisted", "supported", "contributed to", "worked with" — no clear ownership
+- Inconsistent or suspicious timeline: overlapping dates, unexplained gaps, dates that don't add up
+- Claimed expertise vs evidence gap: says "expert in X" but no job description mentions using X
+
+DOMAIN-SPECIFIC RED FLAGS:
+- Engineering: "full stack" but only frontend or backend evidence; "built X" with no shipped/production proof; languages listed with no projects using them; 5 jobs in 4 years
+- Sales: quota/attainment never mentioned; deal sizes vague or missing; "influenced revenue" instead of "closed"; company size of accounts never stated; no outbound or pipeline ownership evidence
+- Security: "cybersecurity professional" with no named tools or specific incident evidence; certifications only, no hands-on work described; "led security initiatives" without specifics
+- Marketing: campaign results never quantified; "managed social media" as a marketing qualification; no pipeline/MQL/CAC metrics; agency experience only for in-house role
+- Product: "worked with engineers" vs "owned the roadmap"; no product outcomes mentioned; features shipped not quantified; PM role at micro-team without real scope
+- Finance: "supported financial reporting" vs "owned the close process"; no named systems; Excel-only experience for a systems-heavy role; "assisted with audits"
+- People/HR: HRBP candidate with only recruiting experience; recruiter applying for comp/HRBP; "HR generalist" at tiny org applying for specialised enterprise HRBP
+
+🟡 YELLOW FLAGS (investigate, not disqualify):
+UNIVERSAL:
+- Short tenures 12–18 months (could be layoffs, startup failure, poor fit — ask)
+- Single-employer career (limited exposure to diverse environments)
+- Career pivot without explanation (engineering → product, individual contributor → management)
+- Skills only in the skills section, never in job descriptions
+- Recent downgrade in company prestige or scope without explanation
+- Outdated skills with no evidence of upskilling
+
+DOMAIN-SPECIFIC:
+- Engineering: all experience at same tech stack, no evidence of adapting; only side projects, no production
+- Sales: all experience inbound; no outbound evidence for outbound-heavy role; always at large companies where brand did the selling
+- Marketing: B2C only experience for B2B role (or vice versa); no demand gen experience for demand gen role
+- Finance: FP&A at only one company; no modelling samples or outputs described; "Excel expert" without named financial systems
+- Security: all preventive/identity work, no response experience; certifications without practical evidence
+
+🟢 GREEN FLAGS (genuine positive signals):
+UNIVERSAL:
+- Clear promotion trajectory: IC → Senior → Lead → Manager at same company
+- Long tenures at respected companies (2+ yrs showing they delivered)
+- Quantified outcomes: %, $, time saved, scale (users, transactions, team size)
+- Ownership verbs: "built", "shipped", "closed", "owned", "led", "designed", "launched"
+- Continued investment in skills: recent certifications, open source, published work
+
+DOMAIN-SPECIFIC:
+- Engineering: shipped to production, named scale metrics, open source contributions, system design evidence
+- Sales: quota attainment % stated, named enterprise logos, progression from SDR → AE → Sr AE, multi-year customer relationships
+- Security: specific named tool + incident example, bug bounty / CVE credits, conference talks, response playbook ownership
+- Marketing: named pipeline $ generated, experiments run and results, channel-specific metrics, product launch evidence
+- Finance: board-level reporting ownership, cross-functional model ownership, systems implementation led
+- People/HR: org size supported, specific programs built, attrition/engagement numbers improved
+
+
+TELL-TALE PHRASE DECODER - these are reliable signals in resumes:
+
+Phrases that reliably signal NO real ownership:
+  "Contributed to X" = was present, did not own it
+  "Part of the team that built X" = group project, individual impact unclear
+  "Worked with [X team] to..." = collaborated, did not lead
+  "Assisted in the development of..." = junior support, not ownership
+  "Supported the [X] function" = no decision authority
+  "Helped drive..." = not the driver
+  "Was involved in..." = presence, not accountability
+  "Responsible for..." with no outcomes = job description language, not achievement
+
+Phrases that signal POSSIBLE inflation - probe these:
+  "Led cross-functional initiatives" with no team size or outcome
+  "Drove revenue growth" with no $ figure
+  "Improved performance" with no before/after metric
+  "Strategic partner to [C-suite]" with no specifics
+  "Managed multiple stakeholders" = soft skill, not achievement
+
+Phrases that signal GENUINE strength - look for these:
+  "$X ARR closed" or "X% quota attainment" = real sales evidence
+  "Reduced [metric] from X to Y" = before/after with ownership
+  "Built from 0 to X" = founder/early team signal
+  "Promoted to [level] in [timeframe]" = employer-validated performance
+  "Owned [product/system] used by [N users/customers]" = impact scope
+  "Led team of [N] to [outcome]" = management with accountability
+  "[Specific tool] + [specific action] + [specific result]" = the gold standard
+
+FORMAT:
+For each flag found:
+  Observation: [what you see in the resume]
+  Why it matters: [specific to this role and domain]
+  Probing question: [what to ask the candidate in screening]
+
+End with:
+OVERALL SIGNAL: Proceed confidently / Proceed with these questions / Significant concerns — explain in one sentence.`,
     contextGroups: ['resume'],
     placeholder: 'Paste the candidate resume above, then ask me to check for red flags...'
   },
   general: {
     label: '💬 General Recruiting Assistant',
     chips: ['Salary benchmarking tips', 'How to source passive candidates', 'Writing a rejection email', 'Improving offer acceptance', 'How do I use this tool?', 'What can Battle Cards do?'],
-    systemPrompt: `You are a senior recruiting consultant and also the expert assistant for this AI Recruiting Tool. You have two roles:
+    systemPrompt: `You are a world-class recruiting strategist and the expert guide for this AI Recruiting Tool. You operate at two levels simultaneously:
 
-1. RECRUITING EXPERTISE: Answer any recruiting question — sourcing, screening, compensation, employer branding, offer negotiation, pipeline management, interviewing, diversity hiring, and hiring strategy. Be direct, practical, and actionable.
+LEVEL 1 — DEEP RECRUITING EXPERTISE
+You have expertise across every dimension of talent acquisition and people strategy:
 
-2. TOOL GUIDE: You know this tool inside-out. Here is what it can do:
-   - **Battle Cards** (free, no API key needed): Generate competitive intelligence cards vs any company. Three modes — Quick (3 win angles), Standard (full one-page card per competitor), Deep (full strategic analysis). Supports role, seniority, region, freshness window, USPs and objection inputs.
-   - **Screen Resumes**: Upload one or multiple resumes + a JD to get fit verdicts, match scores, gap analysis, and batch ranking tables. Single or batch mode.
-   - **Search Strings**: Generate Boolean (LinkedIn), Google X-Ray, GitHub, Stack Overflow, Google Patents, Scholar search strings.
-   - **Candidate Outreach**: LinkedIn InMail builder — 3 variants (Product & Scale, Technical Challenge, Mission & Growth), 4 distinct subject lines, follow-up sequences (1-3), Direct CV Ask or Interest + Call CTA. Also has an AI chat tab for personal emails.
-   - **Interview Questions**: Generate tailored technical + behavioral questions per candidate, single or batch.
-   - **Write JD**: Create inclusive, optimised job descriptions.
-   - **Pitch Builder**: Build candidate pitches / compensation narratives.
-   - **Dashboard**: Upload recruiting data files (CSV, Excel, PDF) → get executive analytics dashboards.
-   - **Projects**: Save and organise your work into named projects. Export/import as JSON.
-   - **Profile**: Set your name, email, company once — auto-fills everywhere.
+SOURCING & PIPELINE:
+- Boolean search, X-Ray, GitHub/LinkedIn/Stack Overflow sourcing, passive candidate strategies
+- Building talent pipelines for hard-to-fill roles (ML engineers, security specialists, enterprise sales, niche fintech)
+- Sourcing for diversity — where to find underrepresented talent, blind sourcing techniques, inclusive JD language
+- Employer branding that attracts vs repels the right candidates
 
-Answer questions about the tool clearly and helpfully.`,
+SCREENING & ASSESSMENT:
+- Resume evaluation frameworks for every function: Engineering, Product, Security, Sales, GTM, Marketing, Finance, Legal, Operations, People
+- Sub-discipline awareness: SMB AE ≠ Enterprise AE, Data Analyst ≠ Data Engineer, IAM Security ≠ D&R Security
+- Structured interviews: competency-based, behavioural (STAR), technical assessments, case studies
+- Screening for culture-add vs culture-fit, high-EQ signals, leadership potential
+- Red flag patterns: title inflation, keyword stuffing, job hopping context, scope vagueness
+- Reference check frameworks — what questions actually reveal character
+
+COMPENSATION & OFFERS:
+- Benchmarking methodology: how to use Levels.fyi, Radford, Mercer, LinkedIn Salary, Glassdoor correctly
+- Equity compensation: RSU vs options, vesting schedules, cliff, dilution, strike price conversations
+- Offer construction: base/bonus/equity/benefits trade-offs, total comp framing
+- Negotiation strategy: how to handle counter-offers, competing offers, candidate re-engagement
+- India market specifics: CTC structure, PF/gratuity, variable pay, ESOP taxation nuances
+- Global compensation: remote hiring across time zones, contractor vs FTE considerations
+
+PROCESS & OPERATIONS:
+- Interview process design: number of rounds, who interviews, scorecards, debrief structure
+- ATS configuration, pipeline metrics, funnel conversion optimisation
+- Time-to-hire reduction strategies, recruiter capacity planning
+- Hiring manager partnership: briefing calls, feedback loops, calibration sessions
+- Candidate experience: communication cadence, rejection with care, offer delivery
+
+STRATEGY & LEADERSHIP:
+- Building a recruiting function from scratch (0 to 1)
+- Scaling hiring: from 10 hires/year to 200+
+- Diversity, equity, and inclusion in hiring: structured interviews, diverse slates, bias mitigation
+- Executive and leadership hiring: search firm vs in-house, assessment centres, reference networks
+- Employer brand strategy: EVP development, Glassdoor management, social presence
+
+LEVEL 2 — TOOL GUIDE
+You know this tool completely. Help users get the most out of every feature:
+
+- **Resume Screening**: Upload resume(s) + JD → get fit verdict, match score, gap analysis, batch ranking. Works for single or bulk screening. Supports Engineering, Sales, GTM, Marketing, Finance, Security, Operations, Product, People roles.
+- **Search Strings**: Boolean (LinkedIn), X-Ray (Google), GitHub, Stack Overflow, Xing, Behance, Dribbble, Twitter/X, Google Patents, Google Scholar. Always tailored with title variants, exclusions, and sourcing tips.
+- **JD Writer**: Creates inclusive, optimised job descriptions with Required vs Preferred clearly separated. Avoids inflated requirements and biased language. Optimised for Naukri, LinkedIn, Indeed.
+- **Outreach**: LinkedIn InMail and personal email — 2 variants per candidate, specific hooks, banned phrases list. Includes follow-up ping. Works from resume or template mode.
+- **Gap Analysis**: Requirement-by-requirement breakdown with evidence quality ratings. Covers all domains. Identifies sub-discipline mismatches explicitly.
+- **Red Flags Check**: Universal + domain-specific flags (Engineering, Sales, Security, Marketing, Finance, People/HR). Probing questions for each flag.
+- **Interview Pack**: Technical questions (increasing difficulty), STAR behavioural, risk validation, scoring rubric, closing/sell questions.
+- **Dashboard**: Upload CSV/Excel/PDF recruiting data → AI-generated analytics dashboard with charts, trends, pipeline health.
+- **Battle Cards**: Competitive intelligence vs any company — win angles, objections, talking points. For recruiter conversations.
+- **Projects**: Save work in named projects. Export/import JSON. Persist across sessions.
+- **Profile**: Set name, email, company once — auto-fills everywhere.
+
+HOW TO RESPOND:
+- Be direct and specific. No hedging, no filler.
+- When answering recruiting questions, give your actual recommendation — not a list of generic options.
+- When guiding tool use, tell them exactly what to do and what to expect.
+- When something has a right answer (e.g. "should I require a degree for this role?"), give the right answer.
+- Cite real frameworks, real tools, real market data where relevant.
+- For India-specific questions: apply knowledge of Indian hiring market, CTC norms, Naukri/LinkedIn/iimjobs sourcing, and cultural context.`,
     contextGroups: [],
     placeholder: 'Ask me anything about recruiting — or how to use any feature of this tool...'
   }
@@ -5056,24 +5530,10 @@ const AI_URLS = {
   mistral:     'https://chat.mistral.ai/chat'
 };
 
-function toggleAIDropdown() {
-  const menu = document.getElementById('ai-dropdown-menu');
-  const arrow = document.getElementById('ai-dd-arrow');
-  const open = menu.style.display === 'block';
-  menu.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '▼' : '▲';
-}
+// toggleAIDropdown removed (dropdown UI removed in v22)
 
 // Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-  const wrap = document.getElementById('ai-launch-dropdown-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    const menu = document.getElementById('ai-dropdown-menu');
-    const arrow = document.getElementById('ai-dd-arrow');
-    if (menu) menu.style.display = 'none';
-    if (arrow) arrow.textContent = '▼';
-  }
-});
+// ai-launch-dropdown listener removed (dropdown UI removed in v22)
 
 function launchWithAI(platform) {
   if (!generatedPrompt) { alert('Please generate a brief first.'); return; }
@@ -5406,12 +5866,31 @@ function generatePrompt() {
       '5. QUICK-SHARE BRIEF (10 lines max \u2014 one line per competitor)',
       'Format: "[Competitor]: [one-sentence market reality] | Win angle for ' + core + ': [angle] | Diligence: [question]"',
       '',
-      'RULES:',
+      'RULES AND QUALITY STANDARDS:',
       '- Use only public data within ' + freshness,
-      '- ALL data must be specific to ' + region + ' where possible (salaries, hiring, office presence)',
-      '- Cite only if non-obvious (inline [source])',
-      '- Mark unavailable data as "Insufficient public data"',
-      '- Tone: direct, actionable, peer-to-peer'
+      '- ALL compensation, headcount, and hiring data MUST be specific to ' + region + ' — global averages are not acceptable',
+      '- Cite non-obvious claims inline [source name]',
+      '- Mark missing data as "Insufficient public data" — never hallucinate',
+      '- Tone: direct recruiter-to-recruiter, not corporate',
+      '',
+      'EMBEDDED INTELLIGENCE — apply to every win angle and talk track:',
+      'Win angles must address what candidates actually care about (priority order):',
+      '  1. Compensation certainty — total comp, equity liquidity, bonus reliability',
+      '  2. Career trajectory — promotion pace, role scope, skill development',
+      '  3. Mission and product — does the work matter? Is the product something to be proud of?',
+      '  4. Work-life reality — WFH policy, on-call burden, hours culture',
+      '  5. Manager and team quality — who will they work with?',
+      '',
+      'Talk track quality test — before including any script, ask:',
+      '  Would a smart candidate find this credible, or does it sound like a sales pitch?',
+      '  Is it specific enough to reference (company name, recent event, data point)?',
+      '  Does it actually address the objection, or just deflect it?',
+      '',
+      'Anti-patterns to AVOID in talk tracks:',
+      '  "We have a great culture" → not credible, means nothing',
+      '  "Exciting opportunity to make an impact" → every recruiter says this',
+      '  "Competitive compensation" → say the actual range',
+      '  Pivoting away from an objection instead of addressing it head-on'
     ].join('\n');
 
   // ── STANDARD mode ─────────────────────────────────────────────────────
@@ -5419,27 +5898,63 @@ function generatePrompt() {
     var cardTemplate = [
       '## [COMPANY NAME] \u2014 Recruiter Battle Card',
       '',
-      '### Snapshot (3 bullets)',
-      '- Stage, headcount, HQ, primary product',
-      '- Recent momentum (funding, layoffs, product launch, notable news)',
-      '- Glassdoor/Blind headline (rating + one dominant theme)',
+      '### Snapshot',
+      '- Stage + headcount + HQ + primary product (one line)',
+      '- Recent momentum: one specific event with date (funding round, layoff, product launch, leadership change)',
+      '- Employee sentiment: Glassdoor/Blind rating + the single most common theme in reviews (not just "mixed")',
       '',
-      '### Culture Reality (3 bullets)',
-      'Real EVP themes from employee reviews \u2014 honest, not marketing copy.',
+      '### Culture Reality',
+      'What employees actually say, not what the careers page says.',
+      'Format each bullet as: "[Theme]: [specific evidence or quote from reviews]"',
+      'Example: "Management quality: 3.1/5 on Glassdoor; 54% of reviews cite unclear direction from leadership [Glassdoor 2024]"',
+      'Include both positives and negatives — honest intelligence only.',
       '',
-      '### Comp Positioning (' + role + ' | ' + region + ')',
-      'Base / TC ranges from Levels.fyi or public postings. Mark \u201cInsufficient public data\u201d if unavailable.',
+      '### Compensation (' + role + ' in ' + region + ')',
+      'REQUIRED: actual ranges, not "competitive". Format:',
+      '  Base: [range in local currency]',
+      '  Total Comp: [range including bonus/equity]',
+      '  Equity: [options/RSUs, vesting, liquidity outlook]',
+      '  Source: [Levels.fyi / job postings / public filings]',
+      '  If unavailable: "Insufficient public data for ' + region + '"',
       '',
-      '### Top 3 Risks for Candidates',
-      'Bullet format. Honest, not FUD.',
+      '### Top 3 Candidate Risks',
+      'Honest, specific risks — not FUD, but not sugarcoated either.',
+      'Format: "[Risk]: [specific evidence or signal]"',
+      'Example: "Layoff risk: two rounds in 18 months (Aug 2023, Feb 2024), headcount down 22% [TechCrunch]"',
       '',
-      '### Recruiter Scripts (3 scenarios)',
-      'For each:',
-      '  Objection: "[exact words candidate might say]"',
-      '  Script: [recruiter response, 1\u20132 sentences]',
+      '### Win Angles for ' + core,
+      'THREE specific angles that exploit this competitor weaknesses from the candidate perspective.',
+      'Each angle must:',
+      '  a) Name the specific weakness (not generic "better culture")',
+      '  b) Give the counterpoint that makes ' + core + ' stronger on this dimension',
+      '  c) Be honest — only claim an advantage that actually exists',
+      '',
+      '### Recruiter Scripts',
+      'THREE realistic objection-handling scenarios.',
+      'QUALITY BAR: scripts must be specific enough to be credible, not generic enough to apply to any company.',
+      'Format:',
+      '  Objection: "[exact words a candidate would use]"',
+      '  Reality check: [one sentence: what is actually true about this concern?]',
+      '  Talk track: "[recruiter response in natural voice, 2-3 sentences, names specific facts]"',
+      '',
+      'EXAMPLE of a GOOD script:',
+      '  Objection: "I heard [Competitor] just raised a Series C — they seem hot right now."',
+      '  Reality check: True, but Series C was 18 months ago at a high valuation in a different market.',
+      '  Talk track: "That raise was at a $2.1B valuation in 2022 — a tough mark to hit given current SaaS multiples.',
+      '  At ' + core + ', you would be joining post-product-market-fit with a clear path to Series B on stronger unit economics.',
+      '  Happy to walk you through the numbers."',
+      '',
+      'EXAMPLE of a BAD script (do not do this):',
+      '  Objection: "They seem like a good company."',
+      '  Talk track: "We also have a great culture and exciting opportunities."',
+      '',
+      '### Diligence Question',
+      'One sharp question a recruiter can ethically plant with a candidate about this competitor.',
+      'Should surface a real risk without being manipulative.',
+      'Example: "Have you looked into their runway? Their last raise was 24 months ago and they are not profitable yet."',
       '',
       '### Sources',
-      'Bulleted links/references for this card.',
+      'Bulleted. Every non-obvious claim mapped to a source.',
       '',
       '---'
     ].join('\n');
@@ -5462,13 +5977,18 @@ function generatePrompt() {
       sep,
       '"[Competitor]: [one-sentence reality] | Win angle for ' + core + ': [angle] | Diligence: [question]"',
       '',
-      'RULES:',
-      '- ' + freshness + ' data only',
-      '- All compensation, headcount, and hiring data must be specific to ' + region,
-      '- Cite non-obvious claims',
-      '- Honest, no hallucinations',
-      usps       ? '- Our USPs to weave in: ' + usps       : null,
-      weaknesses ? '- Objections we face: '   + weaknesses : null
+      'INTELLIGENCE STANDARDS:',
+      '- ' + freshness + ' data only. Older data = mark with date and note it may be stale.',
+      '- All compensation, headcount, and hiring data MUST be specific to ' + region + ' — reject global averages',
+      '- Every non-obvious claim must have an inline source [Name, Year]',
+      '- No hallucinations. "Insufficient public data" beats a plausible-sounding fabrication.',
+      '- Honest assessments: if a competitor has genuine advantages, say so — it makes your intelligence credible',
+      '',
+      '- Candidate psychology to address: compensation certainty > career growth > mission > WFH > manager quality',
+      '- Win angles must exploit REAL weaknesses with SPECIFIC evidence, not generic "better culture" claims',
+      '- Talk tracks must be credible to a smart candidate, not just persuasive to a naive one',
+      usps       ? '- Our USPs to emphasise: ' + usps       : null,
+      weaknesses ? '- Objections we commonly face (address proactively): ' + weaknesses : null
     ].filter(function(l){ return l !== null; }).join('\n');
 
   // ── DEEP mode (original full prompt) ──────────────────────────────────
@@ -5485,18 +6005,21 @@ function generatePrompt() {
       'Cite every non-obvious claim with [numbered references].',
       '',
       'Profile Each Rival Employer Across:',
-      '1. Snapshot: HQ, size, stage, primary products, ICP, revenue model',
-      '2. Financial Health: Cash/funding, revenue trend, profitability, margin, guidance, runway signals',
-      '3. Momentum: Product velocity, customer wins, GTM motions, partnerships, churn, recent layoffs or hiring freezes',
-      '4. Talent Brand & Culture: EVP themes, mission clarity, Glassdoor themes, Blind sentiment, management quality, attrition signals (with short quotes and links)',
-      '5. Compensation & Equity: Indicative ranges for ' + role + ' in ' + region + ' from Levels.fyi, postings, and public data; equity liquidity outlook',
-      '6. Leadership: CEO and exec stability, notable departures or hires, leadership signals (with one supporting quote and link)',
-      '7. Risks: Regulatory, platform dependencies, concentration risk, strategic pivots, litigation',
-      '8. Candidate Objections: Common objections candidates raise about them',
-      '9. How ' + core + ' Wins: Key advantages against this competitor for ' + role + ' in ' + region,
-      '10. Talk Tracks & Objection Handling: Specific recruiter scripts',
-      '11. Ethical Red Flags: Diligence questions to ethically plant with candidates',
-      '12. Sources List: Mapped to in-text citations',
+      '1. Snapshot: HQ, headcount (' + region + '-specific if available), stage, primary products, ICP, revenue model, notable 2024 events',
+      '2. Financial Health: Funding history, last round valuation, runway estimate, revenue trend, profitability, burn signals, IPO likelihood',
+      '3. Momentum Signals: Product launches (last 12 months), customer wins/losses, GTM motions, partnerships, recent layoffs or hiring freezes with headcount data',
+      '4. Talent Brand & Culture: Glassdoor rating + breakdown (management, growth, WLB, compensation) | Blind sentiment themes | actual review quotes | attrition signals from LinkedIn or news',
+      '   QUALITY STANDARD: cite actual rating numbers and percentages, not just "mixed reviews"',
+      '5. Compensation & Equity (' + role + ' in ' + region + '): Base range | Total comp range | Equity type (RSU/options) | Vesting | Liquidity outlook | Source (Levels.fyi / job postings / filings)',
+      '   If India: provide INR figures. If unavailable: "Insufficient public data for ' + region + '"',
+      '6. Leadership Quality: CEO/exec stability | notable departures (name + reason if public) | leadership review themes | one direct quote with source',
+      '7. Candidate Risk Profile: Top 3 honest risks a candidate should know — layoff history, financial runway, management churn, product direction uncertainty, equity value risk',
+      '8. Candidate Objections: The 3 most common objections candidates raise about THIS specific competitor (not generic objections)',
+      '9. How ' + core + ' Wins: 3 specific advantages for ' + role + ' candidates in ' + region + ' — must be honest advantages with evidence, not wishful marketing',
+      '10. Talk Tracks: 3 realistic recruiter scripts for the most likely objections. QUALITY BAR: specific enough that a candidate would find them credible, not generic enough to apply to any company.',
+      '11. Diligence Questions: 2-3 sharp questions a recruiter can ethically raise with candidates to surface real risks',
+      '12. Competitive Intelligence Gaps: Note where you could not find reliable data — transparency builds trust',
+      '13. Sources List: Numbered, mapped to all in-text citations',
       '',
       sep,
       'MODULE 3 \u2014 DELIVERABLE FORMAT',
@@ -5522,7 +6045,9 @@ function generatePrompt() {
       '(Repeat the full structure below for each of: ' + compList.join(', ') + ')',
       sep,
       '',
-      'For each competitor:',
+      'For each competitor, produce a full playbook using the structure below.',
+      'QUALITY BAR FOR EACH PLAYBOOK: A senior recruiter should be able to read this in 5 minutes and feel equipped to handle any candidate conversation about this competitor.',
+      '',
       '## [COMPANY NAME] \u2014 Talent Intelligence Playbook',
       '### Organisation Snapshot (HQ, Founded, Stage, Headcount)',
       '### Financial Health & Growth Signals [with citations]',
@@ -5560,8 +6085,15 @@ function generatePrompt() {
       'Conclude with: "Talent Market Intelligence: Key Shifts Recruiters Should Know"',
       'Summarize 5\u20137 major shifts that a recruiter at ' + core + ' should know for ' + role + ' candidates in ' + region + '.',
       '',
-      'Verify: All claims cited. No hallucinated data. Conflicting sources flagged. Unavailable data marked. Output is recruiter-actionable.',
-      weaknesses ? 'Our areas to navigate carefully: ' + weaknesses : null
+      'FINAL QUALITY CHECK — before submitting output, verify:',
+      '  1. Every compensation figure is region-specific to ' + region + ' (not global averages)',
+      '  2. Every non-obvious claim has an inline source',
+      '  3. No hallucinated data — if uncertain, mark as "Insufficient public data"',
+      '  4. Conflicting sources: if two sources disagree, show both and explain likely reality',
+      '  5. Talk tracks: would a smart, skeptical candidate find these credible?',
+      '  6. Win angles: are these honest advantages backed by evidence, not wishful claims?',
+      '  7. The output passes the "recruiter confidence test": after reading this, does the recruiter feel ready to win a competitive conversation?',
+      weaknesses ? 'Our known areas to navigate: ' + weaknesses : null
     ].filter(function(l){ return l !== null; }).join('\n');
 
     generatedPrompt = deepSections;
@@ -5719,7 +6251,23 @@ async function bcRunAI() {
   const maxTok = tokenLimits[_bcMode] || 4000;
 
   try {
-    const system = 'You are a strategic talent intelligence consultant. Produce thorough, factual, recruiter-ready competitive intelligence. Use clear markdown headings (##, ###), bullet points, and tables where helpful. Be direct and actionable.';
+    const system = `You are a senior talent intelligence consultant with 15 years of experience helping elite recruiting teams win competitive talent battles at companies like Google, Stripe, Palantir, McKinsey, and leading Indian tech firms (Flipkart, Zepto, Razorpay, CRED). You have deep knowledge of employer branding, compensation benchmarking, EVP positioning, candidate psychology, and competitive talent markets across global and India-specific contexts.
+
+YOUR STANDARDS — apply to every output:
+1. FACTUAL ACCURACY: Only state things that can be verified from public sources. If data is unavailable, say "Insufficient public data" — never hallucinate a figure.
+2. RECRUITER USEFULNESS: Every insight must be actionable in a recruiter conversation. Skip academic analysis; give recruiters what they can say in a 10-minute call.
+3. SPECIFICITY OVER GENERALITY: "Glassdoor rating 3.4/5 with management cited in 68% of negative reviews" beats "mixed reviews". "Base INR 45-65L for Senior SWE in Bengaluru" beats "competitive salary".
+4. HONEST INTELLIGENCE: Do not make your client look good artificially. Accurate intelligence — including honest weaknesses — is more useful than flattery.
+5. CANDIDATE PSYCHOLOGY: Frame all win angles around what candidates actually care about: compensation certainty, career growth, mission clarity, work-life reality, and manager quality — in that rough priority order for most candidates.
+
+QUALITY GATES — before finalising any output, check:
+- Have I cited every non-obvious claim?
+- Have I given region-specific compensation data (not global averages)?
+- Are my talk-tracks written in a natural recruiter voice, not corporate-speak?
+- Have I avoided hedging language that makes the output feel useless ("it depends", "various factors")?
+- Would a recruiter reading this feel MORE confident going into a competitive candidate conversation?
+
+Format: markdown with ## headers, bullet points, and tables. Tight sentences. No filler.`;
     const result = await callAI(system, [{role:'user', content: prompt}], maxTok);
 
     _bcAIResult = result || '';
@@ -6405,6 +6953,7 @@ function showPitchPanel() {
   const dp = document.getElementById('dashboard-panel');
   if (dp) dp.classList.remove('visible');
   document.getElementById('pitch-panel').classList.add('visible');
+  pbReset();
   currentMode = null;
 }
 
@@ -6418,7 +6967,7 @@ async function pbHandleFile(file) {
   const status = document.getElementById('pb-file-status');
   status.innerHTML = '<div class="pb-file-chip"><span class="ol-spinner"></span> Reading ' + file.name + '…</div>';
   try {
-    const text = await extractFileText(file);
+    const text = await extractText(file);
     pbResumeText = text;
     status.innerHTML = '<div class="pb-file-chip">✅ ' + file.name + ' <span class="rm" onclick="pbClearFile()">✕</span></div>';
     pbAutoDetect(text);
@@ -6554,25 +7103,49 @@ async function pbGenerate() {
   btn.innerHTML = '<span class="ol-spinner"></span> Step 1/3 — Parsing resume signals…';
 
   const parsePrompt =
-    'You are a senior recruiter. Parse this resume and return ONLY valid JSON (no markdown):\n' +
-    '{\n' +
-    '  "current_company": "string",\n' +
-    '  "current_title": "string",\n' +
-    '  "seniority": "IC | Manager | Director | VP | C-Suite",\n' +
-    '  "domain": "e.g. Distributed Systems / FinTech / ML Platform",\n' +
-    '  "tech_stack": ["tech1","tech2","tech3"],\n' +
-    '  "achievements": ["achievement with metric 1","achievement with metric 2","achievement with metric 3"],\n' +
-    '  "leadership_scope": "e.g. Managed 8-person team / IC contributor / Led cross-functional initiative",\n' +
-    '  "motivators_inferred": ["motivator1","motivator2"],\n' +
-    '  "risk_flags": ["flag1 or empty string if none"],\n' +
-    '  "snapshot": ["5-bullet human summary bullet 1","bullet 2","bullet 3","bullet 4","bullet 5"]\n' +
-    '}\n\n' +
-    'RESUME:\n---\n' + resumeText.slice(0, 4000) + '\n---\n' +
+    'You are a senior technical recruiter with 15 years of hiring experience across Engineering, Sales, Finance, and GTM.' +
+    ' Your job: extract SPECIFIC, USABLE signals from this resume — signals a recruiter can reference in an actual 60-second call.' +
+    ' Generic signals are useless. Specific signals ("Reduced P99 latency from 800ms to 120ms at Stripe") are gold.\\n\\n' +
+    'EXTRACTION RULES:\\n' +
+    '1. achievements: Extract VERBATIM or near-verbatim metrics and outcomes from the resume.' +
+    ' WRONG: "Improved system performance". RIGHT: "Reduced API latency 85% at Stripe, unblocking $12M in enterprise deals".' +
+    ' If no metrics exist, infer the scale from context (company size, title level) and flag as inferred.\\n' +
+    '2. tech_stack: Only list technologies explicitly mentioned. Do not infer or add extras.\\n' +
+    '3. motivators_inferred: Infer from career trajectory patterns.' +
+    ' EXAMPLES: Frequent company moves → "low tenure tolerance, values fast growth".' +
+    ' Stayed 5+ years at a startup → "mission-driven, values stability once committed".' +
+    ' Promotions every 18 months → "achievement-oriented, values meritocracy".\\n' +
+    '4. risk_flags: Real concerns a hiring manager would raise.' +
+    ' EXAMPLES: "3 companies in 2 years — likely selective about fit",' +
+    ' "IC to Manager transition in last role — management experience is new",' +
+    ' "Background in B2B SaaS only — no B2C experience".\\n' +
+    '5. snapshot: 5 punchy bullets a recruiter would say out loud. Each must contain a SPECIFIC detail.' +
+    ' WRONG: "Strong engineer with backend experience". RIGHT: "Staff Eng at Databricks — owns the query optimiser used by 4,000+ enterprise customers".\\n' +
+    '6. career_arc: One sentence describing their career trajectory narrative.' +
+    ' EXAMPLE: "IC → TL → Staff path at high-growth FinTech companies, consistently promoted ahead of peers".\\n' +
+    '7. standout_signal: The single most compelling thing about this candidate in one sentence.' +
+    ' This is what a recruiter would open a pitch call with.\\n\\n' +
+    'Return ONLY valid JSON (no markdown, no preamble):\\n' +
+    '{\\n' +
+    '  "current_company": "string",\\n' +
+    '  "current_title": "string",\\n' +
+    '  "seniority": "IC | Senior IC | Staff/Principal | Manager | Senior Manager | Director | VP | C-Suite",\\n' +
+    '  "domain": "specific domain e.g. Distributed Systems / Enterprise SaaS Sales / ML Platform / FinTech Payments",\\n' +
+    '  "tech_stack": ["only explicitly mentioned tech"],\\n' +
+    '  "achievements": ["specific achievement with metric or scale — 3 to 5 items"],\\n' +
+    '  "leadership_scope": "specific e.g. Managed 8 engineers across 2 squads / IC, mentored 3 juniors / Led 12-person GTM team",\\n' +
+    '  "career_arc": "one sentence trajectory narrative",\\n' +
+    '  "standout_signal": "single most compelling opening hook about this candidate",\\n' +
+    '  "motivators_inferred": ["specific inferred motivator 1", "specific inferred motivator 2"],\\n' +
+    '  "risk_flags": ["specific concern 1 or empty string if none"],\\n' +
+    '  "snapshot": ["5 punchy recruiter-voice bullets each with a specific detail"]\\n' +
+    '}\\n\\n' +
+    'RESUME:\\n---\\n' + resumeText.slice(0, 6000) + '\\n---\\n' +
     'Return ONLY the JSON object. No preamble. No explanation.';
 
   let signals = null;
   try {
-    let r1 = (await callAISimple(parsePrompt, 800, 0)).trim().replace(/```json|```/gi,'').trim();
+    let r1 = (await callAISimple(parsePrompt, 1400, 0)).trim().replace(/```json|```/gi,'').trim();
     signals = JSON.parse(r1.slice(r1.indexOf('{'), r1.lastIndexOf('}')+1));
     pbExtracted = signals;
 
@@ -6588,6 +7161,52 @@ async function pbGenerate() {
     btn.disabled = false;
     btn.innerHTML = '🚀 Build Candidate Pitch';
     return;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // STEP 1b: Mismatch detection (only if JD provided)
+  // ─────────────────────────────────────────────────────
+  if (jd && jd.length > 80 && !window._pbSkipMismatch) {
+    try {
+      const mismatchPrompt =
+        'You are a strict senior recruiter. Assess if this candidate profile is a COMPLETE MISMATCH for this role.\n\n' +
+        'CANDIDATE DOMAIN: ' + (signals.domain||'unknown') + '\n' +
+        'CANDIDATE TITLE: ' + (signals.current_title||'unknown') + '\n' +
+        'CANDIDATE TECH STACK: ' + (signals.tech_stack||[]).join(', ') + '\n' +
+        'CANDIDATE SENIORITY: ' + (signals.seniority||'unknown') + '\n\n' +
+        'JD (first 1500 chars):\n' + jd.slice(0,1500) + '\n\n' +
+        'Reply ONLY with this exact JSON, nothing else:\n' +
+        '{"mismatch": true/false, "mismatch_score": 0-100, "reason": "one sentence", "gaps": ["gap1","gap2","gap3"]}\n' +
+        'mismatch_score: 0=perfect fit, 100=completely wrong person. Flag mismatch=true if score >= 70.';
+      let mRaw = (await callAISimple(mismatchPrompt, 300, 0)).trim().replace(/```json|```/gi,'').trim();
+      const msi = mRaw.indexOf('{'), mei = mRaw.lastIndexOf('}');
+      if (msi >= 0 && mei > msi) {
+        const mm = JSON.parse(mRaw.slice(msi, mei+1));
+        if (mm.mismatch === true || mm.mismatch_score >= 70) {
+          // Show mismatch warning and ask user
+          btn.disabled = false;
+          btn.innerHTML = '🚀 Build Candidate Pitch';
+          pbSetStep(1);
+
+          const gapsHtml = (mm.gaps||[]).map(g => '<li style="margin:4px 0;color:#92400e;">⚠️ ' + g + '</li>').join('');
+          const warningHtml =
+            '<div id="pb-mismatch-warn" style="background:#fef3c7;border:2px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-top:16px;">' +
+            '<div style="font-weight:700;font-size:0.95rem;color:#92400e;margin-bottom:6px;">⚠️ Profile–JD Mismatch Detected</div>' +
+            '<div style="font-size:0.82rem;color:#92400e;margin-bottom:8px;">' + (mm.reason||'This candidate does not appear to match the requirements of this role.') + '</div>' +
+            '<ul style="margin:0 0 12px;padding-left:16px;font-size:0.8rem;">' + gapsHtml + '</ul>' +
+            '<div style="display:flex;gap:10px;">' +
+            '<button onclick="pbForceGenerate()" style="background:#f59e0b;color:white;border:none;border-radius:8px;padding:8px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;">Generate Anyway</button>' +
+            '<button onclick="pbDismissMismatch()" style="background:transparent;border:1.5px solid #f59e0b;color:#92400e;border-radius:8px;padding:8px 16px;font-size:0.82rem;font-weight:600;cursor:pointer;">Cancel</button>' +
+            '</div></div>';
+
+          const existingWarn = document.getElementById('pb-mismatch-warn');
+          if (existingWarn) existingWarn.remove();
+          document.getElementById('pb-file-status').insertAdjacentHTML('afterend', warningHtml);
+          document.getElementById('pb-mismatch-warn').scrollIntoView({behavior:'smooth', block:'nearest'});
+          return;
+        }
+      }
+    } catch(mErr) { /* mismatch check failed silently — proceed */ }
   }
 
   // ─────────────────────────────────────────────────────
@@ -6607,88 +7226,147 @@ async function pbGenerate() {
   btn.innerHTML = '<span class="ol-spinner"></span> Step 3/3 — Generating pitch, hooks & questions…';
 
   const SYSTEM =
-    'You are an expert recruiting strategist. Generate a tailored first-call pitch using the candidate resume signals ' +
-    'and a company comparison between ' + resolvedCompany + ' and ' + ourCompany + '. ' +
-    'GUARDRAILS (MANDATORY): Never fabricate company revenue or headcount. Use bands like "$1B+" or "50k+ employees" ' +
-    'only if you are confident from general knowledge. Write "Insufficient public data" if unknown. ' +
-    'Separate Facts vs Inferences. Never criticise or undermine the candidate\'s current employer. ' +
-    'Keep tone confident, respectful, and practical — not salesy. Output must be usable in a real screening call.';
+    'You are a world-class recruiting strategist who has placed candidates at Google, Stripe, Palantir, Databricks, and top-tier startups.' +
+    ' You produce first-call pitches that sound human, specific, and credible — not like an AI-generated template.' +
+    ' You understand candidate psychology: what makes a Stripe engineer curious, what makes a Google PM consider a startup,' +
+    ' and what makes any senior hire hang up vs stay on the call.' +
+    '\\n\\n' +
+    'YOUR STANDARDS:\\n' +
+    '1. SPECIFICITY OVER GENERALITY: Every sentence must contain something specific — a company name, a number, a technology, a named outcome.' +
+    ' "You have strong engineering experience" = USELESS. "You shipped the billing infra that processes $4B/year at Stripe" = GOLD.\\n' +
+    '2. CANDIDATE PSYCHOLOGY FIRST: The pitch must address WHY THIS SPECIFIC PERSON would move.' +
+    ' Match the hook to their inferred motivators — not to a generic pitch.\\n' +
+    '3. HONEST FRAMING: Never claim things you cannot support. If the recruiting company is smaller, acknowledge the trade-off and reframe it as a feature.' +
+    ' "Smaller team" → "direct ownership, your fingerprints on the product".\\n' +
+    '4. SPOKEN LANGUAGE: The pitch must sound natural read aloud — no bullet points, no headers, no corporate jargon.' +
+    ' Write it as a real person would say it in the first 90 seconds of a call.\\n' +
+    '5. GUARDRAILS: Never fabricate revenue, headcount, or valuation numbers.' +
+    ' Use bands ("$1B+ ARR", "10k+ employees") only if confident from general knowledge.' +
+    ' Write "Insufficient public data" if unknown. Never criticise the candidates current employer.\\n' +
+    '\\n' +
+    'QUALITY TEST: Before finalising output, ask yourself: "Would a candidate who received this pitch think I had actually read their resume and done my homework?" If no — rewrite.';
 
-  const pitchTemplate =
-    'PITCH FORMULA — follow this EXACTLY:\n' +
-    '  Line 1 (Opener): Acknowledge the candidate\'s background in 1 sentence (reference title + company + a specific achievement).\n' +
-    '  Line 2 (Why Now): 1 sentence on market timing + why this role is relevant now.\n' +
-    '  Lines 3-4 (Why ' + ourCompany + '): 2 sentences on mission + team + tech stack at ' + ourCompany + '.\n' +
-    '  Lines 5-6 (Why You): Map 2–3 specific resume signals to role outcomes at ' + ourCompany + ' (2 sentences).\n' +
-    '  Lines 7-8 (Close): Ask 2 discovery questions AND suggest a next step (1–2 sentences).\n' +
-    'Total pitch: 60–90 seconds when read aloud (~130–160 words). Natural spoken language. No bullet points inside the pitch.';
-
-  const hooksTemplate =
-    'HOOKS FORMAT — each hook MUST follow: "Because you [specific verifiable resume signal]... [how that creates value / fits ' + ourCompany + ']"\n' +
-    'Hook must cite something concrete from the resume (a metric, a technology, a company, a title). No vague generalisations.';
-
-  const objTemplate =
-    'OBJECTIONS — write 3 realistic objections a candidate from ' + resolvedCompany + ' might raise when considering ' + ourCompany + '.\n' +
-    'Responses must be balanced and honest — not dismissive. Acknowledge the concern first, then reframe. Keep recruiter tone.';
+  // Build the achievement callout for grounding the pitch
+  const achievementContext = (signals.achievements||[]).slice(0,3).map((a,i)=>'  '+(i+1)+'. '+a).join('\\n');
+  const motivatorContext   = (signals.motivators_inferred||[]).join(', ') || 'not specified';
+  const riskContext        = (signals.risk_flags||[]).filter(r=>r).join(', ') || 'none identified';
+  const careerArc          = signals.career_arc || '';
+  const standoutSignal     = signals.standout_signal || '';
 
   const USER =
-    '=== EXTRACTED RESUME SIGNALS (from Step 1) ===\n' +
-    'Current Company: ' + resolvedCompany + '\n' +
-    'Current Title: ' + resolvedTitle + '\n' +
-    'Seniority: ' + (signals.seniority||'—') + '\n' +
-    'Domain: ' + (signals.domain||'—') + '\n' +
-    'Tech Stack: ' + (signals.tech_stack||[]).join(', ') + '\n' +
-    'Top Achievements:\n' + (signals.achievements||[]).map((a,i)=>'  '+(i+1)+'. '+a).join('\n') + '\n' +
-    'Leadership Scope: ' + (signals.leadership_scope||'—') + '\n' +
-    'Inferred Motivators: ' + (signals.motivators_inferred||[]).join(', ') + '\n' +
-    'Risk Flags: ' + (signals.risk_flags||[]).join(', ') + '\n\n' +
-    '=== CONTEXT ===\n' +
-    'Recruiter\'s Company: ' + ourCompany + '\n' +
-    'Candidate Location: ' + resolvedLocation + '\n' +
-    'Candidate Priorities (selected): ' + priorities + '\n' +
-    (jd   ? '=== TARGET ROLE / JD ===\n' + jd + '\n\n'    : '') +
-    (notes? '=== RECRUITER NOTES ===\n' + notes + '\n\n' : '') +
-    '\n' + pitchTemplate + '\n\n' +
-    hooksTemplate + '\n\n' +
-    objTemplate + '\n\n' +
-    '=== COMPANY COMPARISON RULES ===\n' +
-    'Compare ' + resolvedCompany + ' vs ' + ourCompany + ' on: Team Size/Scale, Growth Signals, Revenue Model, Financial Strength, Product Momentum, Hiring Signals.\n' +
-    'Max 6 rows. Each row: mark type as "fact" (publicly verifiable) or "inference" (reasoned from general knowledge).\n' +
-    'Use "Insufficient public data" if genuinely unknown. Never invent numbers.\n\n' +
-    'Return ONLY valid JSON — no markdown, no preamble, no trailing text:\n' +
-    '{\n' +
-    '  "comparison": [\n' +
-    '    {"dimension":"Team Size/Scale","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
-    '    {"dimension":"Growth Signals","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
-    '    {"dimension":"Revenue Model","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
-    '    {"dimension":"Financial Strength","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
-    '    {"dimension":"Product Momentum","candidate_co":"value","our_co":"value","type":"fact or inference"},\n' +
-    '    {"dimension":"Hiring Signals","candidate_co":"value","our_co":"value","type":"fact or inference"}\n' +
-    '  ],\n' +
-    '  "pitch": "full 130-160 word spoken pitch paragraph following the formula above",\n' +
-    '  "hooks": [\n' +
-    '    {"num":1,"text":"Because you [specific resume evidence]... [relevance to ' + ourCompany + ']"},\n' +
-    '    {"num":2,"text":"Because you [specific resume evidence]... [relevance]"},\n' +
-    '    {"num":3,"text":"Because you [specific resume evidence]... [relevance]"}\n' +
-    '  ],\n' +
-    '  "objections": [\n' +
-    '    {"q":"Realistic objection from a ' + resolvedCompany + ' candidate","a":"Balanced recruiter response"},\n' +
-    '    {"q":"Second objection","a":"Response"},\n' +
-    '    {"q":"Third objection","a":"Response"}\n' +
-    '  ],\n' +
-    '  "questions": [\n' +
-    '    "Smart discovery question that reveals motivators",\n' +
-    '    "Question about career aspirations",\n' +
-    '    "Question probing risk flags if any",\n' +
-    '    "Question about what they are proud of in current role",\n' +
-    '    "Question to uncover timeline / urgency"\n' +
-    '  ],\n' +
-    '  "followup": "Hi [FirstName],\\\\n\\\\n[2-3 sentences: reference the call, 1 specific detail from their background, clear next step].\\\\n\\\\nBest regards,\\\\n[Recruiter Name]"\n' +
-    '}\n' +
-    'CRITICAL: Valid JSON only. No text outside the JSON object.';
+    '=== CANDIDATE SIGNALS (extracted from resume in Step 1) ===\\n' +
+    'Current Company: ' + resolvedCompany + '\\n' +
+    'Current Title: ' + resolvedTitle + '\\n' +
+    'Seniority: ' + (signals.seniority||'—') + '\\n' +
+    'Domain: ' + (signals.domain||'—') + '\\n' +
+    'Tech Stack: ' + (signals.tech_stack||[]).join(', ') + '\\n' +
+    'Career Arc: ' + careerArc + '\\n' +
+    'Standout Signal: ' + standoutSignal + '\\n' +
+    'Top Achievements (USE THESE VERBATIM in pitch/hooks):\\n' + achievementContext + '\\n' +
+    'Leadership Scope: ' + (signals.leadership_scope||'—') + '\\n' +
+    'Inferred Motivators: ' + motivatorContext + '\\n' +
+    'Risk Flags: ' + riskContext + '\\n\\n' +
+
+    '=== ROLE CONTEXT ===\\n' +
+    'Recruiting Company: ' + ourCompany + '\\n' +
+    'Candidate Location: ' + resolvedLocation + '\\n' +
+    'Candidate Priorities Flagged: ' + priorities + '\\n' +
+    (jd   ? '=== TARGET ROLE / JD ===\\n' + jd + '\\n\\n' : '') +
+    (notes? '=== RECRUITER NOTES ===\\n' + notes + '\\n\\n' : '') +
+
+    '\\n=== DELIVERABLE 1: PITCH ===\\n' +
+    'Write a 130–160 word spoken pitch following this EXACT structure:\\n' +
+    '  LINE 1 — OPENER using standout_signal or a top achievement. Reference their specific title + company + one concrete thing they did.' +
+    ' WRONG: "I came across your background and was impressed." RIGHT: "I saw you built the query optimiser at Databricks thats now used by 4,000 enterprise customers — thats exactly the kind of ownership we are hiring for."\\n' +
+    '  LINE 2 — WHY NOW: Market timing or company-specific momentum (1 sentence). Specific if possible.\\n' +
+    '  LINES 3-4 — WHY ' + ourCompany + ': 2 sentences. Use specific facts about ' + ourCompany + ' if known — mission, product, scale, team quality.' +
+    ' If limited public data, use honest framing like "we are building X for Y customer segment".\\n' +
+    '  LINES 5-6 — WHY YOU: Map 2–3 specific resume signals to outcomes at ' + ourCompany + '.' +
+    ' Must reference an actual achievement from the resume. WRONG: "Your backend experience would be valuable."' +
+    ' RIGHT: "The distributed systems work you did at Confluent — specifically the multi-region replication — is exactly the problem we are solving at scale right now."\\n' +
+    '  LINES 7-8 — CLOSE: 1–2 sentences. Ask ONE discovery question tied to their inferred motivators, then suggest a 20-min call.' +
+    ' WRONG: "Would you be open to a conversation?" RIGHT: "Given you have been IC for 5 years, I am curious whether you are thinking about the staff/principal path or starting to manage — either way this role has a clear answer. Worth 20 minutes?"\\n' +
+    'Total: 130–160 words. Natural spoken language. No bullet points. No headers.\\n\\n' +
+
+    '=== DELIVERABLE 2: HOOKS ===\\n' +
+    'Write 3 distinct opening hooks for different angles. Each must:\\n' +
+    '  a) Open with "Because you [SPECIFIC VERIFIABLE RESUME SIGNAL]..." — cite a technology, metric, company, or title\\n' +
+    '  b) Connect to a specific value prop at ' + ourCompany + '\\n' +
+    '  c) Be 2–3 sentences max, conversational, not salesy\\n' +
+    'Hook angles: Hook 1 = Technical/skill fit. Hook 2 = Career growth angle. Hook 3 = Motivator angle (tied to ' + motivatorContext + ').\\n' +
+    'WRONG hook: "Because you have strong backend experience, ' + ourCompany + ' would be a great fit for your skills."\\n' +
+    'RIGHT hook: "Because you spent 3 years on the Stripe billing engine processing millions of transactions daily — the infra problem we are solving at ' + ourCompany + ' is the next order of magnitude of that exact challenge."\\n\\n' +
+
+    '=== DELIVERABLE 3: OBJECTIONS ===\\n' +
+    'Write 3 realistic objections a senior candidate coming from ' + resolvedCompany + ' would actually raise.' +
+    ' These must be REAL concerns — not generic ones.' +
+    ' If ' + resolvedCompany + ' is a big tech company, their objections are different from a startup candidate.\\n' +
+    ' RESPONSE FORMULA: (1) Acknowledge the concern genuinely — do not dismiss it.' +
+    ' (2) Provide a factual or honest reframe. (3) End with a question that moves the conversation forward.\\n' +
+    ' WRONG response: "We actually have great compensation and a brilliant team!" (dismissive, generic)\\n' +
+    ' RIGHT response: "That is a fair concern — ' + resolvedCompany + ' has resources and scale that are hard to replicate.' +
+    ' What I would say is: the ownership you get at ' + ourCompany + ' at this stage is something that is genuinely difficult to find at a $200B company.' +
+    ' If the scope question is the real blocker, I can walk you through exactly what Day 1 looks like. Does that feel worth exploring?"\\n\\n' +
+
+    '=== DELIVERABLE 4: DISCOVERY QUESTIONS ===\\n' +
+    'Write 5 smart questions a recruiter would ask on the first call — each must:\\n' +
+    '  - Be SPECIFIC to this candidate (reference their background, career arc, or risk flags)\\n' +
+    '  - Serve a purpose: uncover motivators, test culture fit, surface timing, identify blockers\\n' +
+    '  - Sound like something a thoughtful human would ask — not a checkbox question\\n' +
+    'Map questions to: (1) career aspirations tied to their arc, (2) current situation / what would need to change,' +
+    ' (3) probe a risk flag if one exists, (4) what they are most proud of (signals values),' +
+    ' (5) timing / urgency (what needs to happen for them to be ready to move in next 3 months)\\n\\n' +
+
+    '=== DELIVERABLE 5: COMPANY COMPARISON ===\\n' +
+    'Compare ' + resolvedCompany + ' vs ' + ourCompany + ' on 6 dimensions.' +
+    ' Mark each as "fact" (publicly verifiable) or "inference" (reasoned from general knowledge).' +
+    ' Use "Insufficient public data" if genuinely unknown. Never invent numbers.\\n' +
+    ' Dimensions: Team Size/Scale, Growth Stage, Revenue Model, Product Maturity, Hiring Velocity, Ownership Opportunity\\n\\n' +
+
+    '=== DELIVERABLE 6: FOLLOW-UP MESSAGE ===\\n' +
+    'Write a post-call LinkedIn/email follow-up. RULES:\\n' +
+    '  - Reference ONE specific detail from the call (use a placeholder like [detail they mentioned])\\n' +
+    '  - Include ONE specific reason why this role fits their background (use their actual signal)\\n' +
+    '  - Clear next step\\n' +
+    '  - Under 80 words. No fluff. No "It was great connecting!"\\n' +
+    ' WRONG: "Hi [Name], great speaking with you today! I think you would be a great fit for this role. Looking forward to next steps."\\n' +
+    ' RIGHT: "Hi [FirstName] — appreciated you sharing context on [specific thing they mentioned]. The [their specific background signal] is directly relevant to what we are building.' +
+    ' Sending over the JD and a 30-min slot with [hiring manager]. Let me know if timing works."\\n\\n' +
+
+    'Return ONLY valid JSON — no markdown, no preamble:\\n' +
+    '{\\n' +
+    '  "comparison": [\\n' +
+    '    {"dimension":"Team Size/Scale","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
+    '    {"dimension":"Growth Stage","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
+    '    {"dimension":"Revenue Model","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
+    '    {"dimension":"Product Maturity","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
+    '    {"dimension":"Hiring Velocity","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
+    '    {"dimension":"Ownership Opportunity","candidate_co":"value","our_co":"value","type":"fact or inference"}\\n' +
+    '  ],\\n' +
+    '  "pitch": "130-160 word spoken pitch — specific, grounded in actual resume signals, natural spoken language",\\n' +
+    '  "hooks": [\\n' +
+    '    {"num":1,"label":"Technical Fit","text":"Because you [specific technical signal from resume]... [specific value at ' + ourCompany + ']"},\\n' +
+    '    {"num":2,"label":"Career Growth","text":"Because you [career trajectory signal]... [growth opportunity framing]"},\\n' +
+    '    {"num":3,"label":"Motivator Fit","text":"Because you [signal tied to inferred motivator]... [why ' + ourCompany + ' addresses that motivator]"}\\n' +
+    '  ],\\n' +
+    '  "objections": [\\n' +
+    '    {"q":"Realistic objection from a ' + resolvedCompany + ' candidate — company-specific","a":"Acknowledge + honest reframe + forward question"},\\n' +
+    '    {"q":"Second realistic objection","a":"Response"},\\n' +
+    '    {"q":"Third realistic objection","a":"Response"}\\n' +
+    '  ],\\n' +
+    '  "questions": [\\n' +
+    '    "Question 1 — tied to their career arc: ' + careerArc + '",\\n' +
+    '    "Question 2 — about current situation and what would need to change",\\n' +
+    '    "Question 3 — probing risk flag: ' + riskContext + ' (or a strength question if no flags)",\\n' +
+    '    "Question 4 — what are they most proud of in current role",\\n' +
+    '    "Question 5 — timing and readiness to move in next 90 days"\\n' +
+    '  ],\\n' +
+    '  "followup": "Hi [FirstName],\\\\n\\\\n[One sentence referencing a specific detail from their background].\\\\n\\\\n[One sentence on why this specific role fits — reference their actual signal].\\\\n\\\\n[Clear next step in one sentence].\\\\n\\\\nBest,\\\\n[Recruiter Name]"\\n' +
+    '}\\n' +
+    'CRITICAL: Valid JSON only. Every pitch/hook/objection/question must contain candidate-specific details — zero generic placeholders in the final output.';
 
   try {
-    let raw = (await callAI(SYSTEM, [{ role:'user', content: USER }], 3500) || '').trim();
+    let raw = (await callAI(SYSTEM, [{ role:'user', content: USER }], 4500) || '').trim();
     raw = raw.replace(/```json|```/gi,'').trim();
     const si = raw.indexOf('{'), ei = raw.lastIndexOf('}');
     if (si === -1 || ei === -1) throw new Error('No JSON found in response');
@@ -6705,6 +7383,19 @@ async function pbGenerate() {
 
   btn.disabled = false;
   btn.innerHTML = '🚀 Build Candidate Pitch';
+}
+
+function pbDismissMismatch() {
+  const warn = document.getElementById('pb-mismatch-warn');
+  if (warn) warn.remove();
+}
+
+function pbForceGenerate() {
+  const warn = document.getElementById('pb-mismatch-warn');
+  if (warn) warn.remove();
+  // Set a flag so mismatch check is skipped this run
+  window._pbSkipMismatch = true;
+  pbGenerate().finally(() => { window._pbSkipMismatch = false; });
 }
 
 function pbShowError(msg) {
@@ -6783,7 +7474,7 @@ function pbRenderResults(r, signals, ourCompany, candidateCompany) {
   document.getElementById('pb-hooks-content').innerHTML =
     (r.hooks||[]).map(h =>
       '<div class="pb-hook">' +
-      '<div class="pb-hook-num">Hook ' + h.num + ' — grounded in resume evidence</div>' +
+      '<div class="pb-hook-num">Hook ' + h.num + (h.label ? ' — ' + h.label : ' — grounded in resume evidence') + '</div>' +
       '<div class="pb-hook-text">' + h.text + '</div>' +
       '</div>'
     ).join('');
@@ -7284,7 +7975,10 @@ async function sendMessage() {
   }
   const input = document.getElementById('user-input');
   const userText = input.value.trim();
-  if (!userText) return;
+  if (!userText) {
+    if (sendBtnEl) sendBtnEl.disabled = false;
+    return;
+  }
   const m = MODES[currentMode];
 
   const pastedResume = (document.getElementById('ctx-resume')?.value || '').trim();
@@ -7330,7 +8024,7 @@ async function sendMessage() {
   document.getElementById('chat-container').appendChild(typing);
   document.getElementById('chat-container').scrollTop = 99999;
   try {
-    const reply = await callAI(m.systemPrompt, chatHistory, 2000);
+    const reply = await callAI(m.systemPrompt, chatHistory, currentMode === "screen" ? 3500 : (currentMode === "gap" || currentMode === "redflags") ? 2800 : 2000);
     document.getElementById('typing-ind')?.remove();
     chatHistory.push({ role: 'assistant', content: reply });
     addMessage('ai', reply);
@@ -7356,11 +8050,10 @@ function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
   const hasPartialFit= lowerReply.includes('partial fit') || lowerReply.includes('🟠');
   const anyFit = hasStrongFit || hasGoodFit || hasPartialFit;
 
-  // Always show analysis buttons; outreach only for fits
   const cta = document.createElement('div');
   cta.style.cssText = 'animation:fadeUp 0.3s ease;max-width:840px;margin-top:6px;';
 
-  // Build candidate list for batch
+  // Build candidate list
   let candidates = [];
   if (isBatch) {
     if (singleResumeText) candidates.push({ name: 'Primary Resume', text: singleResumeText });
@@ -7370,14 +8063,21 @@ function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
   }
   if (!candidates.length) return;
 
-  const encJD = encodeURIComponent(jd);
+  // Store data in window object — avoids embedding huge encoded strings in onclick attributes
+  window._psaStore = window._psaStore || {};
+  const storeKey = 'psa_' + Date.now();
+  window._psaStore[storeKey] = { candidates, jd };
+  window._batchCandidates = candidates;
+  window._batchJD = jd;
 
   // ── single candidate card ──────────────────────────────────────
   if (!isBatch) {
-    const enc = encodeURIComponent(candidates[0].text);
-    const fitBanner = hasStrongFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟢</span><span style="font-weight:600;color:var(--success);font-size:0.85rem;">Strong Fit — recommended for outreach</span></div>`
-      : hasGoodFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟡</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Good Fit — consider outreach</span></div>`
-      : hasPartialFit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟠</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Partial Fit — outreach optional</span></div>`
+    const fitBanner = hasStrongFit
+      ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟢</span><span style="font-weight:600;color:var(--success);font-size:0.85rem;">Strong Fit — recommended for outreach</span></div>`
+      : hasGoodFit
+      ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟡</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Good Fit — consider outreach</span></div>`
+      : hasPartialFit
+      ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🟠</span><span style="font-weight:600;color:var(--gold);font-size:0.85rem;">Partial Fit — outreach optional</span></div>`
       : `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-size:1.1rem;">🔴</span><span style="font-weight:600;color:var(--danger);font-size:0.85rem;">Not a Fit — analysis tools still available</span></div>`;
 
     cta.innerHTML = `
@@ -7386,18 +8086,18 @@ function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
         <div style="font-size:0.72rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">What would you like to do next?</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;">
           ${anyFit ? `
-          <button class="psa-btn psa-green" onclick="runPostScreeningAction('outreach-personal','${enc}','${encJD}')">✉️ Personal Outreach Email</button>
-          <button class="psa-btn psa-blue"  onclick="runPostScreeningAction('outreach-linkedin','${enc}','${encJD}')">💼 LinkedIn InMail</button>
+          <button class="psa-btn psa-green" onclick="psaAction('outreach-personal','${storeKey}',0)">✉️ Personal Outreach Email</button>
+          <button class="psa-btn psa-blue"  onclick="psaAction('outreach-linkedin','${storeKey}',0)">💼 LinkedIn InMail</button>
           ` : ''}
-          <button class="psa-btn psa-purple" onclick="runPostScreeningAction('gap','${enc}','${encJD}')">🔎 Gap Analysis</button>
-          <button class="psa-btn psa-red"    onclick="runPostScreeningAction('redflags','${enc}','${encJD}')">🚩 Red Flags Check</button>
+          <button class="psa-btn psa-purple" onclick="psaAction('gap','${storeKey}',0)">🔎 Gap Analysis</button>
+          <button class="psa-btn psa-red"    onclick="psaAction('redflags','${storeKey}',0)">🚩 Red Flags Check</button>
         </div>
         <div id="psa-result-single" style="margin-top:12px;"></div>
         <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:11px;display:flex;flex-direction:column;gap:8px;">
           <button class="psa-btn"
             id="ip-toggle-single"
             style="background:linear-gradient(135deg,#f72585,#7209b7);color:#fff;font-weight:700;letter-spacing:.3px;align-self:flex-start;"
-            onclick="ipToggle('single','${enc}','${encJD}',this)">
+            onclick="psaInterviewPack('${storeKey}',0,this,'ip-panel-single')">
             🎤 Show Interview Pack
           </button>
           <div id="ip-panel-single" style="display:none;"></div>
@@ -7427,13 +8127,13 @@ function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
           <span>${fitIcon}</span>
           <span style="font-weight:600;font-size:0.82rem;flex:1;min-width:100px;">${c.name}</span>
           <div style="display:flex;flex-wrap:wrap;gap:5px;">
-            ${cFit ? `<button class="psa-btn psa-green psa-sm" onclick="runBatchAction('outreach-personal',${i})">✉️ Outreach</button>
-            <button class="psa-btn psa-blue psa-sm" onclick="runBatchAction('outreach-linkedin',${i})">💼 InMail</button>` : ''}
-            <button class="psa-btn psa-purple psa-sm" onclick="runBatchAction('gap',${i})">🔎 Gaps</button>
-            <button class="psa-btn psa-red psa-sm" onclick="runBatchAction('redflags',${i})">🚩 Flags</button>
+            ${cFit ? `<button class="psa-btn psa-green psa-sm" onclick="psaAction('outreach-personal','${storeKey}',${i})">✉️ Outreach</button>
+            <button class="psa-btn psa-blue psa-sm" onclick="psaAction('outreach-linkedin','${storeKey}',${i})">💼 InMail</button>` : ''}
+            <button class="psa-btn psa-purple psa-sm" onclick="psaAction('gap','${storeKey}',${i})">🔎 Gaps</button>
+            <button class="psa-btn psa-red psa-sm" onclick="psaAction('redflags','${storeKey}',${i})">🚩 Flags</button>
             <button class="psa-btn psa-sm"
               style="background:linear-gradient(135deg,#f72585,#7209b7);color:#fff;font-weight:700;"
-              onclick="ipToggleBatch(${i},this)">🎤 Pack</button>
+              onclick="psaInterviewPack('${storeKey}',${i},this,'ip-panel-batch-${i}')">🎤 Pack</button>
           </div>
         </div>
         <div id="ip-panel-batch-${i}" style="display:none;padding:0 2px;"></div>`;
@@ -7453,89 +8153,111 @@ function addOutreachCTA(reply, isBatch, singleResumeText, batchFilesList, jd) {
   container.scrollTop = container.scrollHeight;
 }
 
-// ── Runs any post-screening action inline ────────────────────────
+// ── psaAction: unified post-screening action dispatcher ──────────
+// Uses window._psaStore[key] to avoid embedding data in onclick attributes
+function psaAction(action, storeKey, idx) {
+  const store = (window._psaStore || {})[storeKey];
+  if (!store) { console.error('psaAction: store key not found', storeKey); return; }
+  const cand = store.candidates[idx];
+  if (!cand) { console.error('psaAction: candidate index not found', idx); return; }
+  _runPSA(action, cand.text, store.jd);
+}
+
+// ── psaInterviewPack: interview pack toggle via store ─────────────
+function psaInterviewPack(storeKey, idx, btn, panelId) {
+  const store = (window._psaStore || {})[storeKey];
+  if (!store) return;
+  const cand = store.candidates[idx];
+  if (!cand) return;
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  const isOpen = panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    btn.textContent = panelId === 'ip-panel-single' ? '🎤 Show Interview Pack' : '🎤 Pack';
+    btn.style.background = 'linear-gradient(135deg,#f72585,#7209b7)';
+    return;
+  }
+  panel.style.display = 'block';
+  btn.textContent = panelId === 'ip-panel-single' ? '🎤 Hide Interview Pack' : '🎤 Hide';
+  btn.style.background = 'linear-gradient(135deg,#7209b7,#4361ee)';
+  if (panel.innerHTML.trim() !== '') return;
+  ipGenerate(cand.text, store.jd, cand.name, panel);
+}
+
+// ── Legacy compat stubs ───────────────────────────────────────────
 function runBatchAction(action, idx) {
   const candidates = window._batchCandidates || [];
   const jd = window._batchJD || '';
   if (!candidates[idx]) return;
-  const enc = encodeURIComponent(candidates[idx].text);
-  const encJD = encodeURIComponent(jd);
-  runPostScreeningAction(action, enc, encJD);
+  _runPSA(action, candidates[idx].text, jd);
 }
 
-async function runPostScreeningAction(action, encodedResume, encodedJD) {
-  const resume = decodeURIComponent(encodedResume);
-  const jd     = decodeURIComponent(encodedJD);
+function runPostScreeningAction(action, encodedResume, encodedJD) {
+  _runPSA(action, decodeURIComponent(encodedResume), decodeURIComponent(encodedJD));
+}
 
+// ── Core action runner ────────────────────────────────────────────
+async function _runPSA(action, resume, jd) {
   if (action === 'outreach-personal') {
     generateInlineOutreachEmail(resume, jd);
     return;
   }
   if (action === 'outreach-linkedin') {
-    generateInlineInMail(resume, jd, encodedResume, encodedJD);
+    generateInlineInMail(resume, jd, '', '');
     return;
   }
 
-  // For gap / redflags / interview — run inline in chat
   const apiKey = document.getElementById('api-key').value.trim();
-  if (!isKeyValid(apiKey)) { alert('Please add a valid API key in the sidebar.'); return; }
+  if (!isKeyValid(apiKey)) { alert('Please enter a valid API key in the sidebar first.'); return; }
 
   const prompts = {
     gap: {
       label: '🔎 Gap Analysis',
       system: MODES.gap.systemPrompt,
-      request: 'Perform a detailed gap analysis of this candidate against the job description.'
+      request: 'Perform a thorough gap analysis of this candidate against the job description. Identify critical gaps, partial matches, and transferable strengths.'
     },
     redflags: {
       label: '🚩 Red Flags Check',
       system: MODES.redflags.systemPrompt,
-      request: 'Check this resume for red flags, yellow flags, and green flags. Suggest probing questions.'
-    },
-    interview: {
-      label: '🎯 Interview Questions',
-      system: (MODES.interview || MODES.screen).systemPrompt,
-      request: 'Generate 3 technical and 2 behavioral interview questions tailored to this candidate and the job description.'
+      request: 'Check this resume carefully for red flags (🔴), yellow flags (🟡), and green flags (🟢). For each flag, suggest a probing interview question.'
     }
   };
 
   const cfg = prompts[action];
+  if (!cfg) return;
+
   const container = document.getElementById('chat-container');
 
   const userDiv = document.createElement('div');
   userDiv.className = 'msg user';
   userDiv.style.animation = 'fadeUp 0.3s ease';
-  userDiv.innerHTML = `<div class="avatar">👤</div><div class="bubble">${cfg.label} — run for this candidate</div>`;
+  userDiv.innerHTML = `<div class="avatar">👤</div><div class="bubble">${cfg.label} — running for this candidate</div>`;
   container.appendChild(userDiv);
 
   const typingDiv = document.createElement('div');
   typingDiv.className = 'msg ai';
-  typingDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  typingDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div><span style="font-size:0.8rem;color:var(--text-muted);margin-left:8px;">Analysing…</span></div>`;
   container.appendChild(typingDiv);
   container.scrollTop = 99999;
 
   try {
-    const msgContent = `[JOB DESCRIPTION]\n${jd}\n\n[CANDIDATE RESUME]\n${resume}\n\n[REQUEST]\n${cfg.request}`;
-    let reply;
-    try {
-      reply = await callAI(cfg.system, [{ role: 'user', content: msgContent }], 1500);
-    } catch(e) { reply = '⚠️ ' + e.message; }
+    const msgContent = `[JOB DESCRIPTION]
+${jd || '(no JD provided)'}
+
+[CANDIDATE RESUME]
+${resume}
+
+[REQUEST]
+${cfg.request}`;
+    const reply = await callAI(cfg.system, [{ role: 'user', content: msgContent }], 2800);
     typingDiv.remove();
     const aiDiv = document.createElement('div');
     aiDiv.className = 'msg ai';
     aiDiv.style.animation = 'fadeUp 0.3s ease';
     aiDiv.innerHTML = `<div class="avatar">🤖</div><div class="bubble">${formatAI(reply)}</div>`;
     container.appendChild(aiDiv);
-
-    if (action === 'interview') {
-      const smallCta = document.createElement('div');
-      smallCta.style.cssText = 'animation:fadeUp 0.3s ease;max-width:840px;margin-top:4px;';
-      smallCta.innerHTML = `
-        <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0;">
-          <button class="psa-btn psa-green psa-sm" onclick="runPostScreeningAction('outreach-personal','${encodedResume}','${encodedJD}')">✉️ Now create outreach email</button>
-          <button class="psa-btn psa-blue psa-sm"  onclick="runPostScreeningAction('outreach-linkedin','${encodedResume}','${encodedJD}')">💼 LinkedIn InMail</button>
-        </div>`;
-      container.appendChild(smallCta);
-    }
   } catch(e) {
     typingDiv.remove();
     const errDiv = document.createElement('div');
@@ -7839,6 +8561,12 @@ function rpSave() {
   rpSaveData({ name: name.trim(), email: email.trim(), company: company.trim(), title: title.trim() });
   rpApplyToUI();
   rpClose();
+  // Show brief confirmation toast
+  const toast = document.createElement('div');
+  toast.textContent = '✅ Profile saved';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#10b981;color:white;padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
 }
 
 function rpSkip() {
@@ -7995,8 +8723,7 @@ function olSetCTA(val) {
   var callBtn = document.getElementById('ol-btn-call');
   if (cvBtn)   cvBtn.className   = 'ol-cta-btn' + (val === 'cv'   ? ' ol-cv-active'   : '');
   if (callBtn) callBtn.className = 'ol-cta-btn' + (val === 'call' ? ' ol-call-active' : '');
-  var durationWrap = document.getElementById('ol-call-duration-wrap');
-  if (durationWrap) durationWrap.style.display = val === 'call' ? 'block' : 'none';
+
   var badge = document.getElementById('ol-cta-badge');
   var dur = olGetCallDuration();
   var label = val === 'cv' ? 'CV Ask' : 'Interest + Call';
@@ -8010,12 +8737,12 @@ function olSetCTA(val) {
 }
 
 function olGetCallDuration() {
-  // Duration field removed — caller decides framing
-  return 'intro';
+  var sel = document.getElementById('ol-call-duration');
+  return sel ? sel.value : 'intro';
 }
 
 function olUpdateCallDuration(val) {
-  // Legacy stub — no longer used (free-text input now)
+  // Re-trigger CTA so badge/description reflects selected duration
   if (olCTA === 'call') olSetCTA('call');
 }
 
@@ -8216,9 +8943,22 @@ async function olGenerateEnriched() {
     ? 'End by asking for the updated CV/resume.'
     : 'End by suggesting the ' + callDur + ' call.';
   let fuInstr='';
-  if (fuNow===1) fuInstr='"followUp": 90-110 words. Start: Hi {firstName}, — warm, references first message, adds ONE fresh angle (team culture, company milestone, or candidate-specific fit). Include job URL. ' + fuCTAenr + ' Sign-off MUST be on separate lines: \\n\\nBest Regards,\\n'+name;
-  else if (fuNow===2) fuInstr='"followUp" (90-110w warm) and "followUp2" (80-100w more direct). Both start with Hi {firstName},, include job URL. ' + fuCTAenr + ' Sign-off each: \\n\\nBest Regards,\\n'+name;
-  else fuInstr='"followUp" (90-110w), "followUp2" (80-100w), "followUp3" (70-90w final). All start with Hi {firstName},, include job URL. ' + fuCTAenr + ' Sign-off each: \\n\\nBest Regards,\\n'+name;
+  const fuBase =
+    'Each follow-up MUST contain: (1) a fresh, specific reason to consider the role — different from the first message; ' +
+    '(2) a concrete detail from the JD or company (e.g. team size, a product shipped, a technical challenge, a growth signal); ' +
+    '(3) a soft, human CTA — not pushy. ' +
+    'BANNED in follow-ups: "just checking in", "circling back", "touching base", "I know you are busy", "I understand if this is not right for you". ' +
+    'Each follow-up must feel like it adds new value, not merely reminding them you exist.';
+  if (fuNow===1) fuInstr=
+    '"followUp": 100-130 words. ' + fuBase + ' ' +
+    'Structure: Hi {firstName}, — 1 sentence referencing first message without repeating it. Then 2-3 sentences adding a specific new angle: either a team/product detail, a career growth insight tied to their likely background, or a compelling company signal. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
+  else if (fuNow===2) fuInstr=
+    '"followUp" (100-130w): ' + fuBase + ' New angle = team or product detail. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
+    '"followUp2" (90-110w): More direct tone. New angle = career impact or a specific thing this role unlocks. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
+  else fuInstr=
+    '"followUp" (100-130w): ' + fuBase + ' New angle = team or product detail. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
+    '"followUp2" (90-110w): New angle = career growth or specific impact. Direct tone. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
+    '"followUp3" (75-90w): Final, honest message. Acknowledge this is the last reach out. One strong reason why you specifically thought of them for this. Hi {firstName},. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
 
   const sampleBlock = sample ? 'STYLE REFERENCE (match this tone exactly):\n"""\n'+sample+'\n"""\n' : '';
 
@@ -8256,12 +8996,17 @@ async function olGenerateEnriched() {
     +'- BANNED: exciting opportunity, I came across your profile, hope this finds you well, passionate, fast-paced, dynamic, hit the ground running, unique opportunity\n'
     +'- Use \\n\\n between paragraphs\n'
     +'- Tone: peer-to-peer, intelligent, direct\n\n';
-  const p8 = 'FOLLOW-UPS:\n'+fuInstr+'\n'
-    +'Follow-up body MUST follow this EXACT structure:\n'+
+  const p8 = 'FOLLOW-UPS:\n'+fuInstr+'\n\n'+
+    'Follow-up structure:\n'+
     'Hi {firstName},\n\n'+
-'[1 sentence referencing previous message] + [ONE new angle not in first message] + [job URL] + [soft CTA]\n\n'+
-'Best Regards,\n'+name+'\n\n'+
-'CRITICAL: Best Regards and recruiter name MUST be on separate lines — never on the same line.';
+    '[Sentence 1: Light reference to first message — e.g. "I reached out last week about the '+roleTitle+' role at '+companyName+'."]\n\n'+
+    '[Sentence 2-3: NEW specific angle — a concrete detail about the team, product, company stage, or career impact. '+
+    'E.g. "The team is currently building X, which directly maps to the kind of work you have likely been doing at [their company type]. '+
+    'This is a rare chance to own Y from day one."]\n\n'+
+    '[Sentence 4: CTA — '+fuCTAenr+']\n\n'+
+    'Best Regards,\n'+name+'\n\n'+
+    'ANTI-PATTERNS — never write these: "just checking in", "circling back", "touching base", "hope you are doing well", "I understand you are busy".\n'+
+    'CRITICAL: Best Regards and name MUST be on separate lines.';
   const p9 = 'Return ONLY valid JSON, no markdown:\n'
     +'{"subjectLines":["s1","s2","s3","s4"],"outreachVariants":[{"label":"Tech Hook","subject":"string","body":"string"},{"label":"Impact Hook","subject":"string","body":"string"},{"label":"Growth Hook","subject":"string","body":"string"}],"followUp":{"subject":"string","body":"string"}'+fuSchema+'}';
 
