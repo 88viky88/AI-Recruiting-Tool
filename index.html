@@ -8860,7 +8860,13 @@ function olSelectVariant(idx) {
 async function olGenerateEnriched() {
   const jd       = document.getElementById('ol-jd').value.trim();
   const url      = document.getElementById('ol-url').value.trim();
-  const name     = document.getElementById('ol-name').value.trim() || 'Recruiter';
+  const name             = document.getElementById('ol-name').value.trim() || 'Recruiter';
+  const _olCoEl          = document.getElementById('ol-company');
+  const _bcCoreEl        = document.getElementById('bc-core');
+  const _rpProf          = (typeof rpGet === 'function') ? rpGet() : {};
+  const recruiterCompany = (_olCoEl && _olCoEl.value.trim())
+                        || (_bcCoreEl && _bcCoreEl.value.trim())
+                        || (_rpProf.company || '');
   const location = document.getElementById('ol-location').value.trim() || '';
   const sample   = document.getElementById('ol-sample').value.trim();
   const groqKey  = document.getElementById('ol-groq-key').value.trim() || document.getElementById('api-key').value.trim();
@@ -8995,7 +9001,7 @@ async function olGenerateEnriched() {
 
   const sampleBlock = sample ? 'STYLE REFERENCE (match this tone exactly):\n"""\n'+sample+'\n"""\n' : '';
 
-  const p1 = 'You are a top-tier recruiter copywriter writing LinkedIn InMails for mass sends. {firstName} is the only personalisation token — no individual candidate data.\n\n' + 'MANDATORY STRUCTURE FOR EVERY VARIANT:\n' + '  LINE 1: Hi {firstName},\n' + '  LINE 2: Recruiter intro — natural and short. GOOD: "I\'m '+name+' from '+companyName+'." AVOID: stiff formal self-intro.\n' + '  LINES 3-5: Hook and role substance (different per variant — see below)\n' + '  LINE 6: Role link + contract type\n' + '  LINE 7: Self-qualifier CTA\n' + '  SIGN-OFF: Best regards,\\n'+name+'\n\n' + 'THE THREE VARIANTS HAVE DIFFERENT HOOKS AND SUBSTANCE:\n' + '  VARIANT A (TECH/PROBLEM): Hook = the specific technical problem this role solves.\n' + '  VARIANT B (IMPACT/MISSION): Hook = what the company is building and why it matters now.\n' + '  VARIANT C (GROWTH/CAREER): Hook = what this role unlocks career-wise — ownership, scope, next level.\n\n' + 'SELF-QUALIFIER RULES:\n' + '  BANNED: "this might be worth a look", "thought you might find this interesting"\n' + '  CALL CTA: "If [specific problem] resonates — worth a quick call?"\n' + '  CV CTA: "If this sounds relevant, could you send across your latest resume?" — NEVER add "Worth 20 minutes?" in CV mode.\n' + '  NEVER insert recruiter name/company awkwardly in the middle of message body.\n\n' + 'BANNED PHRASES: "exciting opportunity", "I came across your profile", "hope this finds you well", "this might be worth a look", "unique opportunity", "fast-paced", "passionate team".\n\n';
+  const p1 = 'You are a top-tier recruiter copywriter writing LinkedIn InMails for mass sends. {firstName} is the only personalisation token — no individual candidate data.\n\n' + 'MANDATORY STRUCTURE FOR EVERY VARIANT:\n' + '  LINE 1: Hi {firstName},\n' + '  LINE 2: Recruiter intro — must include a talent/recruiting context phrase. Use ONE of:\n' + '    STYLE A: "I\'m '+name+', part of the talent acquisition team at '+(recruiterCompany||companyName)+'."\n' + '    STYLE B: "I\'m '+name+', a recruiting partner working with '+(recruiterCompany||companyName)+'."\n' + '    STYLE C: "I\'m '+name+' — I handle technical hiring for '+(recruiterCompany||companyName)+'."\n' + '  Vary style across 3 variants. NEVER use plain "I am [name] from [company]" with no context.\n' + '  LINES 3-5: Hook and role substance (different per variant — see below)\n' + '  LINE 6: Role link + contract type\n' + '  LINE 7: Self-qualifier CTA\n' + '  SIGN-OFF: Best regards,\\n'+name+'\n\n' + 'THE THREE VARIANTS HAVE DIFFERENT HOOKS AND SUBSTANCE:\n' + '  VARIANT A (TECH/PROBLEM): Hook = the specific technical problem this role solves.\n' + '  VARIANT B (IMPACT/MISSION): Hook = what the company is building and why it matters now.\n' + '  VARIANT C (GROWTH/CAREER): Hook = what this role unlocks career-wise — ownership, scope, next level.\n\n' + 'SELF-QUALIFIER RULES:\n' + '  BANNED: "this might be worth a look", "thought you might find this interesting"\n' + '  CALL CTA: "If [specific problem] resonates — worth a quick call?"\n' + '  CV CTA: "If this sounds relevant, could you send across your latest resume?" — NEVER add "Worth 20 minutes?" in CV mode.\n' + '  NEVER insert recruiter name/company awkwardly in the middle of message body.\n\n' + 'BANNED PHRASES: "exciting opportunity", "I came across your profile", "hope this finds you well", "this might be worth a look", "unique opportunity", "fast-paced", "passionate team".\n\n';
   const p2 = 'RECRUITER: '+name+' at '+companyName+'\nJOB URL: '+url+'\nLOCATION: '+(location||'not specified')+'\n\n';
   const p3 = 'ROLE INTEL (use these specifically inside message bodies):\n'
     +'- Title: '+roleTitle+'\n'
@@ -9022,7 +9028,8 @@ async function olGenerateEnriched() {
   const p6 = 'WRITE 3 VARIANTS. Each MUST follow: Hi {firstName}, → recruiter intro → hook → body → role link → CTA → Best regards.\n\n'
     +'━━ VARIANT A — TECH / PROBLEM HOOK ━━\n'
     +'Required line 1: Hi {firstName},\n'
-    +'Required line 2: I\'m '+name+' from '+companyName+'.\n'
+    +'Required line 2 (STYLE A — always use recruiter OWN company, never the JD company):\n'
+    +'  Write exactly: "I\'m '+name+', part of the talent acquisition team at '+(recruiterCompany||companyName)+'."\n'
     +'Hook — choose strongest for this role:\n'
     +'  OPT 1: "'+_ch+' — that is the engineering problem we are hiring for at '+companyName+'."\n'
     +'  OPT 2: "Most '+roleTitle+'s spend their careers working around problems they did not design. At '+companyName+', this role owns them from day one."\n'
@@ -9033,7 +9040,8 @@ async function olGenerateEnriched() {
     +'Required closing: Best regards,\\n'+name+'\n\n'
     +'━━ VARIANT B — IMPACT / MISSION HOOK ━━\n'
     +'Required line 1: Hi {firstName},\n'
-    +'Required line 2: I\'m '+name+', part of the talent team at '+companyName+'.\n'
+    +'Required line 2 (STYLE B — always use recruiter OWN company, never the JD company):\n'
+    +'  Write exactly: "I\'m '+name+', a recruiting partner working with '+(recruiterCompany||companyName)+'."\n'
     +'Hook — choose strongest:\n'
     +'  OPT 1: "'+_usp+'. We are at the stage where the '+roleTitle+' we hire now shapes the next three years."\n'
     +'  OPT 2: "We are building '+(_sc ? 'for '+_sc : 'at meaningful scale')+' — the architecture decisions made in this role define how '+companyName+' operates at the next order of magnitude."\n'
@@ -9043,7 +9051,8 @@ async function olGenerateEnriched() {
     +'Required closing: Best regards,\\n'+name+'\n\n'
     +'━━ VARIANT C — GROWTH / CAREER HOOK ━━\n'
     +'Required line 1: Hi {firstName},\n'
-    +'Required line 2: I\'m '+name+' from '+companyName+' — reaching out about a '+roleTitle+' role.\n'
+    +'Required line 2 (STYLE C — always use recruiter OWN company, never the JD company):\n'
+    +'  Write exactly: "I\'m '+name+' — I handle technical hiring for '+(recruiterCompany||companyName)+', reaching out about a '+roleTitle+' role."\n'
     +'Hook — choose strongest:\n'
     +'  OPT 1: "'+_ci+' — full ownership, no legacy constraints, from day one. That is what this role is."\n'
     +'  OPT 2: "The '+roleTitle+' joining '+companyName+' now gets something genuinely rare: '+_ci+' at a company with real traction and room to grow."\n'
@@ -9065,6 +9074,8 @@ async function olGenerateEnriched() {
     +'2. Does every variant have a recruiter intro as line 2? If not — add it.\n'
     +'3. Does every variant end with Best regards,\\n[name] ? If not — add it.\n'
     +'4. Is recruiter name/company appearing inside body content (not in intro or sign-off)? Remove it.\n'
+    +'4b. Is the intro line using the RECRUITER OWN company — NOT the hiring company from the JD? Fix if wrong.\n'
+    +'4c. Does every intro include a talent/recruiting phrase ("part of the talent acquisition team", "recruiting partner", "handle technical hiring")? Add if missing.\n'
     +'5. CV ask mode: does any message say "Worth 20 minutes?" before asking for CV? Remove that phrase.\n'
     +'6. Do all 3 variants have genuinely different hooks and substance? If same structure — rewrite.\n'
     +'7. Is every role detail specific and concrete? If vague — make it real.\n'
