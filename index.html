@@ -9171,6 +9171,7 @@ async function olGenerateEnriched() {
     }
 
     resultsEl.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(function(){ olToggle('outreach'); }, 150);
   } catch(err) {
     const errEl=document.getElementById('ol-error');
     errEl.innerHTML='&#9888; Error: '+(err.message||'JSON parse failed')+' &nbsp;<small>Try again — AI occasionally returns malformed JSON.</small>';
