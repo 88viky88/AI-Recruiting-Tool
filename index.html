@@ -695,9 +695,9 @@ battle-config { grid-template-columns: 1fr; }
     <button class="mode-btn" onclick="showOutreachPanel()" id="btn-outreach"><span class="icon">✉️</span><span>Candidate Outreach</span></button>
     <button class="mode-btn" onclick="setMode('search')" id="btn-search"><span class="icon">🔍</span><span>Search String Builder</span></button>
     <button class="mode-btn pitch-btn" onclick="showPitchPanel()" id="btn-pitch"><span class="icon">🚀</span><span>Candidate Pitch Builder</span></button>
-    <button class="mode-btn" onclick="setMode('general')" id="btn-general"><span class="icon">💬</span><span>General Assistant</span></button>
 
     <button class="mode-btn battle" onclick="showBattle()" id="btn-battle"><span class="icon">⚔️</span><span>Battle Cards Builder</span></button>
+    <button class="mode-btn" onclick="setMode('general')" id="btn-general"><span class="icon">💬</span><span>General Assistant</span></button>
 
     <div class="api-box">
       <label>🔑 API Provider</label>
@@ -6608,8 +6608,6 @@ function setMode(mode) {
   if (bclbl) bclbl.textContent = '';
   const bfi = document.getElementById('batch-file-input');
   if (bfi) bfi.value = '';
-  const ctx_res = document.getElementById('ctx-resume');
-  if (ctx_res) ctx_res.value = '';
   // Clear context input fields so new mode starts fresh
   const ctxJd = document.getElementById('ctx-jd');
   if (ctxJd) ctxJd.value = '';
@@ -6881,6 +6879,13 @@ function showPitchPanel() {
   if (dp) dp.classList.remove('visible');
   document.getElementById('pitch-panel').classList.add('visible');
   pbReset();
+  var _pbProf = rpGet();
+  var _pbOurCo = document.getElementById('pb-our-company');
+  if (_pbOurCo && !_pbOurCo.value.trim()) {
+    var _pbCoSrc = document.getElementById('bc-core');
+    var _coVal = (_pbProf && _pbProf.company) || (_pbCoSrc ? _pbCoSrc.value.trim() : '') || '';
+    if (_coVal) _pbOurCo.value = _coVal;
+  }
   currentMode = null;
 }
 
@@ -7203,19 +7208,26 @@ async function pbGenerate() {
     (jd   ? '=== TARGET ROLE / JD ===\\n' + jd + '\\n\\n' : '') +
     (notes? '=== RECRUITER NOTES ===\\n' + notes + '\\n\\n' : '') +
 
-    '\\n=== DELIVERABLE 1: PITCH ===\\n' +
-    'Write a 130–160 word spoken pitch following this EXACT structure:\\n' +
-    '  LINE 1 — OPENER using standout_signal or a top achievement. Reference their specific title + company + one concrete thing they did.' +
-    ' WRONG: "I came across your background and was impressed." RIGHT: "I saw you built the query optimiser at Databricks thats now used by 4,000 enterprise customers — thats exactly the kind of ownership we are hiring for."\\n' +
-    '  LINE 2 — WHY NOW: Market timing or company-specific momentum (1 sentence). Specific if possible.\\n' +
-    '  LINES 3-4 — WHY ' + ourCompany + ': 2 sentences. Use specific facts about ' + ourCompany + ' if known — mission, product, scale, team quality.' +
-    ' If limited public data, use honest framing like "we are building X for Y customer segment".\\n' +
-    '  LINES 5-6 — WHY YOU: Map 2–3 specific resume signals to outcomes at ' + ourCompany + '.' +
-    ' Must reference an actual achievement from the resume. WRONG: "Your backend experience would be valuable."' +
-    ' RIGHT: "The distributed systems work you did at Confluent — specifically the multi-region replication — is exactly the problem we are solving at scale right now."\\n' +
-    '  LINES 7-8 — CLOSE: 1–2 sentences. Ask ONE discovery question tied to their inferred motivators, then suggest a 20-min call.' +
-    ' WRONG: "Would you be open to a conversation?" RIGHT: "Given you have been IC for 5 years, I am curious whether you are thinking about the staff/principal path or starting to manage — either way this role has a clear answer. Worth 20 minutes?"\\n' +
-    'Total: 130–160 words. Natural spoken language. No bullet points. No headers.\\n\\n' +
+    '\\n=== DELIVERABLE 1: THREE PITCH VARIATIONS ===\\n' +
+    'Write 3 distinct 60-90 second spoken pitches. Each 130-160 words, natural spoken language, no bullets or headers.\\n' +
+    'Same candidate signals — DIFFERENT opening angle, emphasis, and close.\\n\\n' +
+    'PITCH 1 — TECHNICAL / PROBLEM-FIRST:\\n' +
+    '  Open with the specific technical problem at '+ourCompany+' that maps to this candidate background.\\n' +
+    '  Reference their actual technical achievement verbatim (a latency win, a system built, a scale hit).\\n' +
+    '  Explain WHY their specific background is relevant to this exact problem.\\n' +
+    '  Close: one discovery question about technical interests, then suggest 20-min call.\\n\\n' +
+    'PITCH 2 — IMPACT / MISSION-FIRST:\\n' +
+    '  Open with the business or mission impact of what '+ourCompany+' is building and why it matters.\\n' +
+    '  Connect to the candidate career arc — show you understand what they have been working toward.\\n' +
+    '  Reference their standout_signal as evidence they understand this level of impact.\\n' +
+    '  Close: one question about what kind of impact they want from their next role.\\n\\n' +
+    'PITCH 3 — GROWTH / CAREER-UPSIDE-FIRST:\\n' +
+    '  Open with what this role unlocks for THIS candidate given their specific career arc.\\n' +
+    '  Map their inferred motivators ('+motivatorContext+') to what '+ourCompany+' offers.\\n' +
+    '  Be specific: ownership, scope, or growth path that is hard to find elsewhere.\\n' +
+    '  Close: one question about career goals or timeline.\\n\\n' +
+    'QUALITY BAR: Would a senior engineer think you actually read their resume? If no — rewrite.\\n' +
+    'Each pitch: 130-160 words. Natural spoken language only.\\n\\n' +
 
     '=== DELIVERABLE 2: HOOKS ===\\n' +
     'Write 3 distinct opening hooks for different angles. Each must:\\n' +
@@ -7272,7 +7284,7 @@ async function pbGenerate() {
     '    {"dimension":"Hiring Velocity","candidate_co":"value","our_co":"value","type":"fact or inference"},\\n' +
     '    {"dimension":"Ownership Opportunity","candidate_co":"value","our_co":"value","type":"fact or inference"}\\n' +
     '  ],\\n' +
-    '  "pitch": "130-160 word spoken pitch — specific, grounded in actual resume signals, natural spoken language",\\n' +
+    '  "pitches": [{"style":"Technical","label":"Technical / Problem-first","text":"130-160 word spoken pitch — opens with specific technical problem"},{"style":"Impact","label":"Impact / Mission-first","text":"130-160 word spoken pitch — opens with business or mission impact"},{"style":"Growth","label":"Growth / Career-upside-first","text":"130-160 word spoken pitch — opens with career upside"}],\\n' +
     '  "hooks": [\\n' +
     '    {"num":1,"label":"Technical Fit","text":"Because you [specific technical signal from resume]... [specific value at ' + ourCompany + ']"},\\n' +
     '    {"num":2,"label":"Career Growth","text":"Because you [career trajectory signal]... [growth opportunity framing]"},\\n' +
@@ -7390,14 +7402,42 @@ function pbRenderResults(r, signals, ourCompany, candidateCompany) {
         '</div>';
     }).join('');
 
-  // 3. Pitch — with structure labels
-  const pitchText = (r.pitch||'');
+  // 3. Pitch — 3 style tabs (Technical / Impact / Growth)
+  var _pbPitches = r.pitches || (r.pitch ? [{style:'Technical',label:'Technical / Problem-first',text:r.pitch}] : []);
+  window._pbPitches = _pbPitches;
+  var _pbPIcons = ['🔧','🎯','🚀'];
+  window._pbRenderPitchBody = function(idx) {
+    var p = _pbPitches[idx] || _pbPitches[0] || {text:''};
+    var wc = (p.text||'').split(/\s+/).filter(Boolean).length;
+    return '<div style="background:rgba(5,118,66,0.04);border:1px solid rgba(5,118,66,0.15);border-radius:6px;padding:6px 10px;font-size:0.7rem;color:#057642;font-weight:600;margin-bottom:10px;">'
+      + '🎙️ Read aloud — approx. 60–90 sec · ' + wc + ' words'
+      + '</div>'
+      + '<div class="pb-pitch-text">' + (p.text||'').replace(/\n/g,'<br>') + '</div>'
+      + '<div class="pb-copy-row"><button class="pb-copy-btn" onclick="window._pbCopyPitch(' + idx + ')">📋 Copy</button></div>';
+  };
+  var _pbPTabs = _pbPitches.map(function(p, i) {
+    return '<button id="pb-ptab-' + i + '" onclick="window._pbSwitchPitch(' + i + ')" style="'
+      + (i===0 ? 'background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;' : 'background:var(--surface2);color:var(--text-muted);')
+      + 'border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">'
+      + _pbPIcons[i] + ' ' + (p.label || p.style || 'Pitch ' + (i+1)) + '</button>';
+  }).join('');
   document.getElementById('pb-pitch-content').innerHTML =
-    '<div style="background:rgba(5,118,66,0.04);border:1px solid rgba(5,118,66,0.15);border-radius:6px;padding:6px 10px;font-size:0.7rem;color:#057642;font-weight:600;margin-bottom:10px;">' +
-    '🎙️ Read this aloud — approx. 60–90 seconds &nbsp;·&nbsp; ' + pitchText.split(' ').length + ' words' +
-    '</div>' +
-    '<div class="pb-pitch-text">' + pitchText.replace(/\n/g,'<br>') + '</div>' +
-    '<div class="pb-copy-row"><button class="pb-copy-btn" onclick="pbCopySection(\'pb-pitch-content\')">📋 Copy pitch</button></div>';
+    (_pbPitches.length > 1 ? '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">' + _pbPTabs + '</div>' : '')
+    + '<div id="pb-pitch-body">' + window._pbRenderPitchBody(0) + '</div>';
+  window._pbSwitchPitch = function(idx) {
+    _pbPitches.forEach(function(_p, i) {
+      var b = document.getElementById('pb-ptab-' + i);
+      if (b) {
+        b.style.background = i===idx ? 'linear-gradient(135deg,var(--accent),var(--accent2))' : 'var(--surface2)';
+        b.style.color = i===idx ? 'white' : 'var(--text-muted)';
+      }
+    });
+    document.getElementById('pb-pitch-body').innerHTML = window._pbRenderPitchBody(idx);
+  };
+  window._pbCopyPitch = function(idx) {
+    var p = _pbPitches[idx] || _pbPitches[0] || {text:''};
+    navigator.clipboard.writeText(p.text || '').catch(function(){});
+  };
 
   // 4. Hooks
   document.getElementById('pb-hooks-content').innerHTML =
@@ -8919,49 +8959,43 @@ async function olGenerateEnriched() {
     : 'End by suggesting the ' + callDur + ' call.';
   let fuInstr='';
   const fuBase =
-    'Each follow-up MUST contain: (1) a fresh, specific reason to consider the role — different from the first message; ' +
-    '(2) a concrete detail from the JD or company (e.g. team size, a product shipped, a technical challenge, a growth signal); ' +
-    '(3) a soft, human CTA — not pushy. ' +
-    'BANNED in follow-ups: "just checking in", "circling back", "touching base", "I know you are busy", "I understand if this is not right for you". ' +
-    'Each follow-up must feel like it adds new value, not merely reminding them you exist.';
+    'FOLLOW-UP STANDARDS: Must feel like a thoughtful recruiter who did their homework — not a reminder. ' +
+    'Structure: Hi {firstName}, → 1 sentence soft callback → 2-3 sentences FRESH NEW INFO → role URL → CTA → Best regards,[name]. ' +
+    'FRESH ANGLE OPTIONS (use a different one each follow-up, never repeat): ' +
+    'team milestone or recent product launch, architecture challenge or technical scale detail, ' +
+    'ownership scope (what they will build or decide), team composition and caliber, ' +
+    'why now is the right time to join, business impact of the role, career path in 12-24 months. ' +
+    'BANNED: "just checking in", "circling back", "touching base", "I know you are busy", ' +
+    '"I understand if this is not right for you", "this might be worth a look". ' +
+    'MINIMUM BAR: Every follow-up must contain at least one SPECIFIC detail about the role, team, or company NOT in the first message.';
   if (fuNow===1) fuInstr=
-    '"followUp": 100-130 words. ' + fuBase + ' ' +
-    'Structure: Hi {firstName}, — 1 sentence referencing first message without repeating it. Then 2-3 sentences adding a specific new angle: either a team/product detail, a career growth insight tied to their likely background, or a compelling company signal. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
+    '"followUp" 140-170 words. ' + fuBase + ' ' +
+    'Angle: A specific team signal, architecture challenge, or product milestone NOT mentioned in the first message. ' +
+    'Include: what the team has recently shipped or is building toward, why the next 12 months are a compelling time to join, ' +
+    'and one sentence on the career signal (ownership, scope, growth path). ' +
+    'Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name;
   else if (fuNow===2) fuInstr=
-    '"followUp" (100-130w): ' + fuBase + ' New angle = team or product detail. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
-    '"followUp2" (90-110w): More direct tone. New angle = career impact or a specific thing this role unlocks. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
+    '"followUp" 140-170 words. ' + fuBase + ' Angle = team composition, caliber, and a specific product or architecture detail. ' +
+    'Mention what the team has shipped or is building, why the technical challenge is genuinely hard, ' +
+    'and why this phase of the company is an interesting time to join. ' +
+    'Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name+'. ' +
+    '"followUp2" 120-150 words. Angle = career trajectory and ownership scope. ' +
+    'Direct tone. Name the actual ownership scope, the growth path, why this stage fits the candidate. ' +
+    'Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name;
   else fuInstr=
-    '"followUp" (100-130w): ' + fuBase + ' New angle = team or product detail. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
-    '"followUp2" (90-110w): New angle = career growth or specific impact. Direct tone. Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name+'. ' +
-    '"followUp3" (75-90w): Final, honest message. Acknowledge this is the last reach out. One strong reason why you specifically thought of them for this. Hi {firstName},. ' + fuCTAenr + ' Sign-off: \\n\\nBest Regards,\\n'+name;
+    '"followUp" 140-170 words. ' + fuBase + ' Angle = team signal and specific technical or product detail not in first message. ' +
+    'Mention what the team is building, the scale and complexity, why now is compelling. ' +
+    'Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name+'. ' +
+    '"followUp2" 120-150 words. Angle = ownership scope and career growth. ' +
+    'Direct tone. Name actual ownership, career signal, why this background is relevant. ' +
+    'Hi {firstName},. Include job URL. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name+'. ' +
+    '"followUp3" 90-110 words. Final message — honest and human. Acknowledge this is the last outreach. ' +
+    'One strong specific reason why this role fits someone with their profile. No fluff. ' +
+    'Hi {firstName},. ' + fuCTAenr + ' Sign-off: \\n\\nBest regards,\\n'+name;
 
   const sampleBlock = sample ? 'STYLE REFERENCE (match this tone exactly):\n"""\n'+sample+'\n"""\n' : '';
 
-  const p1 = 'You are a top-tier recruiter copywriter. You write LinkedIn InMails for MASS SENDING — {firstName} is the only token, no individual candidate data.\n\n' +
-  'WHY MOST INMAILS GET DELETED IN 2 SECONDS:\n' +
-  '  BAD: Robotic self-intro every time — I am [Name] from the Talent team at [Company]\n' +
-  '  BAD: Vague flattery — I came across your profile and was really impressed\n' +
-  '  BAD: Generic hook — We are a fast-growing company with great culture\n' +
-  '  BAD: Weak close — this might be worth a look OR would love to connect\n' +
-  '  BAD: All 3 variants are the same skeleton with different middle sentences\n\n' +
-  'WHAT GETS A REPLY:\n' +
-  '  GOOD: Opens with something that stops the scroll — a specific fact, sharp question, bold statement\n' +
-  '  GOOD: Makes the role sound real — names the actual problem, scale, ownership\n' +
-  '  GOOD: Closes with a self-qualifier that makes the RIGHT person lean in\n' +
-  '  GOOD: Each variant has a different opener family, tone, and structure\n\n' +
-  'OPENER FAMILIES — each variant MUST use a different one:\n' +
-  '  [QUESTION]  Quick one, {firstName} — have you ever wanted to own [X] without [common blocker]?\n' +
-  '  [STATEMENT] [Company fact or scale]. The [role] hired now shapes what that becomes.\n' +
-  '  [PROBLEM]   [The specific hard thing about this role]. That is the problem on the table.\n' +
-  '  [OWNERSHIP] Day 1 at [Company]: you own [specific outcome]. No committee. Full remit.\n' +
-  '  [CONTRAST]  Most [role types] never get to [specific thing]. At [Company], this role does.\n\n' +
-  'SELF-QUALIFIER — replace this might be worth a look entirely:\n' +
-  '  BANNED: this might be worth a look\n' +
-  '  BANNED: thought you might find this interesting\n' +
-  '  USE: If owning [specific outcome] without [constraint] is the next problem you want — worth 20 minutes?\n' +
-  '  USE: If [specific skill] is your world and [company differentiator] sounds like the right stage — happy to share more.\n' +
-  '  USE: If [the hard problem from JD] sounds worth solving — [name], [company]. Worth a call?\n\n' +
-  'CONSTRAINT: {firstName} is the ONLY token. Never reference where the recipient works. Intro line MUST VARY across variants.\n\n';
+  const p1 = 'You are a top-tier recruiter copywriter writing LinkedIn InMails for mass sends. {firstName} is the only personalisation token — no individual candidate data.\n\n' + 'MANDATORY STRUCTURE FOR EVERY VARIANT:\n' + '  LINE 1: Hi {firstName},\n' + '  LINE 2: Recruiter intro — natural and short. GOOD: "I\'m '+name+' from '+companyName+'." AVOID: stiff formal self-intro.\n' + '  LINES 3-5: Hook and role substance (different per variant — see below)\n' + '  LINE 6: Role link + contract type\n' + '  LINE 7: Self-qualifier CTA\n' + '  SIGN-OFF: Best regards,\\n'+name+'\n\n' + 'THE THREE VARIANTS HAVE DIFFERENT HOOKS AND SUBSTANCE:\n' + '  VARIANT A (TECH/PROBLEM): Hook = the specific technical problem this role solves.\n' + '  VARIANT B (IMPACT/MISSION): Hook = what the company is building and why it matters now.\n' + '  VARIANT C (GROWTH/CAREER): Hook = what this role unlocks career-wise — ownership, scope, next level.\n\n' + 'SELF-QUALIFIER RULES:\n' + '  BANNED: "this might be worth a look", "thought you might find this interesting"\n' + '  CALL CTA: "If [specific problem] resonates — worth a quick call?"\n' + '  CV CTA: "If this sounds relevant, could you send across your latest resume?" — NEVER add "Worth 20 minutes?" in CV mode.\n' + '  NEVER insert recruiter name/company awkwardly in the middle of message body.\n\n' + 'BANNED PHRASES: "exciting opportunity", "I came across your profile", "hope this finds you well", "this might be worth a look", "unique opportunity", "fast-paced", "passionate team".\n\n';
   const p2 = 'RECRUITER: '+name+' at '+companyName+'\nJOB URL: '+url+'\nLOCATION: '+(location||'not specified')+'\n\n';
   const p3 = 'ROLE INTEL (use these specifically inside message bodies):\n'
     +'- Title: '+roleTitle+'\n'
@@ -8985,44 +9019,57 @@ async function olGenerateEnriched() {
   const _ts = teamMission || 'a sharp team';
   const _ci = careerImpact || 'full ownership';
 
-  const p6 = 'Write 3 variants — each DIFFERENT opener family, each genuinely distinct in structure and tone.\n\n'
-    +'━━ VARIANT A — PROBLEM OPENER ━━\n'
-    +'Start with the PROBLEM or a bold statement. Do NOT open with your name.\n'
-    +'Concrete opener options (adapt using role intel, pick best fit):\n'
-    +'  OPTION 1: "'+_ch+' — that is what we are hiring for at '+companyName+'."\n'
-    +'  OPTION 2: "Most '+roleTitle+'s spend careers working around problems they did not design. At '+companyName+', this role owns them."\n'
-    +(_sc ? '  OPTION 3: "'+_sc+' — and one '+roleTitle+' who owns the critical path. That is this role."\n' : '')
-    +'Then (2-3 sentences): what they own, why the problem is real, the career signal. Then role URL and contract.\n'
-    +'Self-qualifier (NOT this might be worth a look):  "If '+_ch.slice(0,55)+'... is the kind of problem you want — '+name+', '+companyName+'. Worth 20 minutes?"\n'
-    +'CTA: '+ctaInstr+' Sign-off: \\n\\nBest,\\n'+name+'\n\n'
-    +'━━ VARIANT B — QUESTION / CURIOSITY OPENER ━━\n'
-    +'Start with a question or sharp context. Intro line must differ from Variant A.\n'
-    +'Concrete opener options:\n'
-    +'  OPTION 1: "Quick one, {firstName} — have you ever wanted to own '+_ci+' without the usual red tape?"\n'
-    +'  OPTION 2: "'+_usp+'. We are hiring the '+roleTitle+' who helps us keep that edge."\n'
-    +'  OPTION 3: "We are at a specific point at '+companyName+' — '+(_sc||_ts)+'. The person who joins now shapes the next chapter."\n'
-    +'Then (2-3 sentences): what the company is building, why now, the team signal. Then role URL.\n'
-    +'Self-qualifier:  "If '+keySkills+' is your world and this problem sounds interesting — happy to share more. '+name+', '+companyName+'."\n'
-    +'CTA: '+ctaInstr+' Sign-off: \\n\\nBest,\\n'+name+'\n\n'
-    +'━━ VARIANT C — DIRECT OWNERSHIP OPENER ━━\n'
-    +'Drop straight into Day 1 ownership. Intro line must differ from A and B.\n'
-    +'Concrete opener options:\n'
-    +'  OPTION 1: "Day 1 at '+companyName+': you own '+_ci+'. No committee. No hand-holding."\n'
-    +(_sc ? '  OPTION 2: "'+_sc+'. The '+roleTitle+' we hire now designs the architecture for the next order of scale."\n' : '')
-    +'  OPTION 3: "The '+roleTitle+' joining '+companyName+' now gets something rare — '+_ci+' from scratch, in a company that has real traction."\n'
-    +'Then (2-3 sentences): scope of ownership, team, what success in 12 months looks like. Then role URL.\n'
-    +'Self-qualifier:  "If building '+_ci.slice(0,50)+'... from scratch is what you are looking for — this is it. Worth a conversation?"\n'
-    +'CTA: '+ctaInstr+' Sign-off: \\n\\nBest,\\n'+name+'\n\n'
-    +'HARD RULES all variants: (1) Intro line MUST differ across variants — never copy the same self-intro. (2) NEVER write this might be worth a look. (3) {firstName} is the only token — no candidate company. (4) \\n\\n between every paragraph. (5) 120-160 words per variant.\n';
+  const p6 = 'WRITE 3 VARIANTS. Each MUST follow: Hi {firstName}, → recruiter intro → hook → body → role link → CTA → Best regards.\n\n'
+    +'━━ VARIANT A — TECH / PROBLEM HOOK ━━\n'
+    +'Required line 1: Hi {firstName},\n'
+    +'Required line 2: I\'m '+name+' from '+companyName+'.\n'
+    +'Hook — choose strongest for this role:\n'
+    +'  OPT 1: "'+_ch+' — that is the engineering problem we are hiring for at '+companyName+'."\n'
+    +'  OPT 2: "Most '+roleTitle+'s spend their careers working around problems they did not design. At '+companyName+', this role owns them from day one."\n'
++(_sc ? "    +'  OPT 3: '"+_sc+" — and one "+roleTitle+" who owns the critical path. That is this role.'\n'\n" : '')
+    +'Body (2-3 sentences): what they own, why the problem is hard and real, the career signal. Use: '+_ci+'.\n'
+    +'Role link: '+url+' — '+contractType+'\n'
+    +'CTA: '+ctaInstr+'\n'
+    +'Required closing: Best regards,\\n'+name+'\n\n'
+    +'━━ VARIANT B — IMPACT / MISSION HOOK ━━\n'
+    +'Required line 1: Hi {firstName},\n'
+    +'Required line 2: I\'m '+name+', part of the talent team at '+companyName+'.\n'
+    +'Hook — choose strongest:\n'
+    +'  OPT 1: "'+_usp+'. We are at the stage where the '+roleTitle+' we hire now shapes the next three years."\n'
+    +'  OPT 2: "We are building '+(_sc ? 'for '+_sc : 'at meaningful scale')+' — the architecture decisions made in this role define how '+companyName+' operates at the next order of magnitude."\n'
+    +'Body (2-3 sentences): team signal, business impact, why now is the right time. Use: '+_ts+'.\n'
+    +'Role link: '+url+'\n'
+    +'CTA: '+ctaInstr+'\n'
+    +'Required closing: Best regards,\\n'+name+'\n\n'
+    +'━━ VARIANT C — GROWTH / CAREER HOOK ━━\n'
+    +'Required line 1: Hi {firstName},\n'
+    +'Required line 2: I\'m '+name+' from '+companyName+' — reaching out about a '+roleTitle+' role.\n'
+    +'Hook — choose strongest:\n'
+    +'  OPT 1: "'+_ci+' — full ownership, no legacy constraints, from day one. That is what this role is."\n'
+    +'  OPT 2: "The '+roleTitle+' joining '+companyName+' now gets something genuinely rare: '+_ci+' at a company with real traction and room to grow."\n'
+    +'Body (2-3 sentences): career signal, scope of ownership, what 12 months in looks like. Use: '+_ts+'.\n'
+    +'Role link: '+url+'\n'
+    +'CTA: '+ctaInstr+'\n'
+    +'Required closing: Best regards,\\n'+name+'\n\n'
+    +'HARD RULES — ALL VARIANTS:\n'
+    +'1. Every variant MUST start: Hi {firstName},\n'
+    +'2. Every variant MUST have recruiter intro as line 2 (vary phrasing across variants)\n'
+    +'3. Every variant MUST close: Best regards,\\n'+name+'\n'
+    +'4. CV ask mode: NEVER add "Worth 20 minutes?" before CV request — end with CV ask only\n'
+    +'5. NEVER insert recruiter name/company awkwardly inside body content\n'
+    +'6. {firstName} is the ONLY token — never reference candidate company\n'
+    +'7. \\n\\n between every paragraph. 130-160 words per variant.\n';
 
-  const p7 = 'QUALITY CHECK before writing output:\n'
-    +'1. Does any variant open with I am [name] from the Talent team at [company]? Rewrite using a different opener family.\n'
-    +'2. Does any variant say this might be worth a look or thought you might find this interesting? Replace with a specific self-qualifier.\n'
-    +'3. Do all 3 variants have genuinely different openers and structures? If they look like the same template — rewrite.\n'
-    +'4. Does any variant mention the recipient employer? Remove it.\n'
-    +'5. Is the role problem specific and concrete — does it name the actual challenge? Make it real.\n'
-    +'BANNED: exciting opportunity, I came across your profile, hope this finds you well, this might be worth a look, unique opportunity, fast-paced, passionate team, I am [name] from the Talent team.\n'
-    +'Tone: smart, peer-to-peer, direct. Like a sharp colleague — not a recruiter filling a form.\n\n';
+  const p7 = 'FINAL QUALITY CHECK — run before producing output:\n'
+    +'1. Does every variant start with Hi {firstName}, ? If not — add it now.\n'
+    +'2. Does every variant have a recruiter intro as line 2? If not — add it.\n'
+    +'3. Does every variant end with Best regards,\\n[name] ? If not — add it.\n'
+    +'4. Is recruiter name/company appearing inside body content (not in intro or sign-off)? Remove it.\n'
+    +'5. CV ask mode: does any message say "Worth 20 minutes?" before asking for CV? Remove that phrase.\n'
+    +'6. Do all 3 variants have genuinely different hooks and substance? If same structure — rewrite.\n'
+    +'7. Is every role detail specific and concrete? If vague — make it real.\n'
+    +'BANNED: exciting opportunity, I came across your profile, hope this finds you well, this might be worth a look, unique opportunity, fast-paced, passionate team.\n'
+    +'Tone: sharp, credible, polished, senior-level. Confident without being salesy.\n\n';
   const p8 = 'FOLLOW-UPS:\n'+fuInstr+'\n\n'+
     'Follow-up structure (mass-send — NO candidate-specific details, NO mention of where they work):\n'+
     'Hi {firstName},\n\n'+
@@ -9052,8 +9099,8 @@ async function olGenerateEnriched() {
       const s2 = str.replace(/"((?:[^"\\\n]|\\.)*)"/g, (m, inner) =>
         '"' + inner.replace(/\n/g,'\\n').replace(/\r/g,'') + '"');
       try { return JSON.parse(s2); } catch(_) {}
-      // Pass 3: brute-force replace all bare newlines
-      const s3 = str.replace(/([^\\])\n/g, '$1\\n').replace(/([^\\])\r/g,'$1');
+      // Pass 3: replace all bare newlines globally (safe — valid JSON never has bare newlines outside strings)
+      const s3 = str.replace(/\r\n/g,'\\n').replace(/\r/g,'\\n').replace(/\n/g,'\\n');
       try { return JSON.parse(s3); } catch(_) {}
       // Pass 4: close unclosed braces
       let s4 = str;
@@ -10318,61 +10365,15 @@ function ptTplTypeChange() {
 }
 
 function ptSaveTemplate() {
-  var name = (document.getElementById('pt-tpl-name').value || '').trim();
-  if (!name) {
-    document.getElementById('pt-tpl-name').focus();
-    ptShowMsg('pt-tpl-msg', 'Please enter a template name.', false); return;
-  }
-  var type = document.getElementById('pt-tpl-type').value;
-  var get  = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
-  var chk  = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
-
-  var settings = {};
-  if (type === 'outreach') {
-    var wmin = parseInt(get('pt-tpl-ol-wmin'),10) || 80;
-    var wmax = parseInt(get('pt-tpl-ol-wmax'),10) || 120;
-    if (wmin >= wmax) { ptShowMsg('pt-tpl-msg', 'Min words must be less than max.', false); return; }
-    settings = {
-      tone:     get('pt-tpl-ol-tone'),
-      cta:      get('pt-tpl-ol-cta'),
-      fu:       parseInt(get('pt-tpl-ol-fu'),10) || 1,
-      wordMin:  wmin,
-      wordMax:  wmax,
-    };
-  } else if (type === 'screening') {
-    settings = {
-      rubric:       get('pt-tpl-sc-rubric'),
-      rubricCustom: get('pt-tpl-sc-rubric-custom').slice(0,500),
-      showGaps:     chk('pt-tpl-sc-gaps'),
-      showRedFlags: chk('pt-tpl-sc-redflags'),
-      showQs:       chk('pt-tpl-sc-qs'),
-      execOnly:     chk('pt-tpl-sc-summary'),
-    };
-  } else if (type === 'battlecards') {
-    settings = {
-      mode:      get('pt-tpl-bc-mode'),
-      freshness: get('pt-tpl-bc-freshness'),
-      seniority: get('pt-tpl-bc-seniority'),
-    };
-  }
-
-  var templates = loadTemplates();
-  if (templates.length >= MAX_TEMPLATES) {
-    ptShowMsg('pt-tpl-msg', 'Max ' + MAX_TEMPLATES + ' templates. Delete one first.', false); return;
-  }
-  templates.push({ id: ptGenId(), name: name, type: type, settings: settings, createdAt: Date.now() });
-  saveTemplates(templates);
-  document.getElementById('pt-tpl-name').value = '';
-  ptShowMsg('pt-tpl-msg', '✅ Template "' + name + '" saved.', true);
-  ptRenderTemplates();
-  appState.activeTemplateId = templates[templates.length-1].id;
+  // Template saving is done from the Candidate Outreach panel
+  ptShowMsg('pt-tpl-msg', '💡 Templates are saved from the Candidate Outreach panel.', false);
 }
 
 function ptRenderTemplates() {
   var list      = document.getElementById('pt-templates-list');
   var templates = loadTemplates();
   if (!templates.length) {
-    list.innerHTML = '<div class="pt-empty">No templates yet.<br>Save settings below to create one.</div>';
+    list.innerHTML = '<div class="pt-empty">No templates yet. Save a template from the Candidate Outreach panel.</div>';
     return;
   }
 
@@ -10778,8 +10779,6 @@ function _ptGetDashes(projId) {
   return proj.savedDashboards || proj.dashboardOutputs || [];
 }
 
-// Show battle on load
-showBattle();
 ptUpdateSidebarIndicator();
 
 
